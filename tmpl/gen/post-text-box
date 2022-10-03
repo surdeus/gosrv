@@ -1,0 +1,8 @@
+<form method="POST" class="typepost" action="{{template "action" .}}">
+  <input class="pass" type="password" name="pass" value="" >
+  <input class="title" type="text" name="title" value="{{if hasField . "Post"}}{{.Post.Title}}{{end}}" >
+  <textarea class="desc" type="text" name="desc" >{{if hasField . "Post"}}{{.Post.Desc}}{{end}}</textarea>
+  <textarea class="post" type="text" name="text" >{{if hasField . "Post"}}{{.Post.Content}}{{end}}</textarea>
+  <input class="char-btn" type="submit" value="✓" >
+</form>
+

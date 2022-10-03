@@ -1,0 +1,17 @@
+
+{{define "title"}}
+	{{.Post.WebTitle}}
+{{end}}
+
+{{define "content"}}
+  <div class="main-box">
+	  {{if hasField . "Id"}}
+		<span class="char-btn">[<a href=/tp/{{.Id}}>✐</a>]</span>
+	  {{end}}
+	  <article>
+	    {{.Post.Content}}
+	  </article>
+  </div>
+{{end}}
+
+{{template "master" .}}

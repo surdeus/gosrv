@@ -1,0 +1,17 @@
+{{define "title"}}
+	{{if hasField . "Post"}}
+		Edit {{.Post.Title}}
+	{{end}}
+	{{if not (hasField . "Post")}}
+		Type new
+	{{end}}
+{{end}}
+
+{{define "action"}}/tp/{{if hasField . "Id"}}{{.Id}}{{end}}{{end}}
+
+{{define "content"}}
+	{{template "post-text-box" .}}
+{{end}}
+
+{{template "master" . }}
+
