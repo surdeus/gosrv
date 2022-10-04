@@ -1,4 +1,4 @@
-package router
+package muxes
 
 import(
 	//"html/template"
@@ -18,7 +18,7 @@ type HndlArg struct {
 
 type Handler func(http.ResponseWriter, *http.Request, HndlArg)
 
-type Definition struct {
+type FuncDefinition struct {
 	Pref, Re string
 	Fn Handler
 }
@@ -49,7 +49,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 	fn(w, r, a)
 }}
 
-func Mux(mux *http.ServeMux,defs []Definition) *http.ServeMux {
+func DefineFuncs(mux *http.ServeMux,defs []FuncDefinition) *http.ServeMux {
 	if mux == nil {
 		mux = http.NewServeMux()
 	}

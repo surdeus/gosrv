@@ -6,17 +6,17 @@ import(
 	"flag"
 	"log"
 	"net/http"
-	"github.com/surdeus/ghost/src/router"
+	"github.com/surdeus/ghost/src/muxes"
 	//"regexp"
 )
 
 func HelloWorld(w http.ResponseWriter, r *http.Request,
-		a router.HndlArg) {
+		a muxes.HndlArg) {
 	fmt.Fprintf(w, "Hello, World!")
 }
 
 func SalutonMondo(w http.ResponseWriter, r *http.Request,
-		a router.HndlArg) {
+		a muxes.HndlArg) {
 	name := "Mondo"
 	_, ok := a.Q["name"]
 	if ok {
@@ -34,13 +34,13 @@ main(){
 		os.Exit(1)
 	}
 
-	defs := []router.Definition{
+	defs := []muxes.FuncDefinition{
 		{"/", "^$", HelloWorld},
 		{"/eo/", "^$", SalutonMondo},
-		{"/test/", "", router.GetTest},
+		{"/test/", "", muxes.GetTest},
 	}
 
-	mux := router.Mux(nil, defs)
+	mux := muxes.DefineFuncs(nil, defs)
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,
