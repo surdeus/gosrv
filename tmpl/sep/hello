@@ -1,0 +1,13 @@
+<!doctype html>
+
+<html><head>
+
+<title></title>
+
+</head><body>
+
+Hello, <strong>World</strong>!
+
+{{template "master" .}}
+
+</body></html>

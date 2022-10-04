@@ -2,27 +2,34 @@ package main
 
 import(
 	"os"
-	"fmt"
+	//"fmt"
 	"flag"
 	"log"
 	"net/http"
 	"github.com/surdeus/ghost/src/muxes"
+	"github.com/surdeus/ghost/src/templates"
 	//"regexp"
+)
+
+var (
+	tmpls templates.Templates
 )
 
 func HelloWorld(w http.ResponseWriter, r *http.Request,
 		a muxes.HndlArg) {
-	fmt.Fprintf(w, "Hello, World!")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmpls.Execute(w, "hello", struct{}{})
 }
 
 func SalutonMondo(w http.ResponseWriter, r *http.Request,
 		a muxes.HndlArg) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	name := "Mondo"
 	_, ok := a.Q["name"]
 	if ok {
 		name = a.Q["name"][0]
 	}
-	fmt.Fprintf(w, "Saluton, %s!", name)
+	tmpls.Execute(w, "saluton", struct{Name string}{Name: name})
 }
 
 func
@@ -33,6 +40,8 @@ main(){
 	if len(args) > 0 {
 		os.Exit(1)
 	}
+
+	tmpls = templates.MustParseTemplates("tmpl/sep", "tmpl/gen", templates.FuncMap{})
 
 	defs := []muxes.FuncDefinition{
 		{"/", "^$", HelloWorld},

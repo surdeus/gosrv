@@ -1,0 +1,13 @@
+<!doctype html>
+
+<html><head>
+
+<title></title>
+
+</head><body>
+
+Saluton, <strong>{{.Name}}</strong>!
+
+{{template "master" .}}
+
+</body></html>
