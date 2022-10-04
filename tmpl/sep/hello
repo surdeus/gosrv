@@ -8,6 +8,8 @@
 
 Hello, <strong>World</strong>!
 
+{{SomeFunc}}
+
 {{template "master" .}}
 
 </body></html>

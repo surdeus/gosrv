@@ -41,7 +41,11 @@ main(){
 		os.Exit(1)
 	}
 
-	tmpls = templates.MustParseTemplates("tmpl/sep", "tmpl/gen", templates.FuncMap{})
+	tmpls = templates.MustParseTemplates("tmpl/sep", "tmpl/gen",
+		templates.FuncMap{
+			"SomeFunc": func() string {
+				return "<div>This is some string</div>"
+			}})
 
 	defs := []muxes.FuncDefinition{
 		{"/", "^$", HelloWorld},
