@@ -1,6 +1,5 @@
 <mkconfig
 <$MKINCDIR/gobuild
 
-test :
-	exec ./exe/rundev
+<$MKINCDIR/w3/run-dev
 

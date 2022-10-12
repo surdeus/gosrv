@@ -32,8 +32,7 @@ func SalutonMondo(w http.ResponseWriter, r *http.Request,
 	tmpls.Execute(w, "saluton", struct{Name string}{Name: name})
 }
 
-func
-main(){
+func main(){
 	AddrStr := flag.String("a", ":8080", "Adress string")
 	flag.Parse()
 	args := flag.Args()
@@ -41,11 +40,16 @@ main(){
 		os.Exit(1)
 	}
 
-	tmpls = templates.MustParseTemplates("tmpl/sep", "tmpl/gen",
-		templates.FuncMap{
+	cfg := templates.ParseConfig{
+		Gen: "tmpl/gen",
+		Sep: "tmpl/sep",
+		FuncMap: templates.FuncMap{
 			"SomeFunc": func() string {
 				return "<div>This is some string</div>"
-			}})
+		}},
+	}
+
+	tmpls = templates.MustParseTemplates(cfg)
 
 	defs := []muxes.FuncDefinition{
 		{"/", "^$", HelloWorld},

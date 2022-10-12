@@ -4,13 +4,15 @@ import(
 	"html/template"
 	"io/ioutil"
 	"io"
-	"reflect"
 	"log"
-	//"fmt"
 )
 
 type Templates map[string] *template.Template
 type FuncMap = template.FuncMap
+type ParseConfig struct {
+	Sep, Gen string
+	FuncMap FuncMap
+}
 
 func (tmpls Templates)Execute(w io.Writer, t string, v any) {
 	err := tmpls[t].ExecuteTemplate(w, t, v)
@@ -19,23 +21,27 @@ func (tmpls Templates)Execute(w io.Writer, t string, v any) {
 	}
 }
 
-func MustParseTemplates(sep, gen string, funcMap FuncMap) Templates {
+func MustParseTemplates(cfg ParseConfig) Templates {
 	ret := make(map[string] *template.Template)
 
-	files, err := ioutil.ReadDir(sep)
+	files, err := ioutil.ReadDir(cfg.Sep)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, f := range files {
 		ret[f.Name()] =
-			MustParseTemplate(sep, gen, f.Name(), funcMap)
+			MustParseTemplate(cfg, f.Name())
 	}
 
 	return ret
 }
 
-func MustParseTemplate(sep, gen, name string, funcMap template.FuncMap) *template.Template {
+func MustParseTemplate(cfg ParseConfig, name string) *template.Template {
+	sep := cfg.Sep
+	gen := cfg.Gen
+	funcMap := cfg.FuncMap
+
 	lfs := []string{sep + "/" + name}
 
 	files, _ := ioutil.ReadDir(gen)
@@ -50,24 +56,5 @@ func MustParseTemplate(sep, gen, name string, funcMap template.FuncMap) *templat
 	}
 
 	return tmpl
-}
-
-func HasField(v interface{}, name string) bool {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	if rv.Kind() != reflect.Struct {
-		return false
-	}
-	return rv.FieldByName(name).IsValid()
-}
-
-func Sum(a, b int) int {
-	return a + b
-}
-
-func Neg(a int) int {
-	return -a
 }
 
