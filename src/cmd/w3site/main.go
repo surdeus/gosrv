@@ -12,13 +12,13 @@ import(
 )
 
 var (
-	tmpls templates.Templates
+	tmpls *templates.Templates
 )
 
 func HelloWorld(w http.ResponseWriter, r *http.Request,
 		a muxes.HndlArg) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tmpls.Execute(w, "hello", struct{}{})
+	tmpls.Exec(w, "hellos/en", struct{}{})
 }
 
 func SalutonMondo(w http.ResponseWriter, r *http.Request,
@@ -29,7 +29,7 @@ func SalutonMondo(w http.ResponseWriter, r *http.Request,
 	if ok {
 		name = a.Q["name"][0]
 	}
-	tmpls.Execute(w, "saluton", struct{Name string}{Name: name})
+	tmpls.Exec(w, "hellos/eo", struct{Name string}{Name: name})
 }
 
 func main(){
@@ -41,15 +41,18 @@ func main(){
 	}
 
 	cfg := templates.ParseConfig{
-		Gen: "tmpl/gen",
-		Sep: "tmpl/sep",
+		Root: "tmpl",
 		FuncMap: templates.FuncMap{
 			"SomeFunc": func() string {
 				return "<div>This is some string</div>"
 		}},
 	}
 
-	tmpls = templates.MustParseTemplates(cfg)
+	var err error
+	tmpls, err = templates.Parse(cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	defs := []muxes.FuncDefinition{
 		{"/", "^$", HelloWorld},

@@ -1,4 +1,5 @@
 MKSHELL = sh
 <$(MKINCDIR)/config
+WATCH_FILES = src tmpl
 CC = cc
 

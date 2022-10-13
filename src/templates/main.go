@@ -2,59 +2,82 @@ package templates
 
 import(
 	"html/template"
-	"io/ioutil"
 	"io"
 	"log"
+	"os"
 )
 
-type Templates map[string] *template.Template
+type Templates struct {
+	*template.Template
+}
 type FuncMap = template.FuncMap
 type ParseConfig struct {
-	Sep, Gen string
+	Root string
 	FuncMap FuncMap
 }
 
-func (tmpls Templates)Execute(w io.Writer, t string, v any) {
-	err := tmpls[t].ExecuteTemplate(w, t, v)
+func (tmpls *Templates)Exec(w io.Writer, t string, v any) {
+	err := tmpls.ExecuteTemplate(w, t, v)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func MustParseTemplates(cfg ParseConfig) Templates {
-	ret := make(map[string] *template.Template)
+func Parse(cfg ParseConfig) (*Templates, error) {
+	t := template.New("")
 
-	files, err := ioutil.ReadDir(cfg.Sep)
+	t, err := parseFromDir(t, cfg, "")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	for _, f := range files {
-		ret[f.Name()] =
-			MustParseTemplate(cfg, f.Name())
-	}
-
-	return ret
+	return &Templates{t}, nil
 }
 
-func MustParseTemplate(cfg ParseConfig, name string) *template.Template {
-	sep := cfg.Sep
-	gen := cfg.Gen
-	funcMap := cfg.FuncMap
-
-	lfs := []string{sep + "/" + name}
-
-	files, _ := ioutil.ReadDir(gen)
-	for _, f := range files {
-		lfs = append(lfs, gen+"/"+f.Name())
+func
+parseFromDir(t *template.Template, cfg ParseConfig, dir string)(*template.Template, error) {
+	p := cfg.Root
+	if dir != "" {
+		p += "/" + dir
 	}
 
-	tmpl, err := template.New("").
-		Funcs(funcMap).ParseFiles(lfs...)
+	files, err := os.ReadDir(p)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return tmpl
+	for _, file := range files {
+		fileName := file.Name()
+		filePath := fileName
+		if filePath != "" {
+			filePath = p + "/" + filePath
+		}
+
+
+		tmplName := fileName
+		if dir != "" {
+			tmplName = dir + "/" + tmplName
+		}
+
+		if file.IsDir() {
+			t, err = parseFromDir(t, cfg, tmplName)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			b, err := os.ReadFile(filePath)
+			if err != nil {
+				return nil, err
+			}
+
+			t = t.New(tmplName)
+			t, err = t.Funcs(cfg.FuncMap).Parse(string(b))
+			if err != nil {
+					return nil, err
+			}
+		}
+	}
+
+	return t, nil
 }
 
