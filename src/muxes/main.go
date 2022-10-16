@@ -12,11 +12,13 @@ import(
 )
 
 type HndlArg struct {
+	W http.ResponseWriter
+	R *http.Request
 	Q url.Values
 	P string
 }
 
-type Handler func(http.ResponseWriter, *http.Request, HndlArg)
+type Handler func(a HndlArg)
 
 type FuncDefinition struct {
 	Pref, Re string
@@ -45,8 +47,11 @@ return func(w http.ResponseWriter, r *http.Request) {
 
 	if e != nil {
 	}
+
+	a.W = w
+	a.R = r
 	
-	fn(w, r, a)
+	fn(a)
 }}
 
 func DefineFuncs(mux *http.ServeMux,defs []FuncDefinition) *http.ServeMux {
@@ -64,7 +69,9 @@ func DefineFuncs(mux *http.ServeMux,defs []FuncDefinition) *http.ServeMux {
 	return mux
 }
 
-func GetTest(w http.ResponseWriter, r *http.Request, a HndlArg){
+func GetTest(a HndlArg){
+	w := a.W
+	r := a.R
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	fmt.Fprintf(w, "Path: '%s'\nRawQuery:'%s'\n", r.URL.Path, r.URL.RawQuery)
 	fmt.Fprintf(w, "a.P: '%s'\n", a.P)

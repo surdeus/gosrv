@@ -15,21 +15,19 @@ var (
 	tmpls *templates.Templates
 )
 
-func HelloWorld(w http.ResponseWriter, r *http.Request,
-		a muxes.HndlArg) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tmpls.Exec(w, "hellos/en", struct{}{})
+func HelloWorld(a muxes.HndlArg) {
+	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmpls.Exec(a.W, "hellos/en", struct{}{})
 }
 
-func SalutonMondo(w http.ResponseWriter, r *http.Request,
-		a muxes.HndlArg) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+func SalutonMondo(a muxes.HndlArg) {
+	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	name := "Mondo"
 	_, ok := a.Q["name"]
 	if ok {
 		name = a.Q["name"][0]
 	}
-	tmpls.Exec(w, "hellos/eo", struct{Name string}{Name: name})
+	tmpls.Exec(a.W, "hellos/eo", struct{Name string}{Name: name})
 }
 
 func main(){
