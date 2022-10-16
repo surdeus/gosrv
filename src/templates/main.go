@@ -5,6 +5,7 @@ import(
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 type Templates struct {
@@ -65,6 +66,10 @@ parseFromDir(t *template.Template, cfg ParseConfig, dir string)(*template.Templa
 				return nil, err
 			}
 		} else {
+			if strings.HasPrefix(fileName, ".") {
+				continue
+			}
+
 			b, err := os.ReadFile(filePath)
 			if err != nil {
 				return nil, err
