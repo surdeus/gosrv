@@ -30,6 +30,18 @@ func SalutonMondo(a muxes.HndlArg) {
 	tmpls.Exec(a.W, "hellos/eo", struct{Name string}{Name: name})
 }
 
+func GeneralChainFunc(hndl muxes.Handler) muxes.Handler {
+return func(a muxes.HndlArg) {
+	fmt.Println("general function got called")
+	hndl(a)
+}}
+
+func OtherFunc(hndl muxes.Handler) muxes.Handler {
+return func(a muxes.HndlArg) {
+	fmt.Println("some other func called")
+	hndl(a)
+}}
+
 func main(){
 	AddrStr := flag.String("a", ":8080", "Adress string")
 	flag.Parse()
@@ -54,13 +66,15 @@ func main(){
 
 	fmt.Printf("%v\n", tmpls)
 
-	defs := []muxes.FuncDefinition{
-		{"/", "^$", HelloWorld},
-		{"/eo/", "^$", SalutonMondo},
-		{"/test/", "", muxes.GetTest},
+	defs := []muxes.HndlDef {
+		{"/", "^$", muxes.Handlers{
+			"GET": muxes.Chained(muxes.Chain{GeneralChainFunc}, HelloWorld)} },
+		{"/eo/", "^$", muxes.Handlers{
+			"GET":muxes.Chained(muxes.Chain{GeneralChainFunc, OtherFunc}, SalutonMondo)} },
+		{"/test/", "", muxes.Handlers{"GET": muxes.GetTest} },
 	}
 
-	mux := muxes.DefineFuncs(nil, defs)
+	mux := muxes.Define(nil, defs)
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,

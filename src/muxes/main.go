@@ -7,9 +7,15 @@ import(
 	"regexp"
 	//"strconv"
 	//"io/ioutil"
+	"log"
 	"fmt"
 	"github.com/surdeus/ghost/src/urlpath"
 )
+
+type Handler func(a HndlArg)
+type ChainHandler func(h Handler) Handler
+type Chain []ChainHandler
+type Handlers map[string] Handler
 
 type HndlArg struct {
 	W http.ResponseWriter
@@ -18,14 +24,23 @@ type HndlArg struct {
 	P string
 }
 
-type Handler func(a HndlArg)
 
-type FuncDefinition struct {
+type HndlDef struct {
 	Pref, Re string
-	Fn Handler
+	Handlers Handlers
 }
 
-func MakeHttpHandleFunc(pref string, re *regexp.Regexp, fn Handler) http.HandlerFunc {
+// Chain functions into final form.
+func Chained(c Chain, h Handler) Handler {
+	if len(c) > 1 {
+		return c[0]( Chained(c[1:], h) )
+	}
+
+	return c[0](h)
+}
+
+// Create final function handler.
+func MakeHttpHandleFunc(pref string, re *regexp.Regexp, handlers Handlers) http.HandlerFunc {
 return func(w http.ResponseWriter, r *http.Request) {
 	var(
 		a HndlArg
@@ -38,7 +53,8 @@ return func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch r.Method {
+	method := r.Method
+	switch method {
 	case "GET" :
 		a.Q, e = url.ParseQuery(r.URL.RawQuery)
 	case "POST" :
@@ -46,15 +62,16 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if e != nil {
+		log.Println(e)
 	}
 
 	a.W = w
 	a.R = r
 	
-	fn(a)
+	handlers[method](a)
 }}
 
-func DefineFuncs(mux *http.ServeMux,defs []FuncDefinition) *http.ServeMux {
+func Define(mux *http.ServeMux, defs []HndlDef) *http.ServeMux {
 	if mux == nil {
 		mux = http.NewServeMux()
 	}
@@ -63,7 +80,7 @@ func DefineFuncs(mux *http.ServeMux,defs []FuncDefinition) *http.ServeMux {
 		mux.HandleFunc(def.Pref,
 			MakeHttpHandleFunc(def.Pref,
 				regexp.MustCompile(def.Re),
-				def.Fn))
+				def.Handlers))
 	}
 
 	return mux
