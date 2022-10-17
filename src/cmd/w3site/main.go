@@ -8,11 +8,12 @@ import(
 	"net/http"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
+	//"html/template"
 	//"regexp"
 )
 
 var (
-	tmpls *templates.Templates
+	tmpls templates.Templates
 )
 
 func HelloWorld(a muxes.HndlArg) {
@@ -51,11 +52,16 @@ func main(){
 	}
 
 	cfg := templates.ParseConfig{
-		Root: "tmpl",
+		Gen: "tmpl/c/",
+		Sep: "tmpl/view/",
 		FuncMap: templates.FuncMap{
 			"SomeFunc": func() string {
 				return "<div>This is some string</div>"
-		}},
+			},
+			/*"TmplFunc" : func(template *Template) {
+				fmt.Printf("got '%s template\n',")
+			},*/
+		},
 	}
 
 	var err error
@@ -63,6 +69,12 @@ func main(){
 	if err != nil {
 		panic(err)
 	}
+
+
+	/*fmt.Println("Parsed templates:")
+	for _, v := range tmpls.Templates() {
+		fmt.Printf("'%s'\n", v.Name())
+	}*/
 
 	fmt.Printf("%v\n", tmpls)
 

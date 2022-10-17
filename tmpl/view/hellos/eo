@@ -1,0 +1,11 @@
+
+{{define "!title"}}Saluton, Mondo!{{end}}
+
+{{define "!body"}}
+
+Saluton, <strong>{{.Name}}</strong>!
+
+{{end}}
+
+
+{{template "master" .}}
