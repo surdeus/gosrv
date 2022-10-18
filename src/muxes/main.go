@@ -117,6 +117,10 @@ func GetTest(a HndlArg){
 		}
 	}
 
+	fmt.Fprintf(w, "a.R.Cookies():\n")
+	for _, c := range a.R.Cookies() {
+		fmt.Fprintf(w, "\t'%v'\n", c)
+	}
 }
 
 

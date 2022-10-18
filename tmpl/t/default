@@ -1,11 +1,24 @@
 <!doctype html>
 <html><head>
 
-<title>{{template "!title" .}}</title>
+<title>{{block "#title" .}}Standard title{{end}}</title>
 
 </head><body>
 
-{{block "!body" .}}No body{{end}}
+
+<header>{{block "#header" .}}
+	{{template "default/header" .}}
+{{end}}</header>
+
+<div id="content">{{block "#content" .}}No body{{end}}</div>
+
+<nav>{{block "#nav" .}}
+	{{template "default/nav" .}}
+{{end}}</nav>
+
+<footer>{{block "#footer" .}}
+	{{template "default/footer" .}}
+{{end}}</footer>
 
 </body></html>
 

@@ -44,9 +44,17 @@ return func(a muxes.HndlArg) {
 }}
 
 func GetCookies(a muxes.HndlArg) {
+	_, ok1 := a.Q["name"]
+	_, ok2 := a.Q["value"]
+	if !ok1 || !ok2 {
+		http.Error(a.W, "Wrong args", http.StatusInternalServerError)
+		return
+	}
+
+
 	cookie := &http.Cookie{
-		Name: "cook",
-		Value: "value",
+		Name: a.Q["name"][0],
+		Value: a.Q["value"][0],
 		Path: "/",
 	}
 	http.SetCookie(a.W, cookie)
@@ -56,10 +64,6 @@ func GetCookies(a muxes.HndlArg) {
 
 func Authorize(hndl muxes.Handler) muxes.Handler {
 return func(a muxes.HndlArg) {
-	fmt.Println("in")
-	for _, c := range a.R.Cookies() {
-		fmt.Println(c)
-	}
 	hndl(a)
 }}
 

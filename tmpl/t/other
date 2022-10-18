@@ -5,7 +5,7 @@
 
 </head><body>
 
-{{block "!body" .}}No body{{end}}
+{{block "!content" .}}No body{{end}}
 
 THIS IS THE OTHER TEMPLATE BODY!
 

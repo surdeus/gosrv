@@ -1,11 +1,17 @@
 
-{{define "!title"}}Saluton, Mondo!{{end}}
+{{define "#header"}}
+	Gxi estas header
+{{end}}
 
-{{define "!body"}}
+{{define "#content"}}
 
 Saluton, <strong>{{.Name}}</strong>!
 
 {{end}}
 
+{{define "#nav"}}
+	Gxi estas navigacio
+{{end}}
 
-{{template "master" .}}
+
+{{template "@master" .}}

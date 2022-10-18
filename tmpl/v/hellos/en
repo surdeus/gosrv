@@ -1,8 +1,8 @@
 
 
-{{define "!title"}}Hello, World!{{end}}
+{{define "#title"}}Hello, World!{{end}}
 
-{{define "!body"}}
+{{define "#content"}}
 
 Hello, <strong>World</strong>!
 
@@ -14,5 +14,4 @@ Hello, <strong>World</strong>!
 
 {{end}}
 
-{{template "master" .}}
-
+{{template "@master" .}}

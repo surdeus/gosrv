@@ -29,13 +29,15 @@ func (tmpls Templates)Exec(w io.Writer, t, v string, val any) {
 func Parse(cfg ParseConfig) (Templates, error) {
 	var (
 		ts Templates
+		err error
 	)
 	t := template.New("").Funcs(cfg.FuncMap)
 
-	t, err := parseFromDir(t, cfg.Component, "")
+	t, err = parseFromDir(t, cfg.Component, "")
 	if err != nil {
 		return nil, err
 	}
+	
 
 	ts = make(Templates)
 	err = filepath.Walk(cfg.View,
@@ -80,17 +82,21 @@ func Parse(cfg ParseConfig) (Templates, error) {
 				}
 
 				tmplName := pth[len(cfg.Template):]
+				//fmt.Printf("'%s' / '%s'\n", tmplName, viewName)
 
 				_, ok := ts[tmplName]
 				if !ok {
 					ts[tmplName] = make(map[string] *template.Template)
 				}
-				st, err := tv.New("master").Parse(string(b2))
+
+				st, err := tv.New("@master").Parse(string(b2))
+				if err != nil {
+					return err
+				}
 				st, err = st.New("").Parse(string(b))
 				if err != nil {
 					return err
 				}
-				//fmt.Printf("'%s' / '%s'\n", tmplName, viewName)
 
 				ts[tmplName][viewName] = st
 
@@ -102,12 +108,9 @@ func Parse(cfg ParseConfig) (Templates, error) {
 				return err
 			}
 
-			/*hts[tmplName], err = tv.
-				New("").
-				Parse(string(b))*/
-
 			return nil
-		})
+		},
+	)
 
 	if err != nil {
 		return nil, err
