@@ -86,6 +86,23 @@ func Define(mux *http.ServeMux, defs []HndlDef) *http.ServeMux {
 	return mux
 }
 
+func DefineStatic(mux *http.ServeMux, path, pref string) *http.ServeMux {
+	if mux == nil {
+		mux = http.NewServeMux()
+	}
+
+	fs := http.FileServer(http.Dir(path))
+	mux.Handle(
+		pref,
+		http.StripPrefix(
+				pref,
+				fs,	
+		),
+	)
+
+	return mux
+}
+
 func GetTest(a HndlArg){
 	w := a.W
 	r := a.R

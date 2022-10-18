@@ -93,6 +93,7 @@ func main(){
 	}
 
 	mux := muxes.Define(nil, defs)
+	muxes.DefineStatic(mux, "s/", "/s/")
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,
