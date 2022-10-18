@@ -14,6 +14,7 @@ import(
 
 var (
 	tmpls templates.Templates
+	adminPassword string
 )
 
 func HelloWorld(a muxes.HndlArg) {
@@ -42,9 +43,23 @@ return func(a muxes.HndlArg) {
 	hndl(a)
 }}
 
-func OtherFunc(hndl muxes.Handler) muxes.Handler {
+func GetCookies(a muxes.HndlArg) {
+	cookie := &http.Cookie{
+		Name: "cook",
+		Value: "value",
+		Path: "/",
+	}
+	http.SetCookie(a.W, cookie)
+	a.W.WriteHeader(200)
+	a.W.Write([]byte("success"))
+}
+
+func Authorize(hndl muxes.Handler) muxes.Handler {
 return func(a muxes.HndlArg) {
-	fmt.Println("some other func called")
+	fmt.Println("in")
+	for _, c := range a.R.Cookies() {
+		fmt.Println(c)
+	}
 	hndl(a)
 }}
 
@@ -82,13 +97,20 @@ func main(){
 		fmt.Printf("'%s'\n", v.Name())
 	}*/
 
-	fmt.Printf("%v\n", tmpls)
+	//fmt.Printf("%v\n", tmpls)
+
+	authorize := muxes.Chain{Authorize}
 
 	defs := []muxes.HndlDef {
 		{"/", "^$", muxes.Handlers{
-			"GET": muxes.Chained(muxes.Chain{GeneralChainFunc}, HelloWorld)} },
+			"GET": muxes.Chained(authorize, HelloWorld)},
+		},
 		{"/eo/", "^$", muxes.Handlers{
-			"GET":muxes.Chained(muxes.Chain{GeneralChainFunc, OtherFunc}, SalutonMondo)} },
+			"GET":muxes.Chained(authorize, SalutonMondo)},
+		},
+		{"/get-cookies/", "^$", muxes.Handlers{
+			"GET" : muxes.Chained(authorize, GetCookies)},
+		},
 		{"/test/", "", muxes.Handlers{"GET": muxes.GetTest} },
 	}
 
