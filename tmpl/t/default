@@ -3,6 +3,9 @@
 
 <title>{{block "#title" .}}Standard title{{end}}</title>
 
+{{block "#head" .}}
+{{end}}
+
 </head><body>
 
 

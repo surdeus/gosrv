@@ -11,6 +11,7 @@ import(
 	"encoding/base64"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
+	"github.com/surdeus/ghost/src/templates/tmplfunc"
 	"github.com/surdeus/ghost/src/cookies"
 	//"html/template"
 	//"regexp"
@@ -173,11 +174,16 @@ func main(){
 		os.Exit(1)
 	}
 
+	funcCfg := tmplfunc.StdCfg()
+
 	cfg := templates.ParseConfig{
 		Component: "tmpl/c/",
 		View: "tmpl/v/",
 		Template: "tmpl/t/",
-		FuncMap: templates.FuncMap{},
+		FuncMap: templates.FuncMap{
+			"styles": funcCfg.Styles,
+			"scripts": funcCfg.Scripts,
+		},
 	}
 
 	tmpls, err = templates.Parse(cfg)

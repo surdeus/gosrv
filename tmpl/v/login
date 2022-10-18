@@ -1,9 +1,12 @@
 {{define "#title"}}Login{{end}}
 
+{{define "#head"}}
+	{{styles "login"}}
+	{{scripts "alert"}}
+{{end}}
+
 {{define "#content"}}
-
-{{template "form/login" .}}
-
+	{{template "form/login" .}}
 {{end}}
 
 {{template "@master" .}}
