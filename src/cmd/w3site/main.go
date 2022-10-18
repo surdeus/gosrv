@@ -18,7 +18,12 @@ var (
 
 func HelloWorld(a muxes.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tmpls.Exec(a.W, "hellos/en", struct{}{})
+	tmpl := "default"
+	_, ok := a.Q["tmpl"]
+	if ok {
+		tmpl = a.Q["tmpl"][0]
+	}
+	tmpls.Exec(a.W, tmpl, "hellos/en", struct{}{})
 }
 
 func SalutonMondo(a muxes.HndlArg) {
@@ -28,7 +33,7 @@ func SalutonMondo(a muxes.HndlArg) {
 	if ok {
 		name = a.Q["name"][0]
 	}
-	tmpls.Exec(a.W, "hellos/eo", struct{Name string}{Name: name})
+	tmpls.Exec(a.W, "default", "hellos/eo", struct{Name string}{Name: name})
 }
 
 func GeneralChainFunc(hndl muxes.Handler) muxes.Handler {
@@ -52,8 +57,9 @@ func main(){
 	}
 
 	cfg := templates.ParseConfig{
-		Gen: "tmpl/c/",
-		Sep: "tmpl/view/",
+		Component: "tmpl/c/",
+		View: "tmpl/v/",
+		Template: "tmpl/t/",
 		FuncMap: templates.FuncMap{
 			"SomeFunc": func() string {
 				return "<div>This is some string</div>"

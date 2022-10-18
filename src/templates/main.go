@@ -6,21 +6,21 @@ import(
 	"log"
 	"os"
 	"strings"
-	"fmt"
+	//"fmt"
 	"path/filepath"
 	"io/fs"
 )
 
-type Templates map[string] *template.Template
+type Templates map[string] map[string] *template.Template
 
 type FuncMap = template.FuncMap
 type ParseConfig struct {
-	Gen, Sep string
+	View, Component, Template string
 	FuncMap FuncMap
 }
 
-func (tmpls Templates)Exec(w io.Writer, t string, v any) {
-	err := tmpls[t].Execute(w, v)
+func (tmpls Templates)Exec(w io.Writer, t, v string, val any) {
+	err := tmpls[t][v].Execute(w, val)
 	if err != nil {
 		log.Println(err)
 	}
@@ -32,13 +32,13 @@ func Parse(cfg ParseConfig) (Templates, error) {
 	)
 	t := template.New("").Funcs(cfg.FuncMap)
 
-	t, err := parseFromDir(t, cfg.Gen, "")
+	t, err := parseFromDir(t, cfg.Component, "")
 	if err != nil {
 		return nil, err
 	}
 
 	ts = make(Templates)
-	err = filepath.Walk(cfg.Sep,
+	err = filepath.Walk(cfg.View,
 		func(p string, info fs.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -49,22 +49,63 @@ func Parse(cfg ParseConfig) (Templates, error) {
 				return nil
 			}
 
-			tmplName := p[len(cfg.Sep):]
-			fmt.Printf("'%s'\n", tmplName)
-
-			tv, err := t.Clone()
-			if err != nil {
-				return err
-			}
+			viewName := p[len(cfg.View):]
 
 			b, err := os.ReadFile(p)
 			if err != nil {
 				return err
 			}
 
-			ts[tmplName], err = tv.
+			err = filepath.Walk(cfg.Template, func(
+					pth string,
+					info fs.FileInfo,
+					err error) error {
+				if err != nil {
+					return err
+				}
+
+				if info.IsDir() ||
+					strings.HasPrefix(info.Name(), ".") {
+					return nil
+				}
+
+				tv, err := t.Clone()
+				if err != nil {
+					return err
+				}
+
+				b2, err := os.ReadFile(pth)
+				if err != nil {
+					return err
+				}
+
+				tmplName := pth[len(cfg.Template):]
+
+				_, ok := ts[tmplName]
+				if !ok {
+					ts[tmplName] = make(map[string] *template.Template)
+				}
+				st, err := tv.New("master").Parse(string(b2))
+				st, err = st.New("").Parse(string(b))
+				if err != nil {
+					return err
+				}
+				//fmt.Printf("'%s' / '%s'\n", tmplName, viewName)
+
+				ts[tmplName][viewName] = st
+
+
+				return nil
+			})
+
+			if err != nil {
+				return err
+			}
+
+			/*hts[tmplName], err = tv.
 				New("").
-				Parse(string(b))
+				Parse(string(b))*/
+
 			return nil
 		})
 

@@ -1,0 +1,13 @@
+<!doctype html>
+<html><head>
+
+<title>{{template "!title" .}}</title>
+
+</head><body>
+
+{{block "!body" .}}No body{{end}}
+
+THIS IS THE OTHER TEMPLATE BODY!
+
+</body></html>
+
