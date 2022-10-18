@@ -1,0 +1,10 @@
+{{define "#title"}}
+	Greetings!
+{{end}}
+
+{{define "#content"}}
+	Greetings to you!
+{{end}}
+
+{{template "@master"}}
+

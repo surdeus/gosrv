@@ -6,15 +6,26 @@ import(
 	"flag"
 	"log"
 	"net/http"
+	"encoding/json"
+	"math/rand"
+	"encoding/base64"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
+	"github.com/surdeus/ghost/src/cookies"
 	//"html/template"
 	//"regexp"
 )
 
+type Users map[string] string
+
 var (
+	tokens = make(map[string] string)
 	tmpls templates.Templates
-	adminPassword string
+	users Users
+	datPath = "dat/"
+	dbPath = datPath+"db/"
+	staticPath = datPath+"s/"
+	usersDbPath = dbPath + "users"
 )
 
 func HelloWorld(a muxes.HndlArg) {
@@ -62,12 +73,99 @@ func GetCookies(a muxes.HndlArg) {
 	a.W.Write([]byte("success"))
 }
 
+func LoginGet(a muxes.HndlArg) {
+	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmpls.Exec(a.W, "unauth", "login", nil)
+}
+
+func LoginPost(a muxes.HndlArg) {
+	var (
+		token string
+	)
+	formEmail := a.R.Form.Get("email")
+	formPassword := a.R.Form.Get("password")
+	fmt.Printf(
+		"Email: '%s', password: '%s'\n",
+		formEmail,
+		formPassword,
+	)
+
+	password, ok := users[formEmail]
+	if !ok {
+		http.NotFound(a.W, a.R)
+		return
+	} else if password != formPassword  {
+		a.W.WriteHeader(http.StatusUnauthorized)
+		a.W.Write([]byte("Unauth"))
+		return
+	}
+
+	token, _ = GenerateToken(formEmail, formPassword)
+	tokens[token] = formEmail
+
+	cookie := &http.Cookie{
+		Name: "auth-token",
+		Value: token,
+		Path: "/",
+	}
+
+	http.SetCookie(a.W, cookie)
+	http.Redirect(a.W, a.R, "/", http.StatusFound)
+}
+
+func GenerateToken(email, password string) (string, error) {
+	token := make([]byte, 256)
+	rand.Read(token)
+	return base64.StdEncoding.EncodeToString(token), nil
+}
+
 func Authorize(hndl muxes.Handler) muxes.Handler {
 return func(a muxes.HndlArg) {
+	cookie := a.R.Cookies()
+
+	authToken, ok := cookies.ByName(cookie, "auth-token")
+	if !ok {
+		http.Redirect(a.W, a.R,
+			"/login/",
+			http.StatusFound,
+		)
+		return
+	} 
+
+	_, ok = tokens[authToken]
+	if !ok {
+		http.Redirect(a.W, a.R,
+			"/login/",
+			http.StatusUnauthorized,
+		)
+	}
+
 	hndl(a)
 }}
 
+func Unauthorize(hndl muxes.Handler) muxes.Handler {
+return func(a muxes.HndlArg) {
+	cookie := a.R.Cookies()
+
+	_, ok := cookies.ByName(cookie, "auth-token")
+	if ok {
+		http.Redirect(a.W, a.R,
+			"/",
+			http.StatusFound,
+		)
+		return
+	}
+
+	hndl(a)
+}}
+
+func Greet(a muxes.HndlArg) {
+	tmpls.Exec(a.W, "default", "greet", nil)
+}
+
 func main(){
+	var err error
+
 	AddrStr := flag.String("a", ":8080", "Adress string")
 	flag.Parse()
 	args := flag.Args()
@@ -79,53 +177,52 @@ func main(){
 		Component: "tmpl/c/",
 		View: "tmpl/v/",
 		Template: "tmpl/t/",
-		FuncMap: templates.FuncMap{
-			"SomeFunc": func() string {
-				return "<div>This is some string</div>"
-			},
-			/*"TmplFunc" : func(template *Template) {
-				fmt.Printf("got '%s template\n',")
-			},*/
-		},
+		FuncMap: templates.FuncMap{},
 	}
 
-	var err error
 	tmpls, err = templates.Parse(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-
-	/*fmt.Println("Parsed templates:")
-	for _, v := range tmpls.Templates() {
-		fmt.Printf("'%s'\n", v.Name())
-	}*/
-
-	//fmt.Printf("%v\n", tmpls)
-
 	authorize := muxes.Chain{Authorize}
+	unauthorize := muxes.Chain{Unauthorize}
 
 	defs := []muxes.HndlDef {
-		{"/", "^$", muxes.Handlers{
-			"GET": muxes.Chained(authorize, HelloWorld)},
+		{
+			"/", "^$",
+			muxes.Handlers{
+				"GET": muxes.Chained(authorize, Greet),
+			},
 		},
-		{"/eo/", "^$", muxes.Handlers{
-			"GET":muxes.Chained(authorize, SalutonMondo)},
+		{
+			"/login/", "^$", muxes.Handlers {
+				"GET": muxes.Chained(unauthorize, LoginGet),
+				"POST": muxes.Chained(unauthorize, LoginPost),
+			},
 		},
-		{"/get-cookies/", "^$", muxes.Handlers{
-			"GET" : muxes.Chained(authorize, GetCookies)},
-		},
-		{"/test/", "", muxes.Handlers{"GET": muxes.GetTest} },
+		{"/get-test/", "", muxes.Handlers{"GET": muxes.GetTest} },
 	}
 
 	mux := muxes.Define(nil, defs)
-	muxes.DefineStatic(mux, "s/", "/s/")
+	muxes.DefineStatic(mux, staticPath, "/s/")
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,
 	}
 
-	log.Printf("%s: running on '%s'\n",
+	usersJson, err := os.ReadFile(usersDbPath)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(usersJson, &users) ; err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%v\n", users)
+
+	log.Printf("%s: Trying to run on '%s'...\n",
 		os.Args[0],
 		*AddrStr)
 	log.Fatal(srv.ListenAndServe())
