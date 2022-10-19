@@ -68,7 +68,13 @@ return func(w http.ResponseWriter, r *http.Request) {
 	a.W = w
 	a.R = r
 	
-	handlers[method](a)
+	handler, ok := handlers[method]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	handler(a)
 }}
 
 func Define(mux *http.ServeMux, defs []HndlDef) *http.ServeMux {
