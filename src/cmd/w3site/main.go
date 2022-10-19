@@ -17,6 +17,7 @@ import(
 	//"regexp"
 )
 
+type Token string
 type Users map[string] string
 
 var (
@@ -49,12 +50,6 @@ func SalutonMondo(a muxes.HndlArg) {
 	tmpls.Exec(a.W, "default", "hellos/eo", struct{Name string}{Name: name})
 }
 
-func GeneralChainFunc(hndl muxes.Handler) muxes.Handler {
-return func(a muxes.HndlArg) {
-	fmt.Println("general function got called")
-	hndl(a)
-}}
-
 func GetCookies(a muxes.HndlArg) {
 	_, ok1 := a.Q["name"]
 	_, ok2 := a.Q["value"]
@@ -80,9 +75,6 @@ func LoginGet(a muxes.HndlArg) {
 }
 
 func LoginPost(a muxes.HndlArg) {
-	var (
-		token string
-	)
 	formEmail := a.R.Form.Get("email")
 	formPassword := a.R.Form.Get("password")
 	fmt.Printf(
@@ -101,12 +93,12 @@ func LoginPost(a muxes.HndlArg) {
 		return
 	}
 
-	token, _ = GenerateToken(formEmail, formPassword)
+	token := GenerateToken()
 	tokens[token] = formEmail
 
 	cookie := &http.Cookie{
 		Name: "auth-token",
-		Value: token,
+		Value: base64.StdEncoding.EncodeToString([]byte(token)),
 		Path: "/",
 	}
 
@@ -114,10 +106,21 @@ func LoginPost(a muxes.HndlArg) {
 	http.Redirect(a.W, a.R, "/", http.StatusFound)
 }
 
-func GenerateToken(email, password string) (string, error) {
-	token := make([]byte, 256)
-	rand.Read(token)
-	return base64.StdEncoding.EncodeToString(token), nil
+func GenerateToken() string {
+	var (
+		ok bool
+	)
+
+	token := make([]byte, 16)
+	for {
+		rand.Read(token)
+		_, ok = tokens[string(token)]
+		if !ok {
+				break
+		}
+	}
+
+	return string(token)
 }
 
 func Authorize(hndl muxes.Handler) muxes.Handler {
@@ -133,9 +136,16 @@ return func(a muxes.HndlArg) {
 		return
 	} 
 
-	_, ok = tokens[authToken]
+	token, err := base64.StdEncoding.DecodeString(authToken)
+	if err != nil {
+			http.NotFound(a.W, a.R)
+	}
+
+	_, ok = tokens[string(token)]
 	if !ok {
-		http.Redirect(a.W, a.R,
+		http.Redirect(
+			a.W,
+			a.R,
 			"/login/",
 			http.StatusUnauthorized,
 		)
