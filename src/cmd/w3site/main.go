@@ -7,6 +7,7 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
+	"context"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
 	"github.com/surdeus/ghost/src/templates/tmplfunc"
@@ -17,6 +18,10 @@ import(
 )
 
 type Token string
+type Session struct {
+	Reloaded int
+	Email string
+}
 type Users map[string] string
 
 var (
@@ -29,6 +34,13 @@ var (
 	staticPath = datPath+"s/"
 	usersDbPath = dbPath + "users"
 )
+
+type ContextKey string
+const ContextEmailKey ContextKey = "email"
+
+func EmailFromContext(ctx context.Context) string {
+	return ctx.Value(ContextEmailKey).(string)
+}
 
 func HelloWorld(a muxes.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -125,7 +137,7 @@ return func(a muxes.HndlArg) {
 	}
 
 	// No such token in sessions. Remove cookie and make authorize.
-	_, loggedIn := sessions.Get(token)
+	email, loggedIn := sessions.Get(token)
 	if !loggedIn {
 		cookies.Delete(a.W, "auth-token")
 		http.Redirect(
@@ -136,6 +148,14 @@ return func(a muxes.HndlArg) {
 		)
 		return
 	}
+
+	ctx := context.WithValue(
+		a.R.Context(),
+		"email",
+		email,
+	)
+
+	*(a.R) = *(a.R.WithContext(ctx))
 
 	hndl(a)
 }}
@@ -157,7 +177,14 @@ return func(a muxes.HndlArg) {
 }}
 
 func Greet(a muxes.HndlArg) {
-	tmpls.Exec(a.W, "default", "greet", nil)
+	email := a.R.Context().Value("email").(string)
+	tmpls.Exec(a.W, "default", "greet",
+		struct{
+			Email string
+		}{
+			email,
+		},
+	)
 }
 
 func main(){

@@ -3,8 +3,8 @@
 {{end}}
 
 {{define "#content"}}
-	Greetings to you!
+	Greetings to {{ .Email }} !
 {{end}}
 
-{{template "@master"}}
+{{template "@master" .}}
 
