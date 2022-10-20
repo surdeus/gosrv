@@ -2,6 +2,7 @@ package cookies
 
 import (
 	"net/http"
+	"time"
 )
 
 func ByName(cookies []*http.Cookie, name string) (string, bool) {
@@ -13,3 +14,14 @@ func ByName(cookies []*http.Cookie, name string) (string, bool) {
 
 	return "", false
 }
+
+func Delete(w http.ResponseWriter, k string) {
+	c := &http.Cookie {
+		Name: k,
+		Value: "",
+		Path: "/",
+		Expires: time.Unix(0, 0),
+	}
+	http.SetCookie(w, c)
+}
+

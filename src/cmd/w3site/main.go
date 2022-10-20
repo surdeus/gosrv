@@ -109,6 +109,7 @@ func Authorize(hndl muxes.Handler) muxes.Handler {
 return func(a muxes.HndlArg) {
 	cookie := a.R.Cookies()
 
+	// No needed cookie, make user authorize.
 	authToken, ok := cookies.ByName(cookie, "auth-token")
 	if !ok {
 		http.Redirect(a.W, a.R,
@@ -116,21 +117,24 @@ return func(a muxes.HndlArg) {
 			http.StatusFound,
 		)
 		return
-	} 
+	}
 
 	token, err := sessions.DecodeForServer(authToken)
 	if err != nil {
 		http.NotFound(a.W, a.R)
 	}
 
+	// No such token in sessions. Remove cookie and make authorize.
 	_, loggedIn := sessions.Get(token)
 	if !loggedIn {
+		cookies.Delete(a.W, "auth-token")
 		http.Redirect(
 			a.W,
 			a.R,
 			"/login/",
-			http.StatusUnauthorized,
+			http.StatusFound,
 		)
+		return
 	}
 
 	hndl(a)
