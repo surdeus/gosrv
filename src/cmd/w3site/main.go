@@ -7,12 +7,11 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
-	"math/rand"
-	"encoding/base64"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
 	"github.com/surdeus/ghost/src/templates/tmplfunc"
 	"github.com/surdeus/ghost/src/cookies"
+	"github.com/surdeus/ghost/src/auth"
 	//"html/template"
 	//"regexp"
 )
@@ -21,6 +20,7 @@ type Token string
 type Users map[string] string
 
 var (
+	sessions auth.Sessions
 	tokens = make(map[string] string)
 	tmpls templates.Templates
 	users Users
@@ -93,34 +93,16 @@ func LoginPost(a muxes.HndlArg) {
 		return
 	}
 
-	token := GenerateToken()
-	tokens[token] = formEmail
+	token := sessions.New(formEmail)
 
 	cookie := &http.Cookie{
 		Name: "auth-token",
-		Value: base64.StdEncoding.EncodeToString([]byte(token)),
+		Value: sessions.EncodeForClient(token),
 		Path: "/",
 	}
 
 	http.SetCookie(a.W, cookie)
 	http.Redirect(a.W, a.R, "/", http.StatusFound)
-}
-
-func GenerateToken() string {
-	var (
-		ok bool
-	)
-
-	token := make([]byte, 16)
-	for {
-		rand.Read(token)
-		_, ok = tokens[string(token)]
-		if !ok {
-				break
-		}
-	}
-
-	return string(token)
 }
 
 func Authorize(hndl muxes.Handler) muxes.Handler {
@@ -136,13 +118,13 @@ return func(a muxes.HndlArg) {
 		return
 	} 
 
-	token, err := base64.StdEncoding.DecodeString(authToken)
+	token, err := sessions.DecodeForServer(authToken)
 	if err != nil {
-			http.NotFound(a.W, a.R)
+		http.NotFound(a.W, a.R)
 	}
 
-	_, ok = tokens[string(token)]
-	if !ok {
+	_, loggedIn := sessions.Get(token)
+	if !loggedIn {
 		http.Redirect(
 			a.W,
 			a.R,
@@ -237,6 +219,8 @@ func main(){
 	}
 
 	fmt.Printf("%v\n", users)
+
+	sessions = auth.New()
 
 	log.Printf("%s: Trying to run on '%s'...\n",
 		os.Args[0],
