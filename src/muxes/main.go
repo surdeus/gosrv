@@ -22,6 +22,9 @@ type HndlArg struct {
 	R *http.Request
 	Q url.Values
 	P string
+	// Simpler than context.
+	// Use contexts for more complex stuff.
+	V map[string] any
 }
 
 
@@ -74,6 +77,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	a.V = make(map[string] any, 5)
 	handler(a)
 }}
 

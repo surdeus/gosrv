@@ -7,14 +7,11 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
-	"context"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
 	"github.com/surdeus/ghost/src/templates/tmplfunc"
 	"github.com/surdeus/ghost/src/cookies"
 	"github.com/surdeus/ghost/src/auth"
-	//"html/template"
-	//"regexp"
 )
 
 type Token string
@@ -37,10 +34,6 @@ var (
 
 type ContextKey string
 const ContextEmailKey ContextKey = "email"
-
-func EmailFromContext(ctx context.Context) string {
-	return ctx.Value(ContextEmailKey).(string)
-}
 
 func HelloWorld(a muxes.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -149,14 +142,7 @@ return func(a muxes.HndlArg) {
 		return
 	}
 
-	ctx := context.WithValue(
-		a.R.Context(),
-		"email",
-		email,
-	)
-
-	*(a.R) = *(a.R.WithContext(ctx))
-
+	a.V["email"] = email
 	hndl(a)
 }}
 
@@ -177,7 +163,7 @@ return func(a muxes.HndlArg) {
 }}
 
 func Greet(a muxes.HndlArg) {
-	email := a.R.Context().Value("email").(string)
+	email, _ := a.V["email"].(string)
 	tmpls.Exec(a.W, "default", "greet",
 		struct{
 			Email string
