@@ -185,14 +185,14 @@ func main(){
 
 	funcCfg := tmplfunc.StdCfg()
 
+	fmap := tmplfunc.StdFuncMap()
+	fmap["styles"] = funcCfg.Styles
+	fmap["scripts"] = funcCfg.Scripts
 	cfg := templates.ParseConfig{
 		Component: "tmpl/c/",
 		View: "tmpl/v/",
 		Template: "tmpl/t/",
-		FuncMap: templates.FuncMap{
-			"styles": funcCfg.Styles,
-			"scripts": funcCfg.Scripts,
-		},
+		FuncMap: fmap,
 	}
 
 	tmpls, err = templates.Parse(cfg)

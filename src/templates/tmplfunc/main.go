@@ -3,6 +3,7 @@ package tmplfunc
 import (
 	"html/template"
 	"fmt"
+	"github.com/surdeus/ghost/src/templates"
 )
 
 type Config struct {
@@ -10,6 +11,14 @@ type Config struct {
 	StyleFormat string
 	ScriptPath string
 	ScriptFormat string
+}
+
+func StdFuncMap() templates.FuncMap {
+	return templates.FuncMap {
+		"array" : Array,
+		"string" : String,
+		"hasField" : HasField,
+	}
 }
 
 func StdCfg() Config {
@@ -43,3 +52,12 @@ func (cfg Config)Scripts(scripts ...string) template.HTML {
 
 	return template.HTML(ret)
 }
+
+func Array(args ...any) []any {
+	return args
+}
+
+func String(v any) string {
+	return v.(string)
+}
+

@@ -7,6 +7,9 @@
 
 {{define "#content"}}
 	{{template "form/login" .}}
+	{{range array "string1" 125 "yet another"}}
+		<div>{{ . }}</div>
+	{{end}}
 {{end}}
 
 {{template "@master" .}}
