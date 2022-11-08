@@ -7,11 +7,14 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
 	"github.com/surdeus/ghost/src/templates/tmplfunc"
 	"github.com/surdeus/ghost/src/cookies"
 	"github.com/surdeus/ghost/src/auth"
+	"github.com/surdeus/ghost/src/dbs/sqls"
 )
 
 type Token string
@@ -181,6 +184,21 @@ func main(){
 	args := flag.Args()
 	if len(args) > 0 {
 		os.Exit(1)
+	}
+
+	db, err := sql.Open(
+		"mysql",
+		sqls.ConnConfig{
+			Login: "test",
+			Password: "hello",
+			Host: "localhost",
+			Port: 3306,
+			Name: "test",
+		}.String(),
+	)
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	funcCfg := tmplfunc.StdCfg()
