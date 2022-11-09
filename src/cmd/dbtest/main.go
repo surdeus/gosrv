@@ -8,8 +8,9 @@ import(
 )
 
 type Test struct {
-	Value int
-	StringValue string
+	Id int `sql: "int not null primary key"`
+	Value int `sql: "int"`
+	StringValue string `sql`
 }
 
 func main(){
@@ -35,6 +36,7 @@ func main(){
 
 	for _, schema := range schemas {
 		for _, f := range schema.Fields {
+			fmt.Println(f)
 			fmt.Println(db.FieldToSQL(f))
 		}
 	}

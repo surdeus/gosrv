@@ -124,20 +124,27 @@ func (f TableField)String() string {
 }
 
 func (db *DB)FieldToSQL(f TableField) string {
-	ret := ""
-
-	ret += f.Name
-	ret += " "
-
-	ret += f.Type
-	ret += " "
+	ret := fmt.Sprintf(
+		"%s %s",
+		f.Name,
+		f.Type,
+	)
 
 	if !f.Nullable {
-		ret += "not null "
+		ret += " not null"
 	}
 
-	ret += f.Extra
-	ret += " "
+	switch f.Key {
+	case "PRI" :
+		ret += " primary key"
+	default:
+	}
+
+	ret += " " + f.Extra
 
 	return ret
+}
+
+func (db *DB)StructToTableName(v any) string {
+	return "yes"
 }
