@@ -8,9 +8,35 @@ import(
 )
 
 type Test struct {
-	Id int `sql: "int not null primary key"`
-	Value int `sql: "int"`
-	StringValue string `sql`
+	Id int
+	Value int
+	StringValue string
+}
+
+func (t Test)Sql() sqlx.TableSchema {
+	return sqlx.TableSchema {
+		Name: "Tests",
+		Fields: []sqlx.TableField {
+			{
+				Name: "Id",
+				Type: "int(0)",
+				Nullable: false,
+				Key: "PRI",
+				Extra: "auto_increment",
+			},{
+				Name: "Value",
+				Type: "int(0)",
+				Nullable: true,
+				Default: "25",
+			},{
+				Name: "StringValue",
+				Type: "varchar(64)",
+				Nullable: true,
+				Default: "some русская string",
+			},
+
+		},
+	}
 }
 
 func main(){
@@ -36,11 +62,16 @@ func main(){
 
 	for _, schema := range schemas {
 		for _, f := range schema.Fields {
+			fmt.Println(db.FieldToSql(f))
 			fmt.Println(f)
-			fmt.Println(db.FieldToSQL(f))
 		}
 	}
 
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))
+
+	err = db.CreateTableBy(Test{})
+	if err != nil {
+	    log.Println(err)
+	}
 }

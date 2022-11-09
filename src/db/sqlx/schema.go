@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+type Sqler interface {
+	Sql() TableSchema
+}
+
 type TableSchema struct {
 	Name string
 	Fields []TableField
@@ -123,7 +127,7 @@ func (f TableField)String() string {
 	)
 }
 
-func (db *DB)FieldToSQL(f TableField) string {
+func (db *DB)FieldToSql(f TableField) string {
 	ret := fmt.Sprintf(
 		"%s %s",
 		f.Name,
@@ -145,6 +149,30 @@ func (db *DB)FieldToSQL(f TableField) string {
 	return ret
 }
 
-func (db *DB)StructToTableName(v any) string {
-	return "yes"
+func (db *DB)TableNameFor(v Sqler) string {
+	ts := v.Sql()
+	ret := fmt.Sprintf("%s", ts.Name)
+
+	return ret
+}
+
+func (db *DB)TableCreationStringFor(v Sqler) string {
+	ts := v.Sql()
+	ret := fmt.Sprintf("create table %s (\n", db.TableNameFor(v))
+	for i, f := range ts.Fields {
+		ret += "\t" + db.FieldToSql(f)
+		if i != len(ts.Fields) - 1 {
+			ret += ",\n"
+		} 
+	}
+
+	ret += "\n) ;"	
+
+	return ret
+}
+
+
+func (db *DB)CreateTableBy(v Sqler) error {
+	_, err := db.Query(db.TableCreationStringFor(v))
+	return err
 }
