@@ -7,11 +7,9 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/surdeus/ghost/src/muxes"
-	"github.com/surdeus/ghost/src/templates"
-	"github.com/surdeus/ghost/src/templates/tmplfunc"
-	"github.com/surdeus/ghost/src/cookies"
+	"github.com/surdeus/ghost/src/tmplx"
+	"github.com/surdeus/ghost/src/httpx/muxx"
+	"github.com/surdeus/ghost/src/httpx/cookiex"
 	"github.com/surdeus/ghost/src/auth"
 )
 
@@ -25,7 +23,7 @@ type Users map[string] string
 var (
 	sessions auth.Sessions
 	tokens = make(map[string] string)
-	tmpls templates.Templates
+	tmpls tmplx.Templates
 	users Users
 	datPath = "dat/"
 	dbPath = datPath+"db/"
@@ -36,7 +34,7 @@ var (
 type ContextKey string
 const ContextEmailKey ContextKey = "email"
 
-func HelloWorld(a muxes.HndlArg) {
+func HelloWorld(a muxx.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl := "default"
 	_, ok := a.Q["tmpl"]
@@ -46,7 +44,7 @@ func HelloWorld(a muxes.HndlArg) {
 	tmpls.Exec(a.W, tmpl, "hellos/en", struct{}{})
 }
 
-func SalutonMondo(a muxes.HndlArg) {
+func SalutonMondo(a muxx.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	name := "Mondo"
 	_, ok := a.Q["name"]
@@ -56,7 +54,7 @@ func SalutonMondo(a muxes.HndlArg) {
 	tmpls.Exec(a.W, "default", "hellos/eo", struct{Name string}{Name: name})
 }
 
-func GetCookies(a muxes.HndlArg) {
+func GetCookies(a muxx.HndlArg) {
 	_, ok1 := a.Q["name"]
 	_, ok2 := a.Q["value"]
 	if !ok1 || !ok2 {
@@ -75,12 +73,12 @@ func GetCookies(a muxes.HndlArg) {
 	a.W.Write([]byte("success"))
 }
 
-func LoginGet(a muxes.HndlArg) {
+func LoginGet(a muxx.HndlArg) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpls.Exec(a.W, "unauth", "login", nil)
 }
 
-func LoginPost(a muxes.HndlArg) {
+func LoginPost(a muxx.HndlArg) {
 	formEmail := a.R.Form.Get("email")
 	formPassword := a.R.Form.Get("password")
 	fmt.Printf(
@@ -111,12 +109,12 @@ func LoginPost(a muxes.HndlArg) {
 	http.Redirect(a.W, a.R, "/", http.StatusFound)
 }
 
-func Authorize(hndl muxes.Handler) muxes.Handler {
-return func(a muxes.HndlArg) {
+func Authorize(hndl muxx.Handler) muxx.Handler {
+return func(a muxx.HndlArg) {
 	cookie := a.R.Cookies()
 
 	// No needed cookie, make user authorize.
-	authToken, ok := cookies.ByName(cookie, "auth-token")
+	authToken, ok := cookiex.ByName(cookie, "auth-token")
 	if !ok {
 		http.Redirect(a.W, a.R,
 			"/login/",
@@ -133,7 +131,7 @@ return func(a muxes.HndlArg) {
 	// No such token in sessions. Remove cookie and make authorize.
 	email, loggedIn := sessions.Get(token)
 	if !loggedIn {
-		cookies.Delete(a.W, "auth-token")
+		cookiex.Delete(a.W, "auth-token")
 		http.Redirect(
 			a.W,
 			a.R,
@@ -147,11 +145,11 @@ return func(a muxes.HndlArg) {
 	hndl(a)
 }}
 
-func Unauthorize(hndl muxes.Handler) muxes.Handler {
-return func(a muxes.HndlArg) {
+func Unauthorize(hndl muxx.Handler) muxx.Handler {
+return func(a muxx.HndlArg) {
 	cookie := a.R.Cookies()
 
-	_, ok := cookies.ByName(cookie, "auth-token")
+	_, ok := cookiex.ByName(cookie, "auth-token")
 	if ok {
 		http.Redirect(a.W, a.R,
 			"/",
@@ -163,7 +161,7 @@ return func(a muxes.HndlArg) {
 	hndl(a)
 }}
 
-func Greet(a muxes.HndlArg) {
+func Greet(a muxx.HndlArg) {
 	email, _ := a.V["email"].(string)
 	tmpls.Exec(a.W, "default", "greet",
 		struct{
@@ -184,44 +182,44 @@ func main(){
 		os.Exit(1)
 	}
 
-	funcCfg := tmplfunc.StdCfg()
+	funcCfg := tmplx.StdFuncCfg()
 
-	fmap := tmplfunc.StdFuncMap()
+	fmap := tmplx.StdFuncMap()
 	fmap["styles"] = funcCfg.Styles
 	fmap["scripts"] = funcCfg.Scripts
-	cfg := templates.ParseConfig{
+	cfg := tmplx.ParsingConfig{
 		Component: "tmpl/c/",
 		View: "tmpl/v/",
 		Template: "tmpl/t/",
 		FuncMap: fmap,
 	}
 
-	tmpls, err = templates.Parse(cfg)
+	tmpls, err = tmplx.Parse(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	authorize := muxes.Chain{Authorize}
-	unauthorize := muxes.Chain{Unauthorize}
+	authorize := muxx.Chain{Authorize}
+	unauthorize := muxx.Chain{Unauthorize}
 
-	defs := []muxes.HndlDef {
+	defs := []muxx.HndlDef {
 		{
 			"/", "^$",
-			muxes.Handlers{
-				"GET": muxes.Chained(authorize, Greet),
+			muxx.Handlers{
+				"GET": muxx.Chained(authorize, Greet),
 			},
 		},
 		{
-			"/login/", "^$", muxes.Handlers {
-				"GET": muxes.Chained(unauthorize, LoginGet),
-				"POST": muxes.Chained(unauthorize, LoginPost),
+			"/login/", "^$", muxx.Handlers {
+				"GET": muxx.Chained(unauthorize, LoginGet),
+				"POST": muxx.Chained(unauthorize, LoginPost),
 			},
 		},
-		{"/get-test/", "", muxes.Handlers{"GET": muxes.GetTest} },
+		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
 	}
 
-	mux := muxes.Define(nil, defs)
-	muxes.DefineStatic(mux, staticPath, "/s/")
+	mux := muxx.Define(nil, defs)
+	muxx.DefineStatic(mux, staticPath, "/s/")
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,

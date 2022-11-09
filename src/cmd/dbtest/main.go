@@ -4,7 +4,7 @@ import(
 	"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/surdeus/ghost/src/dbs/sqls"
+	"github.com/surdeus/ghost/src/db/sqlx"
 )
 
 type Test struct {
@@ -14,9 +14,9 @@ type Test struct {
 }
 
 func main(){
-	db, err := sqls.Open(
+	db, err := sqlx.Open(
 		"mysql",
-		sqls.ConnConfig{
+		sqlx.ConnConfig{
 			Login: "test",
 			Password: "hello",
 			Host: "localhost",

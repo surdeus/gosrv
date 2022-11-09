@@ -1,4 +1,4 @@
-package muxes
+package muxx
 
 import(
 	//"html/template"
@@ -9,7 +9,7 @@ import(
 	//"io/ioutil"
 	"log"
 	"fmt"
-	"github.com/surdeus/ghost/src/urlpath"
+	"github.com/surdeus/ghost/src/rex"
 )
 
 type Handler func(a HndlArg)
@@ -51,7 +51,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 	)
 
 	a.P = r.URL.Path[len(pref):]
-	if !urlpath.Validify(a.P, re) {
+	if !rex.Validify(a.P, re) {
 		http.NotFound(w, r)
 		return
 	}

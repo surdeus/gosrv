@@ -1,4 +1,4 @@
-package templates
+package tmplx
 
 import(
 	"html/template"
@@ -14,7 +14,7 @@ import(
 type Templates map[string] map[string] *template.Template
 
 type FuncMap = template.FuncMap
-type ParseConfig struct {
+type ParsingConfig struct {
 	View, Component, Template string
 	FuncMap FuncMap
 }
@@ -26,7 +26,7 @@ func (tmpls Templates)Exec(w io.Writer, t, v string, val any) {
 	}
 }
 
-func Parse(cfg ParseConfig) (Templates, error) {
+func Parse(cfg ParsingConfig) (Templates, error) {
 	var (
 		ts Templates
 		err error

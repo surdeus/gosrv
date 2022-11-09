@@ -1,4 +1,4 @@
-package urlpath
+package rex
 
 import(
 	"regexp"

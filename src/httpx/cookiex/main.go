@@ -1,4 +1,4 @@
-package cookies
+package cookiex
 
 import (
 	"net/http"
