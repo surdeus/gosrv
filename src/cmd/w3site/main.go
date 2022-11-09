@@ -7,7 +7,6 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/ghost/src/muxes"
 	"github.com/surdeus/ghost/src/templates"
@@ -186,7 +185,7 @@ func main(){
 		os.Exit(1)
 	}
 
-	db, err := sql.Open(
+	db, err := sqls.Open(
 		"mysql",
 		sqls.ConnConfig{
 			Login: "test",
@@ -194,11 +193,20 @@ func main(){
 			Host: "localhost",
 			Port: 3306,
 			Name: "test",
-		}.String(),
+		},
 	)
 	defer db.Close()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	schemas, err := db.GetTableSchemas()
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, schema := range schemas {
+		fmt.Println(schema)
 	}
 
 	funcCfg := tmplfunc.StdCfg()
