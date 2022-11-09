@@ -1,5 +1,9 @@
 package sqls
 
+import (
+	"fmt"
+)
+
 type TableSchema struct {
 	Name string
 	Fields []TableField
@@ -52,10 +56,14 @@ func (db* DB)GetTableSchemas() ([]TableSchema, error) {
 }
 
 func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
+	var (
+		nullable string
+	)
 	ret := []TableField{}
 	rows, err := db.Query(
 		"select "+
-		"COLUMN_NAME, COLUMN_TYPE " +
+		"COLUMN_NAME, COLUMN_TYPE, " +
+		"IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT " +
 		"from INFORMATION_SCHEMA.COLUMNS " +
 		"where TABLE_NAME=? "+
 		"",
@@ -70,7 +78,15 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 		rows.Scan(
 			&field.Name,
 			&field.Type,
+			&nullable,
+			&field.Key,
+			&field.Default,
 		)
+		if nullable == "YES" {
+			field.Nullable = true
+		} else {
+			field.Nullable = false
+		}
 		ret = append(ret, field)
 	}
 
@@ -78,3 +94,21 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 	return ret, nil
 }
 
+func (f TableField)String() string {
+	return fmt.Sprintf(
+		"{\n" +
+		"\tName: \"%s\",\n" +
+		"\tType: \"%s\",\n" +
+		"\tNullable: %t,\n"+
+		"\tKey: \"%s\",\n"+
+		"\tDefault: %s,\n"+
+		"\tExtra: \"%s\",\n"+
+		"}",
+		f.Name,
+		f.Type,
+		f.Nullable,
+		f.Key,
+		f.Default,
+		f.Extra,
+	)
+}
