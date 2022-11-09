@@ -13,7 +13,6 @@ import(
 	"github.com/surdeus/ghost/src/templates/tmplfunc"
 	"github.com/surdeus/ghost/src/cookies"
 	"github.com/surdeus/ghost/src/auth"
-	"github.com/surdeus/ghost/src/dbs/sqls"
 )
 
 type Token string
@@ -183,30 +182,6 @@ func main(){
 	args := flag.Args()
 	if len(args) > 0 {
 		os.Exit(1)
-	}
-
-	db, err := sqls.Open(
-		"mysql",
-		sqls.ConnConfig{
-			Login: "test",
-			Password: "hello",
-			Host: "localhost",
-			Port: 3306,
-			Name: "test",
-		},
-	)
-	defer db.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	schemas, err := db.GetTableSchemas()
-	if err != nil {
-		log.Println(err)
-	}
-
-	for _, schema := range schemas {
-		fmt.Println(schema)
 	}
 
 	funcCfg := tmplfunc.StdCfg()
