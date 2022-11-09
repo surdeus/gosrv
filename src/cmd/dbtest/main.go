@@ -34,7 +34,9 @@ func main(){
 	}
 
 	for _, schema := range schemas {
-		fmt.Println(schema)
+		for _, f := range schema.Fields {
+			fmt.Println(db.FieldToSQL(f))
+		}
 	}
 
 	fmt.Println(db.TableExists("Organizations"))

@@ -95,9 +95,8 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 		)
 		if nullable == "YES" {
 			field.Nullable = true
-		} else {
-			field.Nullable = false
-		}
+		} 
+
 		ret = append(ret, field)
 	}
 
@@ -122,4 +121,23 @@ func (f TableField)String() string {
 		f.Default,
 		f.Extra,
 	)
+}
+
+func (db *DB)FieldToSQL(f TableField) string {
+	ret := ""
+
+	ret += f.Name
+	ret += " "
+
+	ret += f.Type
+	ret += " "
+
+	if !f.Nullable {
+		ret += "not null "
+	}
+
+	ret += f.Extra
+	ret += " "
+
+	return ret
 }
