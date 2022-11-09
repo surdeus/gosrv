@@ -15,10 +15,6 @@ type ConnConfig struct {
 	Login, Password, Host, Name string
 	Port int
 }
-type TableSchema struct {
-	Name string
-	Other string
-}
 
 func (c ConnConfig)String() string {
 	return fmt.Sprintf(
@@ -29,37 +25,6 @@ func (c ConnConfig)String() string {
 		c.Port,
 		c.Name,
 	)
-}
-
-func (db* DB)GetTableSchemas() ([]TableSchema, error) {
-	var (
-		ret []TableSchema
-	)
-
-	ret = []TableSchema{}
-
-	rows, err := db.Query(
-		"select " +
-		"TABLE_NAME " +
-		"from INFORMATION_SCHEMA.TABLES " +
-		"where TABLE_SCHEMA = database() " +
-		"",
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		s := TableSchema{}
-
-		rows.Scan(
-			&s.Name,
-		)
-
-		ret = append(ret, s)
-	}
-
-	return ret, nil
 }
 
 func Open(driver string, cfg ConnConfig) (*DB, error) {
