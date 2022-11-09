@@ -55,6 +55,17 @@ func (db* DB)GetTableSchemas() ([]TableSchema, error) {
 	return ret, nil
 }
 
+func (db *DB)TableExists(name string) bool {
+	ret := false
+	rows, err := db.Query(fmt.Sprintf("select * from %s ;", name))
+	if err == nil {
+		defer rows.Close()
+		ret = true
+	}
+
+	return ret
+}
+
 func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 	var (
 		nullable string

@@ -7,6 +7,11 @@ import(
 	"github.com/surdeus/ghost/src/dbs/sqls"
 )
 
+type Test struct {
+	Value int
+	StringValue string
+}
+
 func main(){
 	db, err := sqls.Open(
 		"mysql",
@@ -31,4 +36,7 @@ func main(){
 	for _, schema := range schemas {
 		fmt.Println(schema)
 	}
+
+	fmt.Println(db.TableExists("Organizations"))
+	fmt.Println(db.TableExists("SurelyDoesNot"))
 }
