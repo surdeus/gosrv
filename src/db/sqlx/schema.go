@@ -208,3 +208,13 @@ func (db *DB)CreateTableBySchema(ts TableSchema) error {
 	return err
 }
 
+func (db *DB)FieldExists(table, field string) bool {
+	rows, err := db.Query(fmt.Sprintf("select %s from %s limit 1 ;", field, table))
+	if err == nil {
+		rows.Close()
+		return true
+	}
+
+	return false
+}
+

@@ -47,8 +47,8 @@ type AnotherTest struct {
 
 func (t AnotherTest)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
-		OldName: "AnotherTests",
-		Name: "BetterTests",
+		OldName: "BetterTests",
+		Name: "AnotherTests",
 		Fields: []sqlx.TableField {
 			{
 				Name: "Id",
@@ -109,4 +109,7 @@ func main(){
 	if err != nil {
 	    log.Println(err)
 	}
+
+	fmt.Println(db.FieldExists("Tests", "Value"))
+	fmt.Println(db.FieldExists("Tests", "SurelyDoesNot"))
 }

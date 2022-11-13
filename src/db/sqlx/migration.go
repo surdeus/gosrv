@@ -36,6 +36,10 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 		db.CreateTableBySchema(schema)
 	}
 
+	// Then we rename existing and create not existing fields.
+	for _, schema := range newSchemas {
+	}
+
 	return nil
 }
 
