@@ -19,13 +19,13 @@ func (t Test)Sql() sqlx.TableSchema {
 		Fields: []sqlx.TableField {
 			{
 				Name: "Id",
-				Type: "int(0)",
+				Type: "int(11)",
 				Nullable: false,
 				Key: "PRI",
 				Extra: "auto_increment",
 			},{
 				Name: "Value",
-				Type: "int(0)",
+				Type: "int(11)",
 				Nullable: true,
 				Default: "25",
 			},{
@@ -35,6 +35,33 @@ func (t Test)Sql() sqlx.TableSchema {
 				Default: "'some русская string'",
 			},
 
+		},
+	}
+}
+
+type AnotherTest struct {
+	Id int
+	Value int
+	StringValue string
+}
+
+func (t AnotherTest)Sql() sqlx.TableSchema {
+	return sqlx.TableSchema {
+		OldName: "AnotherTests",
+		Name: "BetterTests",
+		Fields: []sqlx.TableField {
+			{
+				Name: "Id",
+				Type: "int(11)",
+				Nullable: false,
+				Key: "PRI",
+				Extra: "auto_increment",
+			},{
+				Name: "AnotherValue",
+				Type: "int(11)",
+				Nullable: true,
+				Default: "25",
+			},
 		},
 	}
 }
@@ -73,7 +100,12 @@ func main(){
 
 	fmt.Println(db.TableCreationStringFor(Test{}))
 
-	err = db.CreateTableBy(Test{})
+	err = db.Migrate(
+		[]sqlx.Sqler{
+			Test{},
+			AnotherTest{},
+		},
+	)
 	if err != nil {
 	    log.Println(err)
 	}
