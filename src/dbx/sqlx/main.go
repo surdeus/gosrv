@@ -7,11 +7,11 @@ import (
 
 type DB struct {
 	*sql.DB
-	Driver string
 	ConnConfig ConnConfig
 }
 
 type ConnConfig struct {
+	Driver string
 	Login, Password, Host, Name string
 	Port int
 }
@@ -27,13 +27,13 @@ func (c ConnConfig)String() string {
 	)
 }
 
-func Open(driver string, cfg ConnConfig) (*DB, error) {
-	db, err := sql.Open(driver, cfg.String())
+func Open(cfg ConnConfig) (*DB, error) {
+	db, err := sql.Open(cfg.Driver, cfg.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return &DB{db, driver, cfg}, nil
+	return &DB{db, cfg}, nil
 }
 
 

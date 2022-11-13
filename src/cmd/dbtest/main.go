@@ -73,8 +73,8 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 
 func main(){
 	db, err := sqlx.Open(
-		"mysql",
 		sqlx.ConnConfig{
+			Driver: "mysql",
 			Login: "test",
 			Password: "hello",
 			Host: "localhost",
