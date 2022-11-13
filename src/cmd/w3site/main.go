@@ -10,7 +10,7 @@ import(
 	"github.com/surdeus/ghost/src/tmplx"
 	"github.com/surdeus/ghost/src/httpx/muxx"
 	"github.com/surdeus/ghost/src/httpx/cookiex"
-	"github.com/surdeus/ghost/src/auth"
+	"github.com/surdeus/ghost/src/authx"
 )
 
 type Token string
@@ -21,7 +21,7 @@ type Session struct {
 type Users map[string] string
 
 var (
-	sessions auth.Sessions
+	sessions authx.Sessions
 	tokens = make(map[string] string)
 	tmpls tmplx.Templates
 	users Users
@@ -236,7 +236,7 @@ func main(){
 
 	fmt.Printf("%v\n", users)
 
-	sessions = auth.New()
+	sessions = authx.New()
 
 	log.Printf("%s: Trying to run on '%s'...\n",
 		os.Args[0],
