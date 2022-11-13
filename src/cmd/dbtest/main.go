@@ -32,7 +32,7 @@ func (t Test)Sql() sqlx.TableSchema {
 				Name: "StringValue",
 				Type: "varchar(64)",
 				Nullable: true,
-				Default: "some русская string",
+				Default: "'some русская string'",
 			},
 
 		},
@@ -62,13 +62,16 @@ func main(){
 
 	for _, schema := range schemas {
 		for _, f := range schema.Fields {
-			fmt.Println(db.FieldToSql(f))
+			fmt.Printf("'%s'", db.FieldToSql(f))
 			fmt.Println(f)
 		}
 	}
 
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))
+
+
+	fmt.Println(db.TableCreationStringFor(Test{}))
 
 	err = db.CreateTableBy(Test{})
 	if err != nil {

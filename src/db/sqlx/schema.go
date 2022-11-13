@@ -144,7 +144,13 @@ func (db *DB)FieldToSql(f TableField) string {
 	default:
 	}
 
-	ret += " " + f.Extra
+	if f.Extra != "" {
+		ret += " " + f.Extra
+	}
+
+	if f.Default != "" {
+		ret += " default " + f.Default
+	}
 
 	return ret
 }
