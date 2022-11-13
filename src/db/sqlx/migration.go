@@ -40,14 +40,19 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 		db.CreateTableBySchema(schema)
 	}
 
-	// Then we rename existing and create not existing fields.
+	// Then we modify existing and create not existing fields.
 	for _, schema := range newSchemas {
 		idx := curSchemas.FindSchema(schema.Name)
 		for _, field := range schema.Fields {
+
 			if field.OldName != "" && db.FieldExists(schema.Name, field.OldName) {
+
 				// Rename.
+				curFieldIdx := curSchemas[idx].FindField(field.OldName)
+				curField := &(curSchemas[idx].Fields[curFieldIdx])
+
 				_, err = db.Query(fmt.Sprintf(
-					"alter table %s rename column %s to %s",
+					"alter table %s rename column %s to %s ;",
 					schema.Name,
 					field.OldName,
 					field.Name,
@@ -56,9 +61,7 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 					return err
 				}
 
-				curFieldIdx := curSchemas[idx].FindField(field.OldName)
-				fmt.Println(curFieldIdx)
-				curSchemas[idx].Fields[curFieldIdx].Name = field.Name
+				curField.Name = field.Name
 			} else if !db.FieldExists(schema.Name, field.Name) {
 				// Create.
 				_, err = db.Query(fmt.Sprintf(
@@ -66,6 +69,54 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 					schema.Name,
 					db.FieldToSql(field),
 				))
+				if err != nil {
+					return err
+				}
+			}
+
+			curFieldIdx := curSchemas[idx].FindField(field.Name)
+			curField := &(curSchemas[idx].Fields[curFieldIdx])
+
+			// Drop primary constraint.
+			if curField.Key == "PRI" && field.Key != "PRI" {
+				_, err := db.Exec(fmt.Sprintf(
+					"alter table %s drop primary key ;",
+				))
+				if err != nil {
+					return err
+				}
+			}
+
+			// Set primary constraint.
+			if field.Key == "PRI" && curField.Key != "PRI" {
+				_, err := db.Exec(fmt.Sprintf(
+					"alter table %s add primary key (%s)",
+					schema.Name,
+					field.Name,
+				))
+				if err != nil {
+					return err
+				}
+			}
+
+			// Type.
+			fieldBuf := field
+			curFieldBuf := *curField
+
+			fieldBuf.Key = ""
+			curFieldBuf.Key = ""
+
+			fieldSql := db.FieldToSql(fieldBuf)
+			curFieldSql := db.FieldToSql(curFieldBuf)
+
+			if fieldSql != curFieldSql {
+				fmt.Printf("'%s'\n'%s'\n", fieldSql, curFieldSql)
+				_, err = db.Exec(fmt.Sprintf(
+					"alter table %s modify column %s",
+					schema.Name,
+					fieldSql,
+				))
+
 				if err != nil {
 					return err
 				}

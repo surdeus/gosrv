@@ -60,7 +60,7 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 				Type: "int(11)",
 				Nullable: false,
 				Key: "PRI",
-				Extra: "auto_increment",
+				//Extra: "auto_increment",
 			},{
 				Name: "AnotherValue",
 				Type: "int(11)",

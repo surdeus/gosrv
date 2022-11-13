@@ -104,7 +104,7 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 	rows, err := db.Query(
 		"select "+
 		"COLUMN_NAME, COLUMN_TYPE, " +
-		"IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT " +
+		"IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, EXTRA " +
 		"from INFORMATION_SCHEMA.COLUMNS " +
 		"where TABLE_NAME in (?) "+
 		"",
@@ -122,10 +122,13 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 			&nullable,
 			&field.Key,
 			&field.Default,
+			&field.Extra,
 		)
 		if nullable == "YES" {
 			field.Nullable = true
 		} 
+
+		fmt.Println(field)
 
 		ret = append(ret, field)
 	}
