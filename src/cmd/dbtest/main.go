@@ -24,7 +24,8 @@ func (t Test)Sql() sqlx.TableSchema {
 				Key: "PRI",
 				Extra: "auto_increment",
 			},{
-				Name: "Value",
+				OldName: "SuckValue",
+				Name: "DickValue",
 				Type: "int(11)",
 				Nullable: true,
 				Default: "25",
@@ -33,8 +34,12 @@ func (t Test)Sql() sqlx.TableSchema {
 				Type: "varchar(64)",
 				Nullable: true,
 				Default: "'some русская string'",
+			},{
+				Name: "NewValue",
+				Type: "bigint(11)",
+				Nullable: true,
+				Default: "0",
 			},
-
 		},
 	}
 }
