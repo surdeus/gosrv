@@ -37,7 +37,9 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			continue
 		}
 
+		// Create.
 		db.CreateTableBySchema(schema)
+		curSchemas = append(curSchemas, schema)
 	}
 
 	// Then we modify existing and create not existing fields.
