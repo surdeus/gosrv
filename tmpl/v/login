@@ -6,9 +6,10 @@
 {{end}}
 
 {{define "#content"}}
+	{{$var := "style='background-color: green'"}}
 	{{template "form/login" .}}
 	{{range array "string1" 125 "yet another"}}
-		<div>{{ . }}</div>
+		<div {{attr $var }}>{{ . }}</div>
 	{{end}}
 {{end}}
 

@@ -18,6 +18,7 @@ func StdFuncMap() FuncMap {
 		"array" : Array,
 		"string" : String,
 		"hasField" : HasField,
+		"attr" : Attr,
 	}
 }
 
@@ -55,6 +56,18 @@ func (cfg FuncConfig)Scripts(scripts ...string) template.HTML {
 
 func Array(args ...any) []any {
 	return args
+}
+
+func Attr(args ...string) template.HTMLAttr {
+	ret := ""
+	for i, v := range args {
+		ret += v
+		if i != len(args)-1 {
+			ret += " "
+		}
+	}
+
+	return template.HTMLAttr(ret)
 }
 
 func String(v any) string {
