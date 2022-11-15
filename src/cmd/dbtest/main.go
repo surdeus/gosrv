@@ -4,7 +4,7 @@ import(
 	"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/surdeus/ghost/src/dbx/sqlx"
+	"github.com/surdeus/go-srv/src/dbx/sqlx"
 )
 
 type Test struct {

@@ -7,10 +7,10 @@ import(
 	"log"
 	"net/http"
 	"encoding/json"
-	"github.com/surdeus/ghost/src/tmplx"
-	"github.com/surdeus/ghost/src/httpx/muxx"
-	"github.com/surdeus/ghost/src/httpx/cookiex"
-	"github.com/surdeus/ghost/src/authx"
+	"github.com/surdeus/go-srv/src/tmplx"
+	"github.com/surdeus/go-srv/src/httpx/muxx"
+	"github.com/surdeus/go-srv/src/httpx/cookiex"
+	"github.com/surdeus/go-srv/src/authx"
 )
 
 type Token string

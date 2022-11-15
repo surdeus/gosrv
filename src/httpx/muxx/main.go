@@ -9,7 +9,7 @@ import(
 	//"io/ioutil"
 	"log"
 	"fmt"
-	"github.com/surdeus/ghost/src/rex"
+	"github.com/surdeus/go-srv/src/rex"
 )
 
 type Handler func(a HndlArg)
