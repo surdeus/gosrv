@@ -96,6 +96,16 @@ func Define(mux *http.ServeMux, defs []HndlDef) *http.ServeMux {
 	return mux
 }
 
+func DefineSimple(mux *http.ServeMux, pref string,
+	hndl http.HandlerFunc) *http.ServeMux {
+		if mux == nil {
+			mux = http.NewServeMux()
+		}
+		mux.HandleFunc(pref, hndl)
+
+		return mux
+}
+
 func DefineStatic(mux *http.ServeMux, path, pref string) *http.ServeMux {
 	if mux == nil {
 		mux = http.NewServeMux()

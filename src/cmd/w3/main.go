@@ -220,6 +220,13 @@ func main(){
 
 	mux := muxx.Define(nil, defs)
 	muxx.DefineStatic(mux, staticPath, "/s/")
+	muxx.DefineSimple(
+		mux,
+		"/someshit/",
+		func(w http.ResponseWriter, r *http.Request){
+			fmt.Fprintf(w, "%s", "It works!")
+		},
+	)
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,
