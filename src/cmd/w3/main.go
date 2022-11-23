@@ -11,8 +11,72 @@ import(
 	"github.com/surdeus/go-srv/src/httpx/muxx"
 	"github.com/surdeus/go-srv/src/httpx/cookiex"
 	"github.com/surdeus/go-srv/src/authx"
+	"github.com/surdeus/go-srv/src/httpx/muxx/restx"
+	"github.com/surdeus/go-srv/src/dbx/sqlx"
 )
+type Test struct {
+	Id int
+	Value int
+	StringValue string
+}
 
+func (t Test)Sql() sqlx.TableSchema {
+	return sqlx.TableSchema {
+		Name: "Tests",
+		Fields: []sqlx.TableField {
+			{
+				Name: "Id",
+				Type: "int(11)",
+				Nullable: false,
+				Key: "PRI",
+				Extra: "auto_increment",
+			},{
+				OldName: "SuckValue",
+				Name: "DickValue",
+				Type: "int(11)",
+				Nullable: true,
+				Default: "25",
+			},{
+				Name: "StringValue",
+				Type: "varchar(64)",
+				Nullable: true,
+				Default: "'some русская string'",
+			},{
+				Name: "NewValue",
+				Type: "bigint(11)",
+				Nullable: true,
+				Default: "0",
+			},
+		},
+	}
+}
+
+type AnotherTest struct {
+	Id int
+	Value int
+	StringValue string
+}
+
+func (t AnotherTest)Sql() sqlx.TableSchema {
+	return sqlx.TableSchema {
+		OldName: "BetterTests",
+		Name: "AnotherTests",
+		Fields: []sqlx.TableField {
+			{
+				Name: "Id",
+				Type: "int(11)",
+				Nullable: false,
+				Key: "PRI",
+				//Extra: "auto_increment",
+			},{
+				Name: "AnotherValue",
+				Type: "int(11)",
+				Nullable: true,
+				Default: "25",
+			},
+		},
+	}
+}
 type Token string
 type Session struct {
 	Reloaded int
@@ -220,6 +284,18 @@ func main(){
 
 	mux := muxx.Define(nil, defs)
 	muxx.DefineStatic(mux, staticPath, "/s/")
+	muxx.DefineSimple(
+		mux,
+		"/api/",
+		restx.Sql(
+			nil,
+			"/api/",
+			[]sqlx.Sqler{
+				Test{},
+				AnotherTest{},
+			},
+		),
+	)
 	muxx.DefineSimple(
 		mux,
 		"/someshit/",

@@ -43,14 +43,22 @@ func Chained(c Chain, h Handler) Handler {
 }
 
 // Create final function handler.
-func MakeHttpHandleFunc(pref string, re *regexp.Regexp, handlers Handlers) http.HandlerFunc {
+func MakeHttpHandleFunc(
+	pref string,
+	re *regexp.Regexp,
+	handlers Handlers,
+) http.HandlerFunc {
 return func(w http.ResponseWriter, r *http.Request) {
 	var(
 		a HndlArg
 		e error
 	)
 
-	a.P = r.URL.Path[len(pref):]
+	p := r.URL.Path
+	if len(p) == 0 || p[len(p)-1] != '/' {
+		p += "/"
+	}
+	a.P = p[len(pref):]
 	if !rex.Validify(a.P, re) {
 		http.NotFound(w, r)
 		return
@@ -129,8 +137,8 @@ func GetTest(a HndlArg){
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	fmt.Fprintf(w, "Path: '%s'\nRawQuery:'%s'\n", r.URL.Path, r.URL.RawQuery)
 	fmt.Fprintf(w, "a.P: '%s'\n", a.P)
-	fmt.Fprintf(w, "a.Q:\n")
-	for k, v := range a.Q {
+	fmt.Fprintln(w, "a.Q:\n")
+	for k, v := range a.R.URL.Query() {
 		fmt.Fprintf(w, "\t'%s':\n", k)
 		for _, s := range v {
 			fmt.Fprintf(w, "\t\t'%s'\n", s)

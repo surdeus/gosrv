@@ -31,9 +31,10 @@ type TableFields []TableField
 
 var (
 	MultiplePrimaryKeysErr = errors.New("multiple primary keys")
+	NoPrimaryKeySpecifiedErr = errors.New("no primary key specified")
 )
 
-func (schema TableSchema)PrimaryKeyFieldId() (int, error) {
+func (schema *TableSchema)PrimaryKeyFieldId() (int, *TableField, error) {
 	var (
 		ret, i, n int
 		 f TableField
@@ -43,16 +44,16 @@ func (schema TableSchema)PrimaryKeyFieldId() (int, error) {
 			n++
 			ret = i
 			if n > 1 {
-				return -1, MultiplePrimaryKeysErr
+				return -1, nil, MultiplePrimaryKeysErr
 			}
 		}
 	}
 
 	if n != 1 {
-		return -1, nil
+		return -1, nil, NoPrimaryKeySpecifiedErr
 	}
 
-	return ret, nil
+	return ret, &schema.Fields[ret], nil
 }
 
 func (f TableField)IsPrimaryKey() bool {

@@ -119,12 +119,11 @@ func main(){
 	fmt.Println(db.FieldExists("Tests", "SurelyDoesNot"))
 
 	ts := Test{}.Sql()
-	i, err := ts.PrimaryKeyFieldId()
+	i, f, err := (&ts).PrimaryKeyFieldId()
 	if err != nil {
 		log.Println(err)
-	}
-	if i >= 0 {
-		fmt.Println(i, ts.Fields[i])
+	} else {
+		fmt.Println(i, f)
 	}
 }
 
