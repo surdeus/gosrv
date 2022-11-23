@@ -5,16 +5,33 @@ import (
 	"fmt"
 	"strings"
 	"errors"
+	"database/sql"
+	"strconv"
 )
 
+// The interface type must implement to be converted to
+// SQL code to be inserted.
+type RawValuer interface {
+	SqlRawValue() (RawValue, error)
+}
+
 type String string
+type Int int
+type Float32 float32
+type Float64 float32
+type Variable string
+
+// Type to save values for substitution.
+type RawValue string
+// Type to save SQL-code.
+type Code string
+
 type ConditionOp int
 type Type int
-type Value string
 
 type Condition struct {
 	Op ConditionOp
-	Values [2]Value
+	Values [2]RawValuer
 }
 
 type Where struct {
@@ -22,7 +39,7 @@ type Where struct {
 }
 
 type Query struct {
-	db *sqlx.DB
+	DB *sqlx.DB
 	Type Type
 	Table string
 	Columns []string
@@ -35,6 +52,7 @@ const (
 	LtConditionOp
 	GeConditionOp
 	LeConditionOp
+	NeConditionOp
 )
 
 const (
@@ -69,9 +87,9 @@ var (
 	}
 )
 
-func (w Where)SqlString() (String, error) {
+func (w Where)Code() (Code, error) {
 	if len(w.Conditions) == 0 {
-		return String(""), nil
+		return "", nil
 	}
 
 	ret := " where"
@@ -81,20 +99,28 @@ func (w Where)SqlString() (String, error) {
 			return "", UnknownConditionOpErr
 		}
 
+		val1, err := c.Values[0].SqlRawValue()
+		if err != nil {
+			return "", err
+		}
+		val2, err := c.Values[1].SqlRawValue()
+		if err != nil {
+			return "", err
+		}
 		ret += fmt.Sprintf(
 			" %s %s %s",
-			c.Values[0],
+			val1,
 			op,
-			c.Values[1],
+			val2,
 		)
 		if i < len(w.Conditions)-1 {
 			ret += " and"
 		}
 	}
-	return String(ret), nil
+	return Code(ret), nil
 }
 
-func (q Query)SqlString() (String, error) {
+func (q Query)Code() (String, error) {
 	var (
 		ret, c string
 	)
@@ -109,7 +135,7 @@ func (q Query)SqlString() (String, error) {
 
 	c = strings.Join(q.Columns, ", ")
 
-	where, err := q.Where.SqlString()
+	where, err := q.Where.Code()
 	if err != nil {
 		return String(""), err
 	}
@@ -127,5 +153,27 @@ func (q Query)SqlString() (String, error) {
 	}
 
 	return String(ret), nil
+}
+
+func (q Query)Do() (*sql.Rows, error) {
+	qs, err := q.Code()
+	if err != nil {
+		return nil, err
+	}
+
+	return q.DB.Query(string(qs))
+}
+
+func (v RawValue)SqlRawValue() (RawValue, error) {
+	return v, nil
+}
+
+func (i Int)SqlRawValue() (RawValue, error) {
+	return RawValue(strconv.Itoa(int(i))), nil
+}
+
+func (s String)SqlRawValue() (RawValue, error) {
+	ret := fmt.Sprintf("'%s'", s)
+	return RawValue(ret), nil
 }
 

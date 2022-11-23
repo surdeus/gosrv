@@ -14,6 +14,7 @@ import(
 	"github.com/surdeus/go-srv/src/httpx/muxx/restx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
+	_ "github.com/go-sql-driver/mysql"
 )
 type Test struct {
 	Id int
@@ -282,6 +283,25 @@ func main(){
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
 	}
+	db, err := sqlx.Open(
+		sqlx.ConnConfig{
+			Driver: "mysql",
+			Login: "test",
+			Password: "hello",
+			Host: "localhost",
+			Port: 3306,
+			Name: "test",
+		},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	sqlers := []sqlx.Sqler{
+		Test{},
+		AnotherTest{},
+	}
+	db.Migrate(sqlers)
 
 	mux := muxx.Define(nil, defs)
 	muxx.DefineStatic(mux, staticPath, "/s/")
@@ -289,12 +309,9 @@ func main(){
 		mux,
 		"/api/",
 		restx.Sql(
-			nil,
+			db,
 			"/api/",
-			[]sqlx.Sqler{
-				Test{},
-				AnotherTest{},
-			},
+			sqlers,
 		),
 	)
 	muxx.DefineSimple(
@@ -318,52 +335,57 @@ func main(){
 		panic(err)
 	}
 
+	sessions = authx.New()
+
 	fmt.Printf("%v\n", users)
 
-	sessions = authx.New()
+
 	q := qx.Query{
+		DB: db,
 		Type: qx.SelectType,
-		Table: "Tables",
+		Table: "Tests",
 		Columns: []string{
-			"Column1",
-			"Column2",
-			"Column3",
+			"DickValue",
+			"StringValue",
 		},
 		Where: qx.Where {
 			Conditions: []qx.Condition {
 				{
 					Op: qx.GtConditionOp,
-					Values: [2]qx.Value{
-						"Field1",
-						"25",
+					Values: [2]qx.RawValuer{
+						qx.RawValue("DickValue"),
+						qx.Int(5),
 					},
 				},
 				{
 					Op: qx.EqConditionOp,
-					Values: [2]qx.Value{
-						"Field2",
-						"1337",
+					Values: [2]qx.RawValuer{
+						qx.RawValue("StringValue"),
+						qx.String("value"),
 					},
 				},
 			},
 		},
-	}/*
-		Table("Tables").
-		Columns( []string{"Some", "Shit", "Another"}).
-		Where(
-			qx.WhereClause{}.
-				Conditions(
-					[]qx.QueryCondition{
-						Type : EqConditionType,
-						Operator : AndOperation
-					}
-				)
-		)*/
-	qs, err := q.SqlString()
+	}
+	qs, err := q.Code()
 	if err != nil {
 		log.Println(err)
 	} else {
-		fmt.Printf("%q\n", q)
+		fmt.Printf("%q\n", qs)
+	}
+	rows, err := q.Do()
+	if err != nil {
+		log.Println(err)
+	} else {
+		var (
+			i int
+			s string
+		)
+		fmt.Println("in")
+		for rows.Next() {
+			rows.Scan(&i, &s)
+			fmt.Printf("%d %q\n", i, s)
+		}
 	}
 
 	log.Printf("%s: Trying to run on '%s'...\n",
