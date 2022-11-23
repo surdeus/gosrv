@@ -55,7 +55,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 	)
 
 	p := r.URL.Path
-	if len(p) == 0 || p[len(p)-1] != '/' {
+	if p == ""  || p[len(p)-1] != '/' {
 		p += "/"
 	}
 	a.P = p[len(pref):]

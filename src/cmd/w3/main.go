@@ -13,6 +13,7 @@ import(
 	"github.com/surdeus/go-srv/src/authx"
 	"github.com/surdeus/go-srv/src/httpx/muxx/restx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
+	"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
 )
 type Test struct {
 	Id int
@@ -320,6 +321,50 @@ func main(){
 	fmt.Printf("%v\n", users)
 
 	sessions = authx.New()
+	v := qx.Query{
+		Type: qx.SelectType,
+		Table: "Tables",
+		Columns: []string{
+			"Column1",
+			"Column2",
+			"Column3",
+		},
+		Where: qx.Where {
+			Conditions: []qx.Condition {
+				{
+					Op: qx.GtConditionOp,
+					Values: [2]qx.Value{
+						"Field1",
+						"25",
+					},
+				},
+				{
+					Op: qx.EqConditionOp,
+					Values: [2]qx.Value{
+						"Field2",
+						"1337",
+					},
+				},
+			},
+		},
+	}/*
+		Table("Tables").
+		Columns( []string{"Some", "Shit", "Another"}).
+		Where(
+			qx.WhereClause{}.
+				Conditions(
+					[]qx.QueryCondition{
+						Type : EqConditionType,
+						Operator : AndOperation
+					}
+				)
+		)*/
+	s, err := v.SqlString()
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Printf("%q\n", s)
+	}
 
 	log.Printf("%s: Trying to run on '%s'...\n",
 		os.Args[0],
