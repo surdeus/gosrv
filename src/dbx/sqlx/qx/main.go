@@ -57,6 +57,16 @@ var (
 		LtConditionOp : "<",
 		LeConditionOp : ">=",
 	}
+
+	// For the restx package.
+	ConditionOpStringMap = map[string] ConditionOp {
+		"eq" : EqConditionOp,
+		"ne" : NeConditionOp,
+		"gt" : GtConditionOp,
+		"ge" : GeConditionOp,
+		"lt" : LtConditionOp,
+		"le" : LeConditionOp,
+	}
 )
 
 func (w Where)SqlString() (String, error) {

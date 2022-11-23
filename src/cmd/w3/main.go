@@ -321,7 +321,7 @@ func main(){
 	fmt.Printf("%v\n", users)
 
 	sessions = authx.New()
-	v := qx.Query{
+	q := qx.Query{
 		Type: qx.SelectType,
 		Table: "Tables",
 		Columns: []string{
@@ -359,11 +359,11 @@ func main(){
 					}
 				)
 		)*/
-	s, err := v.SqlString()
+	qs, err := q.SqlString()
 	if err != nil {
 		log.Println(err)
 	} else {
-		fmt.Printf("%q\n", s)
+		fmt.Printf("%q\n", q)
 	}
 
 	log.Printf("%s: Trying to run on '%s'...\n",
