@@ -117,4 +117,14 @@ func main(){
 
 	fmt.Println(db.FieldExists("Tests", "Value"))
 	fmt.Println(db.FieldExists("Tests", "SurelyDoesNot"))
+
+	ts := Test{}.Sql()
+	i, err := ts.PrimaryKeyFieldId()
+	if err != nil {
+		log.Println(err)
+	}
+	if i >= 0 {
+		fmt.Println(i, ts.Fields[i])
+	}
 }
+

@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"fmt"
+	"errors"
 )
 
 type Sqler interface {
@@ -27,6 +28,36 @@ type TableField struct {
 }
 
 type TableFields []TableField
+
+var (
+	MultiplePrimaryKeysErr = errors.New("multiple primary keys")
+)
+
+func (schema TableSchema)PrimaryKeyFieldId() (int, error) {
+	var (
+		ret, i, n int
+		 f TableField
+	)
+	for i, f = range schema.Fields {
+		if f.IsPrimaryKey() {
+			n++
+			ret = i
+			if n > 1 {
+				return -1, MultiplePrimaryKeysErr
+			}
+		}
+	}
+
+	if n != 1 {
+		return -1, nil
+	}
+
+	return ret, nil
+}
+
+func (f TableField)IsPrimaryKey() bool {
+	return f.Key == "PRI"
+}
 
 func (schemas TableSchemas)FindSchema(name string) int {
 	for i, _ := range schemas {
@@ -220,4 +251,5 @@ func (db *DB)FieldExists(table, field string) bool {
 
 	return false
 }
+
 
