@@ -70,7 +70,7 @@ var (
 		GtConditionOp : ">",
 		GeConditionOp : ">=",
 		LtConditionOp : "<",
-		LeConditionOp : ">=",
+		LeConditionOp : "<=",
 	}
 
 	// For the restx package.
