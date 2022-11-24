@@ -46,6 +46,10 @@ func (a HndlArg)NotFound() {
 	http.NotFound(a.W, a.R)
 }
 
+func (a HndlArg)Values() url.Values {
+	return a.R.URL.Query()
+}
+
 // Create final function handler.
 func MakeHttpHandleFunc(
 	pref string,

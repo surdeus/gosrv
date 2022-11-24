@@ -71,13 +71,13 @@ func MakeSqlTableHandler(
 		panic(err)
 	}
 
-	//cfg := StdArgCfg()
+	cfg := StdArgCfg()
 	handlers := muxx.Handlers {
-		"GET" : SqlMakeGetHandler(db, ts),
-		"POST" : SqlMakePostHandler(db, ts),
-		"PUT" : SqlMakePutHandler(db, ts),
-		"PATCH" : SqlMakePatchHandler(db, ts),
-		"DELETE" : SqlMakeDeleteHandler(db, ts),
+		"GET" : SqlMakeGetHandler(db, ts, cfg),
+		"POST" : SqlMakePostHandler(db, ts, cfg),
+		"PUT" : SqlMakePutHandler(db, ts, cfg),
+		"PATCH" : SqlMakePatchHandler(db, ts, cfg),
+		"DELETE" : SqlMakeDeleteHandler(db, ts, cfg),
 	}
 
 	fin := muxx.MakeHttpHandleFunc(
@@ -97,15 +97,18 @@ return func(a muxx.HndlArg) {
 func SqlMakeGetHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
+	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in getting handler")
-	//mp := a.R.URL.Query()
+	args := cfg.ParseValues(a.Values())
+	fmt.Println(args)
 }}
 
 func SqlMakePostHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
+	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in posting handler")
@@ -114,6 +117,7 @@ return func(a muxx.HndlArg) {
 func SqlMakePutHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
+	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in putting handler")
@@ -122,6 +126,7 @@ return func(a muxx.HndlArg) {
 func SqlMakePatchHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
+	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in patching handler")
@@ -130,6 +135,7 @@ return func(a muxx.HndlArg) {
 func SqlMakeDeleteHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
+	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in deleting handler")
