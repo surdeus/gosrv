@@ -4,18 +4,34 @@ import (
 	"net/http"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
 	"github.com/surdeus/go-srv/src/httpx/muxx"
+	//"github.com/surdeus/go-srv/src/urlx"
 	"strings"
 	"regexp"
 	"fmt"
 )
 
-// SQL REST access implementetaion
-// based on sqlx package migration description.
 func Sql(
 	db *sqlx.DB,
 	pref string,
 	sqlers []sqlx.Sqler,
-) http.HandlerFunc {
+) muxx.HndlDef {
+	ret := muxx.HndlDef{}
+	ret.Pref = pref
+	ret.Re = ""
+	ret.Handlers = muxx.Handlers {
+		"" : SqlHandler(db, pref, sqlers),
+	}
+
+	return ret
+}
+
+// SQL REST access implementetaion
+// based on sqlx package migration description.
+func SqlHandler(
+	db *sqlx.DB,
+	pref string,
+	sqlers []sqlx.Sqler,
+) muxx.Handler {
 	schemas := []*sqlx.TableSchema{}
 	for _, sqler := range sqlers {
 		ts := sqler.Sql()
@@ -31,18 +47,17 @@ func Sql(
 		)
 	}
 	return func(
-		w http.ResponseWriter,
-		r *http.Request,
+		a muxx.HndlArg,
 	) {
-		tsName := r.URL.Path[len(pref):]
+		tsName := a.R.URL.Path[len(pref):]
 		tsName = strings.SplitN(tsName, "/", 2)[0]
 		fmt.Println(tsName, mp)
 		hndl, ok := mp[tsName]
 		if !ok {
-			http.NotFound(w, r)
+			a.NotFound()
 			return
 		}
-		hndl(w, r)
+		hndl(a.W, a.R)
 	}
 }
 
@@ -55,6 +70,8 @@ func MakeSqlTableHandler(
 	if err != nil {
 		panic(err)
 	}
+
+	//cfg := StdArgCfg()
 	handlers := muxx.Handlers {
 		"GET" : SqlMakeGetHandler(db, ts),
 		"POST" : SqlMakePostHandler(db, ts),
@@ -62,12 +79,20 @@ func MakeSqlTableHandler(
 		"PATCH" : SqlMakePatchHandler(db, ts),
 		"DELETE" : SqlMakeDeleteHandler(db, ts),
 	}
-	return muxx.MakeHttpHandleFunc(
+
+	fin := muxx.MakeHttpHandleFunc(
 		pref,
 		regexp.MustCompile("^[0-9]*$"),
 		handlers,
 	)
+
+	return fin
 }
+
+func SqlParseParseValues(hndl muxx.Handler) muxx.Handler {
+return func(a muxx.HndlArg) {
+	hndl(a)
+}}
 
 func SqlMakeGetHandler(
 	db *sqlx.DB,

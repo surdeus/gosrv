@@ -11,9 +11,9 @@ import(
 	"github.com/surdeus/go-srv/src/httpx/muxx"
 	"github.com/surdeus/go-srv/src/httpx/cookiex"
 	"github.com/surdeus/go-srv/src/authx"
-	"github.com/surdeus/go-srv/src/httpx/muxx/restx"
+	"github.com/surdeus/go-srv/src/httpx/restx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
-	"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
+	//"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
 	_ "github.com/go-sql-driver/mysql"
 )
 type Test struct {
@@ -268,21 +268,6 @@ func main(){
 	authorize := muxx.Chain{Authorize}
 	unauthorize := muxx.Chain{Unauthorize}
 
-	defs := []muxx.HndlDef {
-		{
-			"/", "^$",
-			muxx.Handlers{
-				"GET": muxx.Chained(authorize, Greet),
-			},
-		},
-		{
-			"/login/", "^$", muxx.Handlers {
-				"GET": muxx.Chained(unauthorize, LoginGet),
-				"POST": muxx.Chained(unauthorize, LoginPost),
-			},
-		},
-		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
-	}
 	db, err := sqlx.Open(
 		sqlx.ConnConfig{
 			Driver: "mysql",
@@ -303,9 +288,26 @@ func main(){
 	}
 	db.Migrate(sqlers)
 
+	defs := []muxx.HndlDef {
+		{
+			"/", "^$",
+			muxx.Handlers{
+				"GET": muxx.Chained(authorize, Greet),
+			},
+		},
+		{
+			"/login/", "^$", muxx.Handlers {
+				"GET": muxx.Chained(unauthorize, LoginGet),
+				"POST": muxx.Chained(unauthorize, LoginPost),
+			},
+		},
+		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
+		restx.Sql(db, "/api/", sqlers),
+	}
+
 	mux := muxx.Define(nil, defs)
 	muxx.DefineStatic(mux, staticPath, "/s/")
-	muxx.DefineSimple(
+	/*muxx.DefineSimple(
 		mux,
 		"/api/",
 		restx.Sql(
@@ -313,7 +315,7 @@ func main(){
 			"/api/",
 			sqlers,
 		),
-	)
+	)*/
 	muxx.DefineSimple(
 		mux,
 		"/someshit/",
@@ -339,29 +341,28 @@ func main(){
 
 	fmt.Printf("%v\n", users)
 
-
-	q := qx.Query{
+	q := sqlx.Query{
 		DB: db,
-		Type: qx.SelectType,
+		Type: sqlx.SelectQueryType,
 		Table: "Tests",
 		Columns: []string{
 			"DickValue",
 			"StringValue",
 		},
-		Where: qx.Where {
-			Conditions: []qx.Condition {
+		Where: sqlx.Where {
+			Conditions: []sqlx.Condition {
 				{
-					Op: qx.GtConditionOp,
-					Values: [2]qx.RawValuer{
-						qx.RawValue("DickValue"),
-						qx.Int(5),
+					Op: sqlx.GtConditionOp,
+					Values: [2]sqlx.RawValuer{
+						sqlx.RawValue("DickValue"),
+						sqlx.Int(5),
 					},
 				},
 				{
-					Op: qx.EqConditionOp,
-					Values: [2]qx.RawValuer{
-						qx.RawValue("StringValue"),
-						qx.String("value"),
+					Op: sqlx.EqConditionOp,
+					Values: [2]sqlx.RawValuer{
+						sqlx.RawValue("StringValue"),
+						sqlx.String("value"),
 					},
 				},
 			},

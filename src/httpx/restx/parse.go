@@ -1,0 +1,32 @@
+package restx
+
+import (
+	"strings"
+	"net/url"
+	"fmt"
+)
+
+type ArgCfg struct {
+	Sep string
+}
+
+type Arg struct {
+	Splits []string
+	Values []string
+}
+
+func StdArgCfg() *ArgCfg {
+	ret := ArgCfg {
+		Sep : "__",
+	}
+	return &ret
+}
+
+func (ac *ArgCfg) ParseValues (
+	values url.Values,
+) []Arg {
+	for k, v := range values {
+		fmt.Printf("%s %q, %q\n", k, v, strings.Split(k, ac.Sep))
+	}
+	return []Arg{}
+}

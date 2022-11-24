@@ -42,6 +42,10 @@ func Chained(c Chain, h Handler) Handler {
 	return c[0](h)
 }
 
+func (a HndlArg)NotFound() {
+	http.NotFound(a.W, a.R)
+}
+
 // Create final function handler.
 func MakeHttpHandleFunc(
 	pref string,
@@ -64,11 +68,16 @@ return func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Parsing of arguments and shit.
 	method := r.Method
 	switch method {
 	case "GET" :
 		a.Q, e = url.ParseQuery(r.URL.RawQuery)
 	case "POST" :
+		fallthrough
+	case "PUT" :
+		fallthrough
+	case "PATCH" :
 		r.ParseForm()
 	}
 
@@ -81,8 +90,11 @@ return func(w http.ResponseWriter, r *http.Request) {
 	
 	handler, ok := handlers[method]
 	if !ok {
-		http.NotFound(w, r)
-		return
+		handler, ok = handlers[""]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
 	}
 
 	a.V = make(map[string] any, 5)

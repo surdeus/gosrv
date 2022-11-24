@@ -1,8 +1,8 @@
 package sqlx
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 )
 
 type DB struct {
@@ -35,5 +35,4 @@ func Open(cfg ConnConfig) (*DB, error) {
 
 	return &DB{db, cfg}, nil
 }
-
 
