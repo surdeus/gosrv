@@ -28,21 +28,19 @@ type Code string
 type ConditionOp int
 type QueryType int
 
+
 type Condition struct {
 	Op ConditionOp
 	Values [2]RawValuer
 }
-
-type Where struct {
-	Conditions []Condition
-}
+type Conditions []Condition
 
 type Query struct {
 	DB *DB
 	Type QueryType
 	Table string
 	Columns []string
-	Where Where
+	Conditions Conditions
 }
 
 const (
@@ -86,13 +84,13 @@ var (
 	}
 )
 
-func (w Where)Code() (Code, error) {
-	if len(w.Conditions) == 0 {
+func (w Conditions)Code() (Code, error) {
+	if len(w) == 0 {
 		return "", nil
 	}
 
 	ret := " where"
-	for i, c := range w.Conditions {
+	for i, c := range w {
 		op, ok := ConditionOpMap[c.Op]
 		if !ok {
 			return "", UnknownConditionOpErr
@@ -112,7 +110,7 @@ func (w Where)Code() (Code, error) {
 			op,
 			val2,
 		)
-		if i < len(w.Conditions)-1 {
+		if i < len(w)-1 {
 			ret += " and"
 		}
 	}
@@ -134,7 +132,7 @@ func (q Query)Code() (String, error) {
 
 	c = strings.Join(q.Columns, ", ")
 
-	where, err := q.Where.Code()
+	where, err := q.Conditions.Code()
 	if err != nil {
 		return String(""), err
 	}
@@ -168,8 +166,7 @@ func (v RawValue)SqlRawValue() (RawValue, error) {
 }
 
 func (i Int)SqlRawValue() (RawValue, error) {
-
-return RawValue(strconv.Itoa(int(i))), nil
+	return RawValue(strconv.Itoa(int(i))), nil
 }
 
 func (s String)SqlRawValue() (RawValue, error) {

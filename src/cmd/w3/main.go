@@ -333,7 +333,10 @@ func main(){
 		panic(err)
 	}
 
-	if err = json.Unmarshal(usersJson, &users) ; err != nil {
+	if err = json.Unmarshal(
+		usersJson,
+		&users,
+	) ; err != nil {
 		panic(err)
 	}
 
@@ -349,21 +352,19 @@ func main(){
 			"DickValue",
 			"StringValue",
 		},
-		Where: sqlx.Where {
-			Conditions: []sqlx.Condition {
-				{
-					Op: sqlx.GtConditionOp,
-					Values: [2]sqlx.RawValuer{
-						sqlx.RawValue("DickValue"),
-						sqlx.Int(5),
-					},
+		Conditions: []sqlx.Condition {
+			{
+				Op: sqlx.GtConditionOp,
+				Values: [2]sqlx.RawValuer{
+					sqlx.RawValue("DickValue"),
+					sqlx.Int(5),
 				},
-				{
-					Op: sqlx.EqConditionOp,
-					Values: [2]sqlx.RawValuer{
-						sqlx.RawValue("StringValue"),
-						sqlx.String("value"),
-					},
+			},
+			{
+				Op: sqlx.EqConditionOp,
+				Values: [2]sqlx.RawValuer{
+					sqlx.RawValue("StringValue"),
+					sqlx.String("value"),
 				},
 			},
 		},

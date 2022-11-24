@@ -8,6 +8,7 @@ import (
 	"strings"
 	"regexp"
 	"fmt"
+	"log"
 )
 
 func Sql(
@@ -103,6 +104,73 @@ return func(a muxx.HndlArg) {
 	fmt.Println("in getting handler")
 	args := cfg.ParseValues(a.Values())
 	fmt.Println(args)
+
+	colArg, ok := args["c"]
+	if !ok {
+		a.NotFound()
+	}
+
+	columns := colArg.Values
+
+	q := sqlx.Query{
+		DB: db,
+		Type: sqlx.SelectQueryType,
+		Table: ts.Name,
+		Columns: columns,
+		/*Where: sqlx.Where {
+			Conditions: []sqlx.Condition {
+				{
+					Op: sqlx.GtConditionOp,
+					Values: [2]sqlx.RawValuer{
+						sqlx.RawValue("DickValue"),
+						sqlx.Int(5),
+					},
+				},
+				{
+					Op: sqlx.EqConditionOp,
+					Values: [2]sqlx.RawValuer{
+						sqlx.RawValue("StringValue"),
+						sqlx.String("value"),
+					},
+				},
+			},
+		},*/
+	}
+
+	cs := sqlx.Conditions{}
+	for k, arg := range args {
+		if k == "c" {
+			continue
+		}
+
+		name := arg.Splits[0]
+		opStr := arg.Splits[1]
+
+		op, _ := sqlx.
+			ConditionOpStringMap[opStr]
+
+		c := sqlx.Condition{
+			Op: op,
+			Values: [2]sqlx.RawValuer {
+				sqlx.RawValue(name),
+				sqlx.RawValue(arg.Values[0]),
+			},
+		}
+
+		cs = append(cs, c)
+	}
+
+	q.Conditions = cs
+	rows, err := q.Do()
+	if err != nil {
+		log.Println(err)
+	} else {
+		arr := make([]any, len(columns))
+		for rows.Next() {
+			rows.Scan(arr...)
+			fmt.Println(arr)
+		}
+	}
 }}
 
 func SqlMakePostHandler(
