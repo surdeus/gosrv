@@ -92,6 +92,10 @@ var (
 	}
 )
 
+func (db *DB)Q() Query {
+	return Query{}.WithDB(db)
+}
+
 func (w Conditions)Code() (Code, error) {
 	if len(w) == 0 {
 		return "", nil

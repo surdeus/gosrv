@@ -22,7 +22,7 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	for _, schema := range newSchemas {
 		// Rename.
 		if schema.OldName != TableName("") &&  db.TableExists(schema.OldName) {
-			q := Query{}.AlterTableRename().
+			q := db.Q().AlterTableRename().
 				WithFrom(schema.OldName).
 				WithTo(schema.Name)
 			/*_, err = db.Query(fmt.Sprintf(
