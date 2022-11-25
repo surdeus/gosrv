@@ -46,7 +46,7 @@ type Query struct {
 	From TableName
 	To TableName
 	Columns ColumnNames
-	Conditions Conditions
+	Where Conditions
 }
 
 const (
@@ -150,7 +150,7 @@ func (q Query)Code() (Code, error) {
 			return Code(""), err
 		}
 
-		where, err := q.Conditions.Code()
+		where, err := q.Where.Code()
 		if err != nil {
 			return Code(""), err
 		}
@@ -193,6 +193,12 @@ func (q Query)WithTo(to TableName) Query {
 	q.To = to
 	return q
 }
+
+func (q Query)WithWhere(where Conditions) Query {
+	q.Where = where
+	return q
+}
+
 
 func (q Query)AlterTableRename() Query {
 	return q.WithType(AlterTableRenameQueryType)
