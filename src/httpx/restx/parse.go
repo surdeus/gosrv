@@ -23,6 +23,9 @@ var (
 	NoColumnsSpecifiedErr = errors.New(
 		"no columns specified",
 	)
+	WrongSplitOperatorFormatErr = errors.New(
+		"wrong split operator format",
+	)
 )
 
 func StdArgCfg() *ArgCfg {
@@ -66,6 +69,10 @@ func (args Args)SqlQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 			continue
 		}
 
+		if len(arg.Splits) != 2 {
+			return sqlx.Query{},
+				WrongSplitOperatorFormatErr 
+		}
 		name := arg.Splits[0]
 		opStr := arg.Splits[1]
 
