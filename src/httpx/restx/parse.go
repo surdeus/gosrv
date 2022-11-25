@@ -50,16 +50,23 @@ func (ac *ArgCfg) ParseValues (
 	return ret
 }
 
-func (args Args)SqlQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
+func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 	colArg, ok := args["c"]
 	if !ok {
 		return sqlx.Query{}, NoColumnsSpecifiedErr
 	}
 
-	columns := colArg.Values
+	columnsStr := colArg.Values
+	columns := make(sqlx.ColumnNames, 0)
+	for _, c := range columnsStr {
+		columns = append(
+			columns,
+			sqlx.ColumnName(c),
+		)
+	}
 
 	q := sqlx.Query{
-		Table: ts.Name,
+		From: ts.Name,
 		Columns: columns,
 	}
 

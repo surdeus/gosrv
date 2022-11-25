@@ -39,11 +39,11 @@ func SqlHandler(
 		schemas = append(schemas, &ts)
 	}
 
-	mp := make(map[string] http.HandlerFunc)
+	mp := make(map[sqlx.TableName] http.HandlerFunc)
 	for _, schema := range schemas {
 		mp[schema.Name] = MakeSqlTableHandler(
 			db,
-			pref + schema.Name + "/",
+			pref + string(schema.Name) + "/",
 			schema,
 		)
 	}
@@ -53,8 +53,9 @@ func SqlHandler(
 		tsName := a.R.URL.Path[len(pref):]
 		tsName = strings.SplitN(tsName, "/", 2)[0]
 		fmt.Println(tsName, mp)
-		hndl, ok := mp[tsName]
+		hndl, ok := mp[sqlx.TableName(tsName)]
 		if !ok {
+			fmt.Println("in")
 			a.NotFound()
 			return
 		}
@@ -104,8 +105,9 @@ return func(a muxx.HndlArg) {
 	//fmt.Println("in getting handler")
 	args := cfg.ParseValues(a.Values())
 	//fmt.Println(args)
-	q, err := args.SqlQuery(ts)
+	q, err := args.SqlGetQuery(ts)
 	if err != nil {
+		log.Println(err)
 		a.NotFound()
 		return
 	}
@@ -114,9 +116,11 @@ return func(a muxx.HndlArg) {
 
 	s, err := q.Code()
 	if err != nil {
+		log.Println(err)
 		a.NotFound()
 		return
 	}
+	fmt.Println(s)
 
 	rows, err := q.Do()
 	if err != nil {
@@ -126,7 +130,6 @@ return func(a muxx.HndlArg) {
 	defer rows.Close()
 
 
-	fmt.Println(s)
 	columns := args["c"].Values
 	row := make([][]byte, len(columns))
 	rowPtr := make([]any, len(columns))

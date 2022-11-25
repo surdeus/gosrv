@@ -21,12 +21,16 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	// First we should rename existing tables and create not existing ones.
 	for _, schema := range newSchemas {
 		// Rename.
-		if schema.OldName != "" &&  db.TableExists(schema.OldName) {
-			_, err = db.Query(fmt.Sprintf(
+		if schema.OldName != TableName("") &&  db.TableExists(schema.OldName) {
+			q := Query{}.AlterTableRename().
+				WithFrom(schema.OldName).
+				WithTo(schema.Name)
+			/*_, err = db.Query(fmt.Sprintf(
 				"alter table %s rename %s ;",
 				schema.OldName,
 				schema.Name,
-			))
+			))*/
+			_, err = q.Do()
 			if err != nil {
 				return err
 			}
@@ -48,7 +52,8 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 		_, curSchema := curSchemas.FindSchema(schema.Name)
 		for _, column := range schema.Columns {
 
-			if column.OldName != "" && db.ColumnExists(schema.Name, column.OldName) {
+			if column.OldName != ColumnName("") &&
+					db.ColumnExists(schema.Name, column.OldName) {
 
 				// Rename.
 				_, curColumn := curSchema.FindColumn(column.OldName)
@@ -81,9 +86,9 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 
 			// Drop primary constraint.
 			if curColumn.IsPrimaryKey() && !column.IsPrimaryKey() {
-				_, err := db.Exec(fmt.Sprintf(
-					"alter table %s drop primary key ;",
-				))
+				err := db.DropTablePrimaryKey(
+					schema.Name,
+				)
 				if err != nil {
 					return err
 				}

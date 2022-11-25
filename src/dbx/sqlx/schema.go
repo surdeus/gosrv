@@ -10,16 +10,16 @@ type Sqler interface {
 }
 
 type TableSchema struct {
-	OldName string
-	Name string
+	OldName TableName
+	Name TableName
 	Columns Columns
 }
 
 type TableSchemas []TableSchema
 
 type Column struct {
-	OldName string
-	Name string
+	OldName ColumnName
+	Name ColumnName
 	Type string
 	Nullable bool
 	Key string
@@ -61,7 +61,7 @@ func (f *Column)IsPrimaryKey() bool {
 }
 
 func (schemas TableSchemas)FindSchema(
-	name string,
+	name TableName,
 ) (int, *TableSchema) {
 	for i, _ := range schemas {
 		if schemas[i].Name == name {
@@ -72,7 +72,9 @@ func (schemas TableSchemas)FindSchema(
 	return -1, nil
 }
 
-func (ts TableSchema)FindColumn(name string) (int, *Column) {
+func (ts TableSchema)FindColumn(
+	name ColumnName,
+) (int, *Column) {
 	for i, _ := range ts.Columns {
 		if ts.Columns[i].Name == name {
 			return i, &(ts.Columns[i])
@@ -119,7 +121,7 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 	return ret, nil
 }
 
-func (db *DB)TableExists(name string) bool {
+func (db *DB)TableExists(name TableName) bool {
 	ret := false
 	rows, err := db.Query(fmt.Sprintf("select * from %s ;", name))
 	if err == nil {
@@ -130,7 +132,7 @@ func (db *DB)TableExists(name string) bool {
 	return ret
 }
 
-func (db *DB)GetColumnsByTableName(name string) (Columns, error) {
+func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 	var (
 		nullable string
 	)
@@ -245,7 +247,10 @@ func (db *DB)CreateTableBySchema(ts TableSchema) error {
 	return err
 }
 
-func (db *DB)ColumnExists(table, column string) bool {
+func (db *DB)ColumnExists(
+	table TableName,
+	column ColumnName,
+) bool {
 	rows, err := db.Query(fmt.Sprintf("select %s from %s limit 1 ;", column, table))
 	if err == nil {
 		rows.Close()
@@ -255,4 +260,16 @@ func (db *DB)ColumnExists(table, column string) bool {
 	return false
 }
 
+func (db *DB)DropTablePrimaryKey(name TableName) error {
+	_, err := db.Exec(fmt.Sprintf(
+		"alter table %s drop primary key ;",
+		name,
+	))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
