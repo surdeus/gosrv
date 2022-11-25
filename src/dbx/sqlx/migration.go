@@ -44,6 +44,7 @@ func (db *DB)CompareColumns(
 	if err != nil {
 		return NoColumnDiff, err
 	}
+
 	if !eq {
 		return DefaultColumnDiff, nil
 	}
@@ -71,19 +72,6 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	newSchemas := TableSchemas{}
 	for _, sqler := range sqlers {
 		newSchemas = append(newSchemas, sqler.Sql())
-	}
-
-	for _, newSchema := range newSchemas {
-		_, curSchema := curSchemas.FindSchema(newSchema.Name)
-		for _, newColumn := range newSchema.Columns {
-			i, curColumn :=
-				curSchema.FindColumn(newColumn.Name)
-			fmt.Println("i:", i)
-			fmt.Println("names:", newColumn.Name, curColumn.Name)
-			diff, err :=
-				db.CompareColumns(&newColumn, curColumn)
-			fmt.Println("diff: ", diff, err)
-		}
 	}
 
 	return nil

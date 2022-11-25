@@ -341,7 +341,11 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 		}
 		column.Key.Type = keyType
 
-		column.Default = RawValue(def)
+		if def == "" {
+			column.Default = nil
+		} else {
+			column.Default = RawValue(def)
+		}
 		column.Extra = Code(extra)
 
 		ret = append(ret, column)

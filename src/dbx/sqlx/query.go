@@ -334,6 +334,7 @@ func (db *DB)RawValuersEq(
 	}
 
 	if v1 == nil || v2 == nil {
+		fmt.Println("in")
 		return false, nil
 	}
 
@@ -346,7 +347,6 @@ func (db *DB)RawValuersEq(
 	if err != nil {
 		return false, err
 	}
-
 	return raw1 == raw2, nil
 }
 
