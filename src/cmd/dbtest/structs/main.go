@@ -11,8 +11,8 @@ type Test struct {
 	StringValue string
 }
 
-func (t Test)Sql() sqlx.TableSchema {
-	return sqlx.TableSchema {
+func (t Test)Sql() *sqlx.TableSchema {
+	return &sqlx.TableSchema {
 		Name: "Tests",
 		Columns: sqlx.Columns {
 			{
@@ -49,8 +49,8 @@ type AnotherTest struct {
 	StringValue string
 }
 
-func (t AnotherTest)Sql() sqlx.TableSchema {
-	return sqlx.TableSchema {
+func (t AnotherTest)Sql() *sqlx.TableSchema {
+	return &sqlx.TableSchema {
 		OldName: "BetterTests",
 		Name: "AnotherTests",
 		Columns: sqlx.Columns {

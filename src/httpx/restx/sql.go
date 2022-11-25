@@ -34,10 +34,10 @@ func SqlHandler(
 	pref string,
 	sqlers []sqlx.Sqler,
 ) muxx.Handler {
-	schemas := []*sqlx.TableSchema{}
+	schemas := sqlx.TableSchemas{}
 	for _, sqler := range sqlers {
 		ts := sqler.Sql()
-		schemas = append(schemas, &ts)
+		schemas = append(schemas, ts)
 	}
 
 	mp := make(map[sqlx.TableName] http.HandlerFunc)

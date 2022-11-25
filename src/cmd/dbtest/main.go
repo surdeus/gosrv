@@ -64,7 +64,7 @@ func main(){
 	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
 
 	ts := structs.Test{}.Sql()
-	i, f, err := (&ts).PrimaryKeyColumn()
+	i, f, err := ts.PrimaryKeyColumn()
 	if err != nil {
 		log.Println(err)
 	} else {

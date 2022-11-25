@@ -9,7 +9,7 @@ import (
 )
 
 type Sqler interface {
-	Sql() TableSchema
+	Sql() *TableSchema
 }
 
 type TableSchema struct {
@@ -18,7 +18,7 @@ type TableSchema struct {
 	Columns Columns
 }
 
-type TableSchemas []TableSchema
+type TableSchemas []*TableSchema
 
 type ColumnVarType int
 type ColumnType struct {
@@ -41,7 +41,7 @@ type Column struct {
 	Extra Code
 }
 
-type Columns []Column
+type Columns []*Column
 
 const (
 	NotKeyType KeyType = iota
@@ -158,7 +158,7 @@ func PrimaryKey() Key {
 func (schema *TableSchema)PrimaryKeyColumn() (int, *Column, error) {
 	var (
 		ret, i, n int
-		 f Column
+		 f *Column
 	)
 	for i, f = range schema.Columns {
 		if f.IsPrimaryKey() {
@@ -174,7 +174,7 @@ func (schema *TableSchema)PrimaryKeyColumn() (int, *Column, error) {
 		return -1, nil, NoPrimaryKeySpecifiedErr
 	}
 
-	return ret, &schema.Columns[ret], nil
+	return ret, schema.Columns[ret], nil
 }
 
 func (f *Column)IsPrimaryKey() bool {
@@ -190,7 +190,7 @@ func (schemas TableSchemas)FindSchema(
 ) (int, *TableSchema) {
 	for i, _ := range schemas {
 		if schemas[i].Name == name {
-			return i, &schemas[i]
+			return i, schemas[i]
 		}
 	}
 
@@ -202,7 +202,7 @@ func (ts TableSchema)FindColumn(
 ) (int, *Column) {
 	for i, _ := range ts.Columns {
 		if ts.Columns[i].Name == name {
-			return i, &(ts.Columns[i])
+			return i, ts.Columns[i]
 		}
 	}
 
@@ -229,7 +229,7 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		s := TableSchema{}
+		s := &TableSchema{}
 
 		rows.Scan(
 			&s.Name,
@@ -317,7 +317,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 			key, nullable string
 	)
 	for rows.Next() {
-		column := Column{}
+		column := &Column{}
 		rows.Scan(
 			&cname,
 			&t,
@@ -389,7 +389,7 @@ func (f Column)String() string {
 	)
 }
 
-func (db *DB)ColumnToSql(f Column) (Code, error) {
+func (db *DB)ColumnToSql(f *Column) (Code, error) {
 	name, err := f.Name.SqlRawValue(db)
 	if err != nil {
 		return "", err
@@ -436,7 +436,7 @@ func (db *DB)ColumnToSql(f Column) (Code, error) {
 	return Code(ret), nil
 }
 
-func (db *DB)TableCreationStringForSchema(ts TableSchema) (string, error) {
+func (db *DB)TableCreationStringForSchema(ts *TableSchema) (string, error) {
 	ret := fmt.Sprintf("create table %s (\n", ts.Name)
 	for i, f := range ts.Columns{
 		sql, err := db.ColumnToSql(f)
@@ -462,7 +462,7 @@ func (db *DB)CreateTableBy(v Sqler) error {
 	return db.CreateTableBySchema(v.Sql())
 }
 
-func (db *DB)CreateTableBySchema(ts TableSchema) error {
+func (db *DB)CreateTableBySchema(ts *TableSchema) error {
 	_, err := db.Query(db.TableCreationStringForSchema(ts))
 	return err
 }

@@ -52,6 +52,7 @@ type Query struct {
 	Type QueryType
 	From TableName
 	To TableName
+	Schema *TableSchema
 	Columns ColumnNames
 	Where Conditions
 }
