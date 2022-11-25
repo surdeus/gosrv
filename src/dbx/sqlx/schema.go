@@ -12,12 +12,12 @@ type Sqler interface {
 type TableSchema struct {
 	OldName string
 	Name string
-	Fields TableFields
+	Columns Columns
 }
 
 type TableSchemas []TableSchema
 
-type TableField struct {
+type Column struct {
 	OldName string
 	Name string
 	Type string
@@ -27,19 +27,19 @@ type TableField struct {
 	Extra string
 }
 
-type TableFields []TableField
+type Columns []Column
 
 var (
 	MultiplePrimaryKeysErr = errors.New("multiple primary keys")
 	NoPrimaryKeySpecifiedErr = errors.New("no primary key specified")
 )
 
-func (schema *TableSchema)PrimaryKeyFieldId() (int, *TableField, error) {
+func (schema *TableSchema)PrimaryKeyColumn() (int, *Column, error) {
 	var (
 		ret, i, n int
-		 f TableField
+		 f Column
 	)
-	for i, f = range schema.Fields {
+	for i, f = range schema.Columns {
 		if f.IsPrimaryKey() {
 			n++
 			ret = i
@@ -53,31 +53,33 @@ func (schema *TableSchema)PrimaryKeyFieldId() (int, *TableField, error) {
 		return -1, nil, NoPrimaryKeySpecifiedErr
 	}
 
-	return ret, &schema.Fields[ret], nil
+	return ret, &schema.Columns[ret], nil
 }
 
-func (f TableField)IsPrimaryKey() bool {
+func (f *Column)IsPrimaryKey() bool {
 	return f.Key == "PRI"
 }
 
-func (schemas TableSchemas)FindSchema(name string) int {
+func (schemas TableSchemas)FindSchema(
+	name string,
+) (int, *TableSchema) {
 	for i, _ := range schemas {
 		if schemas[i].Name == name {
-			return i
+			return i, &schemas[i]
 		}
 	}
 
-	return -1
+	return -1, nil
 }
 
-func (ts TableSchema)FindField(name string) int {
-	for i, _ := range ts.Fields {
-		if ts.Fields[i].Name == name {
-			return i
+func (ts TableSchema)FindColumn(name string) (int, *Column) {
+	for i, _ := range ts.Columns {
+		if ts.Columns[i].Name == name {
+			return i, &(ts.Columns[i])
 		}
 	}
 
-	return -1
+	return -1, nil
 }
 
 func (db* DB)GetTableSchemas() (TableSchemas, error) {
@@ -106,7 +108,7 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 			&s.Name,
 		)
 
-		s.Fields, err = db.GetFieldsByTableName(s.Name)
+		s.Columns, err = db.GetColumnsByTableName(s.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -128,11 +130,11 @@ func (db *DB)TableExists(name string) bool {
 	return ret
 }
 
-func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
+func (db *DB)GetColumnsByTableName(name string) (Columns, error) {
 	var (
 		nullable string
 	)
-	ret := []TableField{}
+	ret := Columns{}
 	rows, err := db.Query(
 		"select "+
 		"COLUMN_NAME, COLUMN_TYPE, " +
@@ -147,29 +149,29 @@ func (db *DB)GetFieldsByTableName(name string) ([]TableField, error) {
 	}
 
 	for rows.Next() {
-		field := TableField{}
+		column := Column{}
 		rows.Scan(
-			&field.Name,
-			&field.Type,
+			&column.Name,
+			&column.Type,
 			&nullable,
-			&field.Key,
-			&field.Default,
-			&field.Extra,
+			&column.Key,
+			&column.Default,
+			&column.Extra,
 		)
 		if nullable == "YES" {
-			field.Nullable = true
+			column.Nullable = true
 		} 
 
-		fmt.Println(field)
+		fmt.Println(column)
 
-		ret = append(ret, field)
+		ret = append(ret, column)
 	}
 
 
 	return ret, nil
 }
 
-func (f TableField)String() string {
+func (f Column)String() string {
 	return fmt.Sprintf(
 		"{\n" +
 		"\tName: \"%s\",\n" +
@@ -188,7 +190,7 @@ func (f TableField)String() string {
 	)
 }
 
-func (db *DB)FieldToSql(f TableField) string {
+func (db *DB)ColumnToSql(f Column) string {
 	ret := fmt.Sprintf(
 		"%s %s",
 		f.Name,
@@ -218,9 +220,9 @@ func (db *DB)FieldToSql(f TableField) string {
 
 func (db *DB)TableCreationStringForSchema(ts TableSchema) string {
 	ret := fmt.Sprintf("create table %s (\n", ts.Name)
-	for i, f := range ts.Fields {
-		ret += "\t" + db.FieldToSql(f)
-		if i != len(ts.Fields) - 1 {
+	for i, f := range ts.Columns{
+		ret += "\t" + db.ColumnToSql(f)
+		if i != len(ts.Columns) - 1 {
 			ret += ",\n"
 		} 
 	}
@@ -243,8 +245,8 @@ func (db *DB)CreateTableBySchema(ts TableSchema) error {
 	return err
 }
 
-func (db *DB)FieldExists(table, field string) bool {
-	rows, err := db.Query(fmt.Sprintf("select %s from %s limit 1 ;", field, table))
+func (db *DB)ColumnExists(table, column string) bool {
+	rows, err := db.Query(fmt.Sprintf("select %s from %s limit 1 ;", column, table))
 	if err == nil {
 		rows.Close()
 		return true

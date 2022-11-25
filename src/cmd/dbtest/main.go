@@ -16,7 +16,7 @@ type Test struct {
 func (t Test)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
 		Name: "Tests",
-		Fields: []sqlx.TableField {
+		Columns: sqlx.Columns {
 			{
 				Name: "Id",
 				Type: "int(11)",
@@ -54,7 +54,7 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
 		OldName: "BetterTests",
 		Name: "AnotherTests",
-		Fields: []sqlx.TableField {
+		Columns: sqlx.Columns {
 			{
 				Name: "Id",
 				Type: "int(11)",
@@ -93,8 +93,8 @@ func main(){
 	}
 
 	for _, schema := range schemas {
-		for _, f := range schema.Fields {
-			fmt.Printf("'%s'", db.FieldToSql(f))
+		for _, f := range schema.Columns {
+			fmt.Printf("'%s'", db.ColumnToSql(f))
 			fmt.Println(f)
 		}
 	}
@@ -115,11 +115,11 @@ func main(){
 	    log.Println(err)
 	}
 
-	fmt.Println(db.FieldExists("Tests", "Value"))
-	fmt.Println(db.FieldExists("Tests", "SurelyDoesNot"))
+	fmt.Println(db.ColumnExists("Tests", "Value"))
+	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
 
 	ts := Test{}.Sql()
-	i, f, err := (&ts).PrimaryKeyFieldId()
+	i, f, err := (&ts).PrimaryKeyColumn()
 	if err != nil {
 		log.Println(err)
 	} else {

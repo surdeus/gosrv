@@ -67,7 +67,7 @@ func MakeSqlTableHandler(
 	pref string,
 	ts *sqlx.TableSchema,
 ) http.HandlerFunc {
-	_, _, err := ts.PrimaryKeyFieldId()
+	_, _, err := ts.PrimaryKeyColumn()
 	if err != nil {
 		panic(err)
 	}
@@ -107,19 +107,24 @@ return func(a muxx.HndlArg) {
 	q, err := args.SqlQuery(ts)
 	if err != nil {
 		a.NotFound()
+		return
 	}
 	q = q.WithDB(db).
 		WithType(sqlx.SelectQueryType)
+
+	s, err := q.Code()
+	if err != nil {
+		a.NotFound()
+		return
+	}
+
 	rows, err := q.Do()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer rows.Close()
-	s, err := q.Code()
-	if err != nil {
-		a.NotFound()
-	}
+
 
 	fmt.Println(s)
 	columns := args["c"].Values

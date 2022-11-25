@@ -25,7 +25,7 @@ type Test struct {
 func (t Test)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
 		Name: "Tests",
-		Fields: []sqlx.TableField {
+		Columns: sqlx.Columns {
 			{
 				Name: "Id",
 				Type: "int(11)",
@@ -63,7 +63,7 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
 		OldName: "BetterTests",
 		Name: "AnotherTests",
-		Fields: []sqlx.TableField {
+		Columns: sqlx.Columns {
 			{
 				Name: "Id",
 				Type: "int(11)",

@@ -32,7 +32,8 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			}
 
 			// Fit changes to the current schema representation.
-			curSchemas[curSchemas.FindSchema(schema.OldName)].Name = schema.Name
+			_, curSchema := curSchemas.FindSchema(schema.OldName)
+			curSchema.Name = schema.Name
 
 			continue
 		}
@@ -42,45 +43,44 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 		curSchemas = append(curSchemas, schema)
 	}
 
-	// Then we modify existing and create not existing fields.
+	// Then we modify existing and create not existing columns.
 	for _, schema := range newSchemas {
-		idx := curSchemas.FindSchema(schema.Name)
-		for _, field := range schema.Fields {
+		_, curSchema := curSchemas.FindSchema(schema.Name)
+		for _, column := range schema.Columns {
 
-			if field.OldName != "" && db.FieldExists(schema.Name, field.OldName) {
+			if column.OldName != "" && db.ColumnExists(schema.Name, column.OldName) {
 
 				// Rename.
-				curFieldIdx := curSchemas[idx].FindField(field.OldName)
-				curField := &(curSchemas[idx].Fields[curFieldIdx])
+				_, curColumn := curSchema.FindColumn(column.OldName)
+				//curField := &(curSchemas[idx].Fields[curFieldIdx])
 
 				_, err = db.Query(fmt.Sprintf(
 					"alter table %s rename column %s to %s ;",
 					schema.Name,
-					field.OldName,
-					field.Name,
+					column.OldName,
+					column.Name,
 				))
 				if err != nil {
 					return err
 				}
 
-				curField.Name = field.Name
-			} else if !db.FieldExists(schema.Name, field.Name) {
+				curColumn.Name = column.Name
+			} else if !db.ColumnExists(schema.Name, column.Name) {
 				// Create.
 				_, err = db.Query(fmt.Sprintf(
 					"alter table %s add %s",
 					schema.Name,
-					db.FieldToSql(field),
+					db.ColumnToSql(column),
 				))
 				if err != nil {
 					return err
 				}
 			}
 
-			curFieldIdx := curSchemas[idx].FindField(field.Name)
-			curField := &(curSchemas[idx].Fields[curFieldIdx])
+			_, curColumn := curSchema.FindColumn(column.Name)
 
 			// Drop primary constraint.
-			if curField.Key == "PRI" && field.Key != "PRI" {
+			if curColumn.IsPrimaryKey() && !column.IsPrimaryKey() {
 				_, err := db.Exec(fmt.Sprintf(
 					"alter table %s drop primary key ;",
 				))
@@ -90,11 +90,11 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			}
 
 			// Set primary constraint.
-			if field.Key == "PRI" && curField.Key != "PRI" {
+			if column.IsPrimaryKey() && !curColumn.IsPrimaryKey() {
 				_, err := db.Exec(fmt.Sprintf(
 					"alter table %s add primary key (%s)",
 					schema.Name,
-					field.Name,
+					column.Name,
 				))
 				if err != nil {
 					return err
@@ -102,21 +102,21 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			}
 
 			// Type.
-			fieldBuf := field
-			curFieldBuf := *curField
+			columnBuf := column
+			curColumnBuf := *curColumn
 
-			fieldBuf.Key = ""
-			curFieldBuf.Key = ""
+			columnBuf.Key = ""
+			curColumnBuf.Key = ""
 
-			fieldSql := db.FieldToSql(fieldBuf)
-			curFieldSql := db.FieldToSql(curFieldBuf)
+			columnSql := db.ColumnToSql(columnBuf)
+			curColumnSql := db.ColumnToSql(curColumnBuf)
 
-			if fieldSql != curFieldSql {
-				fmt.Printf("'%s'\n'%s'\n", fieldSql, curFieldSql)
+			if columnSql != curColumnSql {
+				fmt.Printf("'%s'\n'%s'\n", columnSql, curColumnSql)
 				_, err = db.Exec(fmt.Sprintf(
 					"alter table %s modify column %s",
 					schema.Name,
-					fieldSql,
+					columnSql,
 				))
 
 				if err != nil {

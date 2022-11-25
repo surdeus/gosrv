@@ -27,7 +27,6 @@ type HndlArg struct {
 	V map[string] any
 }
 
-
 type HndlDef struct {
 	Pref, Re string
 	Handlers Handlers
