@@ -13,7 +13,7 @@ import(
 	"github.com/surdeus/go-srv/src/authx"
 	"github.com/surdeus/go-srv/src/httpx/restx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
-	dbtest "github.com/surdeus/go-srv/src/cmd/dbtest"
+	dbtest "github.com/surdeus/go-srv/src/cmd/dbtest/structs"
 	//"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
 	_ "github.com/go-sql-driver/mysql"
 )

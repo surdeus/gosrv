@@ -297,7 +297,7 @@ func (rvs RawValuers) SqlMultiValue() (Code, error) {
 		ret += Code(raw)
 
 		if i != len(rvs) - 1 {
-			ret += ", "
+			ret += ","
 		}
 	}
 

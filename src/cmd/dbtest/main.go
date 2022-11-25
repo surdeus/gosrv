@@ -8,7 +8,6 @@ import(
 	"github.com/surdeus/go-srv/src/cmd/dbtest/structs"
 )
 
-
 func main(){
 	db, err := sqlx.Open(
 		sqlx.ConnConfig{
@@ -25,6 +24,10 @@ func main(){
 		log.Fatal(err)
 	}
 
+	t, err := db.ParseColumnType("suck(11)")
+	fmt.Printf("%v %s\n", t, err)
+
+	return
 	schemas, err := db.GetTableSchemas()
 	if err != nil {
 		log.Println(err)

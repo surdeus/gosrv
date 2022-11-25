@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"strings"
 	"fmt"
 	"errors"
 	"log"
@@ -50,7 +51,8 @@ const (
 )
 
 const (
-	IntColumnVarType = iota
+	NoColumnVarType = iota
+	IntColumnVarType
 
 	BitColumnVarType
 	TinyintColumnVarType
@@ -86,6 +88,12 @@ var (
 	NoPrimaryKeySpecifiedErr = errors.New("no primary key specified")
 	UnknownKeyTypeErr = errors.New(
 		"unknown key type",
+	)
+	UnknownColumnTypeErr = errors.New(
+		"unknown column type",
+	)
+	WrongColumnTypeFormatErr = errors.New(
+		"wrong column type format",
 	)
 
 	MysqlStringMapKeyType = map[string] KeyType {
@@ -128,6 +136,10 @@ var (
 		XmlColumnVarType : "xml",
 		JsonColumnVarType : "json",
 	}
+
+	MysqlStringMapColumnType = mapx.Reverse(
+		MysqlColumnTypeMapString,
+	)
 )
 
 func (cs Columns)Names() ColumnNames {
@@ -245,10 +257,41 @@ func (db *DB)TableExists(name TableName) bool {
 	return ret
 }
 
+func (db *DB)ParseColumnType(
+	t string,
+) (ColumnType, error) {
+	ret := ColumnType{}
+	t = strings.ReplaceAll(t, " ", "")
+	varTypeStr, argStr, f := strings.Cut(t, "(")
+	if f {
+		if argStr[len(argStr)-1] != ')' {
+			return ColumnType{},
+				WrongColumnTypeFormatErr
+		}
+	}
+
+	varTypeStr =
+		strings.ToLower(varTypeStr)
+	varType, ok :=
+		MysqlStringMapColumnType[varTypeStr]
+	if !ok {
+		return ColumnType{},
+			UnknownColumnTypeErr
+	}
+
+	args := RawValuers{}
+	argStrs := strings.Split(argStr, ",")
+	for _, v := range argStrs {
+		args = append(args, RawValue(v))
+	}
+
+	ret.VarType = varType
+	ret.Args = args
+
+	return ret, nil
+}
+
 func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
-	var (
-		nullable string
-	)
 	ret := Columns{}
 	rows, err := db.Query(
 		"select "+
@@ -263,27 +306,32 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 		return nil, err
 	}
 
-	var (key string
+	var (
+		cname, t, def, extra,
+			key, nullable string
+	)
 	for rows.Next() {
 		column := Column{}
 		rows.Scan(
-			&column.Name,
-			&column.Type,
+			&cname,
+			&t,
 			&nullable,
 			&key,
-			&column.Default,
-			&column.Extra,
+			&def,
+			&extra,
 		)
+
+		column.Name = ColumnName(cname)
+
 		if nullable == "YES" {
 			column.Nullable = true
 		} 
+
 		keyType, ok := MysqlStringMapKeyType[key]
 		if !ok {
 			return Columns{}, UnknownKeyTypeErr
 		}
 		column.Key.Type = keyType
-
-		fmt.Println(column)
 
 		ret = append(ret, column)
 	}
