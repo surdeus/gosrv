@@ -279,8 +279,15 @@ func (db *DB)ParseColumnType(
 			UnknownColumnTypeErr
 	}
 
+	if f {
+		argStr = argStr[:len(argStr)-1]
+	}
 	args := RawValuers{}
-	argStrs := strings.Split(argStr, ",")
+	argStrs := strings.Split(
+		argStr,
+		",",
+	)
+	fmt.Println(argStrs)
 	for _, v := range argStrs {
 		args = append(args, RawValue(v))
 	}
@@ -323,15 +330,22 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 
 		column.Name = ColumnName(cname)
 
+		column.Type, err = db.ParseColumnType(t)
+
 		if nullable == "YES" {
 			column.Nullable = true
 		} 
 
+		fmt.Printf("%q\n", key)
 		keyType, ok := MysqlStringMapKeyType[key]
+		fmt.Println(keyType, ok)
 		if !ok {
 			return Columns{}, UnknownKeyTypeErr
 		}
 		column.Key.Type = keyType
+
+		column.Default = RawValue(def)
+		column.Extra = Code(extra)
 
 		ret = append(ret, column)
 	}
@@ -347,10 +361,13 @@ func (f Column)String() string {
 		return ""
 	}
 
-	def, err := f.Default.SqlRawValue()
-	if err != nil {
-		log.Println(err)
-		return ""
+	var def RawValue
+	if f.Default != nil {
+		def, err = f.Default.SqlRawValue()
+		if err != nil {
+			log.Println(err)
+			return ""
+		}
 	}
 
 	return fmt.Sprintf(
@@ -401,7 +418,6 @@ func (db *DB)ColumnToSql(f Column) (Code, error) {
 	if string(f.Extra) != "" {
 		ret += " " + string(f.Extra)
 	}
-
 	
 	var (
 		def RawValue

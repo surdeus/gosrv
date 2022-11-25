@@ -27,7 +27,7 @@ func main(){
 	t, err := db.ParseColumnType("suck(11)")
 	fmt.Printf("%v %s\n", t, err)
 
-	return
+	fmt.Println(db.TableCreationStringFor(structs.Test{}))
 	schemas, err := db.GetTableSchemas()
 	if err != nil {
 		log.Println(err)
@@ -39,8 +39,8 @@ func main(){
 			if err != nil {
 				log.Println(err)
 			} else {
-				fmt.Printf("'%s'", sql)
-				fmt.Println(f)
+				fmt.Printf("'%s'\n", sql)
+				fmt.Printf("%v\n", f)
 			}
 		}
 	}
@@ -51,7 +51,6 @@ func main(){
 	fmt.Println(db.TableExists("SurelyDoesNot"))
 
 
-	fmt.Println(db.TableCreationStringFor(structs.Test{}))
 
 	err = db.Migrate(
 		[]sqlx.Sqler{

@@ -4,6 +4,24 @@ import (
 	"fmt"
 )
 
+type ColumnDiff int
+
+const (
+	NoColumnDiff ColumnDiff = iota
+	NameColumnDiff
+	TypeColumnDiff
+	NullableColumnDiff
+	KeyColumnDiff
+	DefaultColumnDiff
+	ExtraColumnDiff
+)
+
+func (db *DB)CompareColumns(
+	c1, c2 *Column,
+) (ColumnDiff, error) {
+	return NoColumnDiff, nil
+}
+
 // Simple migration. Fuck writing much of shit in SQL directly.
 
 func (db *DB)Migrate(sqlers []Sqler) error {
