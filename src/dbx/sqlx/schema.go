@@ -16,6 +16,8 @@ type TableSchema struct {
 }
 
 type TableSchemas []TableSchema
+
+type ColumnType int
 type KeyType int
 type Key struct {
 	Type KeyType
@@ -25,6 +27,7 @@ type Column struct {
 	OldName ColumnName
 	Name ColumnName
 	Type string
+	TypeArgs []RawValuer
 	Nullable bool
 	Key Key
 	Default string
@@ -38,6 +41,38 @@ const (
 	UniqueKeyType
 	ForeignKeyType
 	PrimaryKeyType
+)
+
+const (
+	IntColumnType = iota
+
+	BitColumnType
+	TinyintColumnType
+
+	VarcharColumnType
+	NvarcharColumnType
+
+	CharColumnType
+	NcharColumnType
+
+	TextColumnType
+	NtextColumnType
+
+	DateColumnType
+	TimeColumnType
+	TimestampColumnType
+	DatetimeColumnType
+	YearColumnType
+
+	BinaryColumnType
+	VarbinaryColumnType
+
+	ImageColumnType
+
+	ClobColumnType
+	BlobColumnType
+	XmlColumnType
+	JsonColumnType
 )
 
 var (
