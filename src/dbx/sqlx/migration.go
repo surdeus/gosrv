@@ -19,6 +19,43 @@ const (
 func (db *DB)CompareColumns(
 	c1, c2 *Column,
 ) (ColumnDiff, error) {
+
+	if c1.Name != c2.Name {
+		return NameColumnDiff, nil
+	}
+
+	eq, err := db.CodersEq(c1.Type, c2.Type)
+	if err != nil {
+		return NoColumnDiff, err
+	}
+	if !eq {
+		return TypeColumnDiff, nil
+	}
+
+	if c1.Nullable != c2.Nullable {
+		return NullableColumnDiff, nil
+	}
+
+	if !db.KeysEq(c1.Key, c2.Key) {
+		return KeyColumnDiff, nil
+	}
+
+	eq, err = db.RawValuersEq(c1.Default, c2.Default)
+	if err != nil {
+		return NoColumnDiff, err
+	}
+	if !eq {
+		return DefaultColumnDiff, nil
+	}
+
+	eq, err = db.CodersEq(c1.Extra, c2.Extra)
+	if err != nil {
+		return NoColumnDiff, err
+	}
+	if !eq {
+		return ExtraColumnDiff, nil
+	}
+
 	return NoColumnDiff, nil
 }
 

@@ -116,7 +116,7 @@ return func(a muxx.HndlArg) {
 	q = q.WithDB(db).
 		WithType(sqlx.SelectQueryType)
 
-	s, err := q.Code()
+	s, err := q.SqlCode(db)
 	if err != nil {
 		log.Println(err)
 		a.NotFound()

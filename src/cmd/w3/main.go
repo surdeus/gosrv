@@ -373,7 +373,7 @@ func main(){
 			},
 		},
 	}
-	qs, err := q.Code()
+	qs, err := q.SqlCode(db)
 	if err != nil {
 		log.Println(err)
 	} else {

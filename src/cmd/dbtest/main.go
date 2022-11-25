@@ -50,8 +50,6 @@ func main(){
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))
 
-
-
 	err = db.Migrate(
 		[]sqlx.Sqler{
 			structs.Test{},

@@ -13,14 +13,14 @@ func CT() ColumnType {
 	return ColumnType{}
 }
 
-func (ct ColumnType)Code() (Code, error) {
+func (ct ColumnType)SqlCode(db *DB) (Code, error) {
 	ret := ""
 	t, ok := MysqlColumnTypeMapString[ct.VarType]
 	if !ok {
 		return "", UnknownColumnType
 	}
 
-	args, err := ct.Args.SqlCodeTuple()
+	args, err := ct.Args.SqlCodeTuple(db)
 	if err != nil {
 		return "", err
 	}

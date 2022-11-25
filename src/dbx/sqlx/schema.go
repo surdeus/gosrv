@@ -287,7 +287,6 @@ func (db *DB)ParseColumnType(
 		argStr,
 		",",
 	)
-	fmt.Println(argStrs)
 	for _, v := range argStrs {
 		args = append(args, RawValue(v))
 	}
@@ -336,9 +335,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 			column.Nullable = true
 		} 
 
-		fmt.Printf("%q\n", key)
 		keyType, ok := MysqlStringMapKeyType[key]
-		fmt.Println(keyType, ok)
 		if !ok {
 			return Columns{}, UnknownKeyTypeErr
 		}
@@ -355,7 +352,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 }
 
 func (f Column)String() string {
-	t, err := f.Type.Code()
+	t, err := f.Type.SqlCode(nil)
 	if err != nil {
 		log.Println(err)
 		return ""
@@ -363,7 +360,7 @@ func (f Column)String() string {
 
 	var def RawValue
 	if f.Default != nil {
-		def, err = f.Default.SqlRawValue()
+		def, err = f.Default.SqlRawValue(nil)
 		if err != nil {
 			log.Println(err)
 			return ""
@@ -389,12 +386,12 @@ func (f Column)String() string {
 }
 
 func (db *DB)ColumnToSql(f Column) (Code, error) {
-	name, err := f.Name.SqlRawValue()
+	name, err := f.Name.SqlRawValue(db)
 	if err != nil {
 		return "", err
 	}
 
-	t, err := f.Type.Code()
+	t, err := f.Type.SqlCode(db)
 	if err != nil {
 		return "", err
 	}
@@ -423,7 +420,7 @@ func (db *DB)ColumnToSql(f Column) (Code, error) {
 		def RawValue
 	)
 	if f.Default != nil {
-		def, err = f.Default.SqlRawValue()
+		def, err = f.Default.SqlRawValue(db)
 		if err != nil {
 			return "", err
 		}
@@ -490,5 +487,9 @@ func (db *DB)DropTablePrimaryKey(name TableName) error {
 	}
 
 	return nil
+}
+
+func (db *DB)KeysEq(k1, k2 Key) bool {
+	return k1.Type == k2.Type
 }
 

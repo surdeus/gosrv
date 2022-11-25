@@ -11,7 +11,12 @@ import (
 // The interface type must implement to be converted to
 // SQL code to be inserted.
 type RawValuer interface {
-	SqlRawValue() (RawValue, error)
+	SqlRawValue(db *DB) (RawValue, error)
+}
+
+// Any type that can be converted to code
+type Coder interface {
+	SqlCode(db *DB) (Code, error)
 }
 
 type RawValuers []RawValuer
@@ -35,7 +40,6 @@ type Code string
 
 type ConditionOp int
 type QueryType int
-
 
 type Condition struct {
 	Op ConditionOp
@@ -74,6 +78,7 @@ var (
 	NoColumnsSpecifiedErr = errors.New("no columns specified")
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
+	NoDBSpecifiedErr = errors.New("No database specified")
 
 	ConditionOpMap = map[ConditionOp] String {
 		EqConditionOp : "=",
@@ -103,7 +108,7 @@ func (db *DB)Q() Query {
 	return Query{}.WithDB(db)
 }
 
-func (w Conditions)Code() (Code, error) {
+func (w Conditions)SqlCode(db *DB) (Code, error) {
 	if len(w) == 0 {
 		return "", nil
 	
@@ -116,11 +121,11 @@ func (w Conditions)Code() (Code, error) {
 			return "", UnknownConditionOpErr
 		}
 
-		val1, err := c.Values[0].SqlRawValue()
+		val1, err := c.Values[0].SqlRawValue(db)
 		if err != nil {
 			return "", err
 		}
-		val2, err := c.Values[1].SqlRawValue()
+		val2, err := c.Values[1].SqlRawValue(db)
 		if err != nil {
 			return "", err
 		}
@@ -137,7 +142,7 @@ func (w Conditions)Code() (Code, error) {
 	return Code(ret), nil
 }
 
-func (q Query)Code() (Code, error) {
+func (q Query)SqlCode(db *DB) (Code, error) {
 	var (
 		ret string
 	)
@@ -147,17 +152,17 @@ func (q Query)Code() (Code, error) {
 			return "", NoTablesSpecifiedErr
 		}
 
-		columns, err := q.Columns.SqlRawValue()
+		columns, err := q.Columns.SqlRawValue(q.DB)
 		if err != nil {
 			return Code(""), err
 		}
 
-		from, err := q.From.SqlRawValue()
+		from, err := q.From.SqlRawValue(q.DB)
 		if err != nil {
 			return Code(""), err
 		}
 
-		where, err := q.Where.Code()
+		where, err := q.Where.SqlCode(q.DB)
 		if err != nil {
 			return Code(""), err
 		}
@@ -220,7 +225,10 @@ func (q Query)Insert() Query {
 }
 
 func (q Query)Do() (*sql.Rows, error) {
-	qs, err := q.Code()
+	if q.DB == nil {
+		return nil, NoDBSpecifiedErr
+	}
+	qs, err := q.SqlCode(q.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -228,30 +236,30 @@ func (q Query)Do() (*sql.Rows, error) {
 	return q.DB.Query(string(qs))
 }
 
-func (v TableName)SqlRawValue() (RawValue, error) {
+func (v TableName)SqlRawValue(db *DB) (RawValue, error) {
 	return RawValue(v), nil
 }
 
-func (v ColumnName)SqlRawValue() (RawValue, error) {
+func (v ColumnName)SqlRawValue(db *DB) (RawValue, error) {
 	return RawValue(v), nil
 }
 
-func (v RawValue)SqlRawValue() (RawValue, error) {
+func (v RawValue)SqlRawValue(db *DB) (RawValue, error) {
 	return v, nil
 }
 
-func (i Int)SqlRawValue() (RawValue, error) {
+func (i Int)SqlRawValue(db *DB) (RawValue, error) {
 	return RawValue(strconv.Itoa(int(i))), nil
 }
 
-func (tn TableNames)SqlRawValue() (RawValue, error) {
+func (tn TableNames)SqlRawValue(db *DB) (RawValue, error) {
 	if len(tn) == 0 {
 		return RawValue(""), NoTablesSpecifiedErr
 	}
 
 	buf := make([]string, 0)
 	for _, t := range tn {
-		v, err := t.SqlRawValue()
+		v, err := t.SqlRawValue(db)
 		if err != nil {
 			return RawValue(""), err
 		}
@@ -262,14 +270,14 @@ func (tn TableNames)SqlRawValue() (RawValue, error) {
 	return RawValue(ret), nil
 }
 
-func (cn ColumnNames)SqlRawValue() (RawValue, error) {
+func (cn ColumnNames)SqlRawValue(db *DB) (RawValue, error) {
 	if len(cn) == 0 {
 		return RawValue(""), NoColumnsSpecifiedErr
 	}
 
 	buf := make([]string, 0)
 	for _, c := range cn {
-		v, err := c.SqlRawValue()
+		v, err := c.SqlRawValue(db)
 		if err != nil {
 			return RawValue(""), err
 		}
@@ -280,16 +288,16 @@ func (cn ColumnNames)SqlRawValue() (RawValue, error) {
 	return RawValue(ret), nil
 }
 
-func (s String)SqlRawValue() (RawValue, error) {
+func (s String)SqlRawValue(db *DB) (RawValue, error) {
 	ret := strings.ReplaceAll(string(s), "'", "''")
 	ret = fmt.Sprintf("'%s'", ret)
 	return RawValue(ret), nil
 }
 
-func (rvs RawValuers) SqlMultiValue() (Code, error) {
+func (rvs RawValuers) SqlMultiValue(db *DB) (Code, error) {
 	var ret Code
 	for i, v := range rvs {
-		raw, err := v.SqlRawValue()
+		raw, err := v.SqlRawValue(db)
 		if err != nil {
 			return "", err
 		}
@@ -304,8 +312,8 @@ func (rvs RawValuers) SqlMultiValue() (Code, error) {
 	return ret, nil
 }
 
-func (rvs RawValuers) SqlCodeTuple() (Code, error) {
-	mval, err := rvs.SqlMultiValue()
+func (rvs RawValuers) SqlCodeTuple(db *DB) (Code, error) {
+	mval, err := rvs.SqlMultiValue(db)
 	if err != nil {
 		return Code(""), err
 	}
@@ -315,5 +323,41 @@ func (rvs RawValuers) SqlCodeTuple() (Code, error) {
 	}
 
 	return Code(fmt.Sprintf("(%s)", mval)), nil
+}
+
+func (db *DB)RawValuersEq(
+	v1, v2 RawValuer,
+) (bool, error) {
+	raw1, err := v1.SqlRawValue(db)
+	if err != nil {
+		return false, err
+	}
+
+	raw2, err := v2.SqlRawValue(db)
+	if err != nil {
+		return false, err
+	}
+
+	return raw1 == raw2, nil
+}
+
+func (c Code)SqlCode(db *DB) (Code, error) {
+	return c, nil
+}
+
+func (db *DB)CodersEq(
+	c1, c2 Coder,
+) (bool, error) {
+	code1, err := c1.SqlCode(db)
+	if err != nil {
+		return false, err
+	}
+
+	code2, err := c2.SqlCode(db)
+	if err != nil {
+		return false, err
+	}
+
+	return code1 == code2, nil
 }
 
