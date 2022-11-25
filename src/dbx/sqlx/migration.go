@@ -72,10 +72,14 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 				curColumn.Name = column.Name
 			} else if !db.ColumnExists(schema.Name, column.Name) {
 				// Create.
+				sql, err := db.ColumnToSql(column)
+				if err != nil {
+					return err
+				}
 				_, err = db.Query(fmt.Sprintf(
 					"alter table %s add %s",
 					schema.Name,
-					db.ColumnToSql(column),
+					sql,
 				))
 				if err != nil {
 					return err
@@ -113,8 +117,15 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			columnBuf.Key.Type = NotKeyType
 			curColumnBuf.Key.Type = NotKeyType
 
-			columnSql := db.ColumnToSql(columnBuf)
-			curColumnSql := db.ColumnToSql(curColumnBuf)
+			columnSql, err := db.ColumnToSql(columnBuf)
+			if err != nil {
+				return err
+			}
+
+			curColumnSql, err := db.ColumnToSql(curColumnBuf)
+			if err != nil {
+				return err
+			}
 
 			if columnSql != curColumnSql {
 				fmt.Printf("'%s'\n'%s'\n", columnSql, curColumnSql)

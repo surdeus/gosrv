@@ -13,15 +13,17 @@ import(
 	"github.com/surdeus/go-srv/src/authx"
 	"github.com/surdeus/go-srv/src/httpx/restx"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
+	dbtest "github.com/surdeus/go-srv/src/cmd/dbtest"
 	//"github.com/surdeus/go-srv/src/dbx/sqlx/qx"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+/*
 type Test struct {
 	Id int
 	Value int
 	StringValue string
 }
-
 func (t Test)Sql() sqlx.TableSchema {
 	return sqlx.TableSchema {
 		OldName: "NewTests",
@@ -80,6 +82,7 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 		},
 	}
 }
+*/
 type Token string
 type Session struct {
 	Reloaded int
@@ -284,8 +287,8 @@ func main(){
 	}
 	defer db.Close()
 	sqlers := []sqlx.Sqler{
-		Test{},
-		AnotherTest{},
+		dbtest.Test{},
+		dbtest.AnotherTest{},
 	}
 	db.Migrate(sqlers)
 

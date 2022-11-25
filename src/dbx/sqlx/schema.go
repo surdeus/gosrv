@@ -3,6 +3,8 @@ package sqlx
 import (
 	"fmt"
 	"errors"
+	"log"
+	"github.com/surdeus/godat/src/mapx"
 )
 
 type Sqler interface {
@@ -17,7 +19,12 @@ type TableSchema struct {
 
 type TableSchemas []TableSchema
 
-type ColumnType int
+type ColumnVarType int
+type ColumnType struct {
+	VarType ColumnVarType
+	Args RawValuers
+}
+
 type KeyType int
 type Key struct {
 	Type KeyType
@@ -26,53 +33,52 @@ type Key struct {
 type Column struct {
 	OldName ColumnName
 	Name ColumnName
-	Type string
-	TypeArgs []RawValuer
+	Type ColumnType
 	Nullable bool
 	Key Key
-	Default string
-	Extra string
+	Default RawValuer
+	Extra Code
 }
 
 type Columns []Column
 
 const (
 	NotKeyType KeyType = iota
+	PrimaryKeyType
 	UniqueKeyType
 	ForeignKeyType
-	PrimaryKeyType
 )
 
 const (
-	IntColumnType = iota
+	IntColumnVarType = iota
 
-	BitColumnType
-	TinyintColumnType
+	BitColumnVarType
+	TinyintColumnVarType
 
-	VarcharColumnType
-	NvarcharColumnType
+	VarcharColumnVarType
+	NvarcharColumnVarType
 
-	CharColumnType
-	NcharColumnType
+	CharColumnVarType
+	NcharColumnVarType
 
-	TextColumnType
-	NtextColumnType
+	TextColumnVarType
+	NtextColumnVarType
 
-	DateColumnType
-	TimeColumnType
-	TimestampColumnType
-	DatetimeColumnType
-	YearColumnType
+	DateColumnVarType
+	TimeColumnVarType
+	TimestampColumnVarType
+	DatetimeColumnVarType
+	YearColumnVarType
 
-	BinaryColumnType
-	VarbinaryColumnType
+	BinaryColumnVarType
+	VarbinaryColumnVarType
 
-	ImageColumnType
+	ImageColumnVarType
 
-	ClobColumnType
-	BlobColumnType
-	XmlColumnType
-	JsonColumnType
+	ClobColumnVarType
+	BlobColumnVarType
+	XmlColumnVarType
+	JsonColumnVarType
 )
 
 var (
@@ -82,11 +88,45 @@ var (
 		"unknown key type",
 	)
 
-	MysqlKeyTypeStringMap = map[string] KeyType {
+	MysqlStringMapKeyType = map[string] KeyType {
 		"" : NotKeyType,
 		"PRI" : PrimaryKeyType,
 		"UNI" : UniqueKeyType,
 		"MUL" : ForeignKeyType,
+	}
+	MysqlKeyTypeMapString = mapx.Reverse(
+		MysqlStringMapKeyType,
+	)
+	MysqlColumnTypeMapString = map[ColumnVarType] string {
+		IntColumnVarType : "int",
+
+		BitColumnVarType : "bit",
+		TinyintColumnVarType : "tinyint",
+
+		VarcharColumnVarType : "varchar",
+		NvarcharColumnVarType : "nvarchar",
+
+		CharColumnVarType : "char",
+		NcharColumnVarType : "nchar",
+
+		TextColumnVarType : "text",
+		NtextColumnVarType : "ntext",
+
+		DateColumnVarType : "date",
+		TimeColumnVarType : "time",
+		TimestampColumnVarType : "timestamp",
+		DatetimeColumnVarType : "datetime",
+		YearColumnVarType : "year",
+
+		BinaryColumnVarType : "binary",
+		VarbinaryColumnVarType : "varbinary",
+
+		ImageColumnVarType : "image",
+
+		ClobColumnVarType : "clob",
+		BlobColumnVarType : "blob",
+		XmlColumnVarType : "xml",
+		JsonColumnVarType : "json",
 	}
 )
 
@@ -223,7 +263,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 		return nil, err
 	}
 
-	var key string
+	var (key string
 	for rows.Next() {
 		column := Column{}
 		rows.Scan(
@@ -237,7 +277,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 		if nullable == "YES" {
 			column.Nullable = true
 		} 
-		keyType, ok := MysqlKeyTypeStringMap[key]
+		keyType, ok := MysqlStringMapKeyType[key]
 		if !ok {
 			return Columns{}, UnknownKeyTypeErr
 		}
@@ -253,6 +293,18 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 }
 
 func (f Column)String() string {
+	t, err := f.Type.Code()
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
+	def, err := f.Default.SqlRawValue()
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
 	return fmt.Sprintf(
 		"{\n" +
 		"\tName: \"%s\",\n" +
@@ -263,19 +315,29 @@ func (f Column)String() string {
 		"\tExtra: \"%s\",\n"+
 		"}",
 		f.Name,
-		f.Type,
+		string(t),
 		f.Nullable,
 		f.Key.Type,
-		f.Default,
+		string(def),
 		f.Extra,
 	)
 }
 
-func (db *DB)ColumnToSql(f Column) string {
+func (db *DB)ColumnToSql(f Column) (Code, error) {
+	name, err := f.Name.SqlRawValue()
+	if err != nil {
+		return "", err
+	}
+
+	t, err := f.Type.Code()
+	if err != nil {
+		return "", err
+	}
+
 	ret := fmt.Sprintf(
 		"%s %s",
-		f.Name,
-		f.Type,
+		name,
+		t,
 	)
 
 	if !f.Nullable {
@@ -288,21 +350,35 @@ func (db *DB)ColumnToSql(f Column) string {
 	default:
 	}
 
-	if f.Extra != "" {
-		ret += " " + f.Extra
+	if string(f.Extra) != "" {
+		ret += " " + string(f.Extra)
 	}
 
-	if f.Default != "" {
-		ret += " default " + f.Default
+	
+	var (
+		def RawValue
+	)
+	if f.Default != nil {
+		def, err = f.Default.SqlRawValue()
+		if err != nil {
+			return "", err
+		}
+	}
+	if def != "" {
+		ret += " default " + string(def)
 	}
 
-	return ret
+	return Code(ret), nil
 }
 
-func (db *DB)TableCreationStringForSchema(ts TableSchema) string {
+func (db *DB)TableCreationStringForSchema(ts TableSchema) (string, error) {
 	ret := fmt.Sprintf("create table %s (\n", ts.Name)
 	for i, f := range ts.Columns{
-		ret += "\t" + db.ColumnToSql(f)
+		sql, err := db.ColumnToSql(f)
+		if err != nil {
+			return "", err
+		}
+		ret += "\t" + string(sql)
 		if i != len(ts.Columns) - 1 {
 			ret += ",\n"
 		} 
@@ -310,10 +386,10 @@ func (db *DB)TableCreationStringForSchema(ts TableSchema) string {
 
 	ret += "\n) ;"	
 
-	return ret
+	return ret, nil
 }
 
-func (db *DB)TableCreationStringFor(v Sqler) string {
+func (db *DB)TableCreationStringFor(v Sqler) (string, error) {
 	return db.TableCreationStringForSchema(v.Sql())
 }
 

@@ -14,10 +14,13 @@ type RawValuer interface {
 	SqlRawValue() (RawValue, error)
 }
 
+type RawValuers []RawValuer
+
 type String string
 type Int int
+type Ints []Int
 type Float32 float32
-type Float64 float32
+type Float64 float64
 type Variable string
 
 type ColumnName string
@@ -281,5 +284,36 @@ func (s String)SqlRawValue() (RawValue, error) {
 	ret := strings.ReplaceAll(string(s), "'", "''")
 	ret = fmt.Sprintf("'%s'", ret)
 	return RawValue(ret), nil
+}
+
+func (rvs RawValuers) SqlMultiValue() (Code, error) {
+	var ret Code
+	for i, v := range rvs {
+		raw, err := v.SqlRawValue()
+		if err != nil {
+			return "", err
+		}
+
+		ret += Code(raw)
+
+		if i != len(rvs) - 1 {
+			ret += ", "
+		}
+	}
+
+	return ret, nil
+}
+
+func (rvs RawValuers) SqlCodeTuple() (Code, error) {
+	mval, err := rvs.SqlMultiValue()
+	if err != nil {
+		return Code(""), err
+	}
+
+	if mval == "" {
+		return "", nil
+	}
+
+	return Code(fmt.Sprintf("(%s)", mval)), nil
 }
 
