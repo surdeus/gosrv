@@ -328,6 +328,15 @@ func (rvs RawValuers) SqlCodeTuple(db *DB) (Code, error) {
 func (db *DB)RawValuersEq(
 	v1, v2 RawValuer,
 ) (bool, error) {
+
+	if v1 == nil && v2 == nil {
+		return true, nil
+	}
+
+	if v1 == nil || v2 == nil {
+		return false, nil
+	}
+
 	raw1, err := v1.SqlRawValue(db)
 	if err != nil {
 		return false, err
@@ -348,6 +357,14 @@ func (c Code)SqlCode(db *DB) (Code, error) {
 func (db *DB)CodersEq(
 	c1, c2 Coder,
 ) (bool, error) {
+	if c1 == nil && c2 == nil {
+		return true, nil
+	}
+
+	if c1 == nil || c2 == nil {
+		return false, nil
+	}
+
 	code1, err := c1.SqlCode(db)
 	if err != nil {
 		return false, err

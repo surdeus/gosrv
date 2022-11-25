@@ -73,6 +73,21 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 		newSchemas = append(newSchemas, sqler.Sql())
 	}
 
+	for _, newSchema := range newSchemas {
+		_, curSchema := curSchemas.FindSchema(newSchema.Name)
+		for _, newColumn := range newSchema.Columns {
+			i, curColumn :=
+				curSchema.FindColumn(newColumn.Name)
+			fmt.Println("i:", i)
+			fmt.Println("names:", newColumn.Name, curColumn.Name)
+			diff, err :=
+				db.CompareColumns(&newColumn, curColumn)
+			fmt.Println("diff: ", diff, err)
+		}
+	}
+
+	return nil
+
 	// First we should rename existing tables and create not existing ones.
 	for _, schema := range newSchemas {
 		// Rename.

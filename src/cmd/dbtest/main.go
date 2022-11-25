@@ -45,7 +45,6 @@ func main(){
 		}
 	}
 
-	return
 
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))
@@ -60,6 +59,7 @@ func main(){
 	    log.Println(err)
 	}
 
+	return
 	fmt.Println(db.ColumnExists("Tests", "Value"))
 	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
 
