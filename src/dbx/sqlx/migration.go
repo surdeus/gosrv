@@ -110,8 +110,8 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 			columnBuf := column
 			curColumnBuf := *curColumn
 
-			columnBuf.Key = ""
-			curColumnBuf.Key = ""
+			columnBuf.Key.Type = NotKeyType
+			curColumnBuf.Key.Type = NotKeyType
 
 			columnSql := db.ColumnToSql(columnBuf)
 			curColumnSql := db.ColumnToSql(curColumnBuf)

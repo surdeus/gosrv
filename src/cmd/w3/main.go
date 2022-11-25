@@ -31,7 +31,7 @@ func (t Test)Sql() sqlx.TableSchema {
 				Name: "Id",
 				Type: "int(11)",
 				Nullable: false,
-				Key: "PRI",
+				Key: sqlx.PrimaryKey(),
 				Extra: "auto_increment",
 			},{
 				OldName: "SuckValue",
@@ -69,7 +69,7 @@ func (t AnotherTest)Sql() sqlx.TableSchema {
 				Name: "Id",
 				Type: "int(11)",
 				Nullable: false,
-				Key: "PRI",
+				Key: sqlx.PrimaryKey(),
 				//Extra: "auto_increment",
 			},{
 				Name: "AnotherValue",
@@ -353,7 +353,7 @@ func main(){
 			"DickValue",
 			"StringValue",
 		},
-		Conditions: []sqlx.Condition {
+		Where: []sqlx.Condition {
 			{
 				Op: sqlx.GtConditionOp,
 				Values: [2]sqlx.RawValuer{

@@ -16,23 +16,48 @@ type TableSchema struct {
 }
 
 type TableSchemas []TableSchema
+type KeyType int
+type Key struct {
+	Type KeyType
+}
 
 type Column struct {
 	OldName ColumnName
 	Name ColumnName
 	Type string
 	Nullable bool
-	Key string
+	Key Key
 	Default string
 	Extra string
 }
 
 type Columns []Column
 
+const (
+	NotKeyType KeyType = iota
+	UniqueKeyType
+	ForeignKeyType
+	PrimaryKeyType
+)
+
 var (
 	MultiplePrimaryKeysErr = errors.New("multiple primary keys")
 	NoPrimaryKeySpecifiedErr = errors.New("no primary key specified")
+	UnknownKeyTypeErr = errors.New(
+		"unknown key type",
+	)
+
+	MysqlKeyTypeStringMap = map[string] KeyType {
+		"" : NotKeyType,
+		"PRI" : PrimaryKeyType,
+		"UNI" : UniqueKeyType,
+		"MUL" : ForeignKeyType,
+	}
 )
+
+func PrimaryKey() Key {
+	return Key{Type: PrimaryKeyType}
+}
 
 func (schema *TableSchema)PrimaryKeyColumn() (int, *Column, error) {
 	var (
@@ -57,7 +82,11 @@ func (schema *TableSchema)PrimaryKeyColumn() (int, *Column, error) {
 }
 
 func (f *Column)IsPrimaryKey() bool {
-	return f.Key == "PRI"
+	return f.Key.Type == PrimaryKeyType
+}
+
+func (f *Column)IsNotKey() bool {
+	return f.Key.Type == NotKeyType
 }
 
 func (schemas TableSchemas)FindSchema(
@@ -150,19 +179,25 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 		return nil, err
 	}
 
+	var key string
 	for rows.Next() {
 		column := Column{}
 		rows.Scan(
 			&column.Name,
 			&column.Type,
 			&nullable,
-			&column.Key,
+			&key,
 			&column.Default,
 			&column.Extra,
 		)
 		if nullable == "YES" {
 			column.Nullable = true
 		} 
+		keyType, ok := MysqlKeyTypeStringMap[key]
+		if !ok {
+			return Columns{}, UnknownKeyTypeErr
+		}
+		column.Key.Type = keyType
 
 		fmt.Println(column)
 
@@ -179,14 +214,14 @@ func (f Column)String() string {
 		"\tName: \"%s\",\n" +
 		"\tType: \"%s\",\n" +
 		"\tNullable: %t,\n"+
-		"\tKey: \"%s\",\n"+
+		"\tKey: %d,\n"+
 		"\tDefault: %s,\n"+
 		"\tExtra: \"%s\",\n"+
 		"}",
 		f.Name,
 		f.Type,
 		f.Nullable,
-		f.Key,
+		f.Key.Type,
 		f.Default,
 		f.Extra,
 	)
@@ -203,8 +238,8 @@ func (db *DB)ColumnToSql(f Column) string {
 		ret += " not null"
 	}
 
-	switch f.Key {
-	case "PRI" :
+	switch f.Key.Type {
+	case PrimaryKeyType :
 		ret += " primary key"
 	default:
 	}

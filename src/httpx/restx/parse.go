@@ -97,7 +97,7 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 		cs = append(cs, c)
 	}
 
-	q.Conditions = cs
+	q.Where = cs
 
 	return q, nil
 }
