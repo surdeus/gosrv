@@ -164,21 +164,21 @@ return func(a muxx.HndlArg) {
 	rows, err := q.Do()
 	if err != nil {
 		log.Println(err)
-	} else {
-		row := make([][]byte, len(columns))
-		rowPtr := make([]any, len(columns))
-		for i := range row {
-			rowPtr[i] = &row[i]
-		}
-		for rows.Next() {
-			rows.Scan(rowPtr...)
-			fmt.Printf(
-				"%q\n",
-				row,
-			)
-		}
+		return
 	}
 	defer rows.Close()
+	row := make([][]byte, len(columns))
+	rowPtr := make([]any, len(columns))
+	for i := range row {
+		rowPtr[i] = &row[i]
+	}
+	for rows.Next() {
+		rows.Scan(rowPtr...)
+		fmt.Printf(
+			"%q\n",
+			row,
+		)
+	}
 }}
 
 func SqlMakePostHandler(

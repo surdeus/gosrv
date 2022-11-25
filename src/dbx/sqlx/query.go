@@ -20,6 +20,9 @@ type Float32 float32
 type Float64 float32
 type Variable string
 
+type ColumnName string
+type TableName string 
+
 // Type to save values for substitution.
 type RawValue string
 // Type to save SQL-code.
@@ -170,7 +173,8 @@ func (i Int)SqlRawValue() (RawValue, error) {
 }
 
 func (s String)SqlRawValue() (RawValue, error) {
-	ret := fmt.Sprintf("'%s'", s)
+	ret := strings.ReplaceAll(string(s), "'", "''")
+	ret = fmt.Sprintf("'%s'", ret)
 	return RawValue(ret), nil
 }
 
