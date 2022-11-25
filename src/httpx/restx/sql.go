@@ -101,72 +101,28 @@ func SqlMakeGetHandler(
 	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
-	fmt.Println("in getting handler")
+	//fmt.Println("in getting handler")
 	args := cfg.ParseValues(a.Values())
-	fmt.Println(args)
-
-	colArg, ok := args["c"]
-	if !ok {
+	//fmt.Println(args)
+	q, err := args.SqlQuery(ts)
+	if err != nil {
 		a.NotFound()
 	}
-
-	columns := colArg.Values
-
-	q := sqlx.Query{
-		DB: db,
-		Type: sqlx.SelectQueryType,
-		Table: ts.Name,
-		Columns: columns,
-		/*Where: sqlx.Where {
-			Conditions: []sqlx.Condition {
-				{
-					Op: sqlx.GtConditionOp,
-					Values: [2]sqlx.RawValuer{
-						sqlx.RawValue("DickValue"),
-						sqlx.Int(5),
-					},
-				},
-				{
-					Op: sqlx.EqConditionOp,
-					Values: [2]sqlx.RawValuer{
-						sqlx.RawValue("StringValue"),
-						sqlx.String("value"),
-					},
-				},
-			},
-		},*/
-	}
-
-	cs := sqlx.Conditions{}
-	for k, arg := range args {
-		if k == "c" {
-			continue
-		}
-
-		name := arg.Splits[0]
-		opStr := arg.Splits[1]
-
-		op, _ := sqlx.
-			ConditionOpStringMap[opStr]
-
-		c := sqlx.Condition{
-			Op: op,
-			Values: [2]sqlx.RawValuer {
-				sqlx.RawValue(name),
-				sqlx.RawValue(arg.Values[0]),
-			},
-		}
-
-		cs = append(cs, c)
-	}
-
-	q.Conditions = cs
+	q = q.WithDB(db).
+		WithType(sqlx.SelectQueryType)
 	rows, err := q.Do()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer rows.Close()
+	s, err := q.Code()
+	if err != nil {
+		a.NotFound()
+	}
+
+	fmt.Println(s)
+	columns := args["c"].Values
 	row := make([][]byte, len(columns))
 	rowPtr := make([]any, len(columns))
 	for i := range row {

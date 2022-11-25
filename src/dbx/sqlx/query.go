@@ -155,6 +155,16 @@ func (q Query)Code() (String, error) {
 	return String(ret), nil
 }
 
+func (q Query)WithDB(db *DB) Query {
+	q.DB = db
+	return q
+}
+
+func (q Query)WithType(t QueryType) Query {
+	q.Type = t
+	return q
+}
+
 func (q Query)Do() (*sql.Rows, error) {
 	qs, err := q.Code()
 	if err != nil {
