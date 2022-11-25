@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"fmt"
 	"log"
+	"encoding/json"
 )
 
 func Sql(
@@ -121,7 +122,7 @@ return func(a muxx.HndlArg) {
 		a.NotFound()
 		return
 	}
-	fmt.Println(s)
+	println(s)
 
 	rows, err := q.Do()
 	if err != nil {
@@ -130,7 +131,7 @@ return func(a muxx.HndlArg) {
 	}
 	defer rows.Close()
 
-
+	ret := make([][]string, 0)
 	row := make([][]byte, len(q.Columns))
 	rowPtr := make([]any, len(q.Columns))
 	for i := range row {
@@ -142,7 +143,24 @@ return func(a muxx.HndlArg) {
 			"%q\n",
 			row,
 		)
+		add := []string{}
+		for _, v := range row {
+			add = append(add, string(v))
+		}
+		ret = append(ret, add)
 	}
+
+	js, err := json.Marshal(ret)
+	if err != nil {
+		http.Error(a.W, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	a.W.Header().Set(
+		"Content-Type",
+		"application/json",
+	)
+	a.W.Write(js)
 }}
 
 func SqlMakePostHandler(
