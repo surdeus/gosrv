@@ -105,6 +105,7 @@ return func(a muxx.HndlArg) {
 	//fmt.Println("in getting handler")
 	args := cfg.ParseValues(a.Values())
 	//fmt.Println(args)
+	
 	q, err := args.SqlGetQuery(ts)
 	if err != nil {
 		log.Println(err)
@@ -130,9 +131,8 @@ return func(a muxx.HndlArg) {
 	defer rows.Close()
 
 
-	columns := args["c"].Values
-	row := make([][]byte, len(columns))
-	rowPtr := make([]any, len(columns))
+	row := make([][]byte, len(q.Columns))
+	rowPtr := make([]any, len(q.Columns))
 	for i := range row {
 		rowPtr[i] = &row[i]
 	}

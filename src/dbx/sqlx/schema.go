@@ -90,6 +90,15 @@ var (
 	}
 )
 
+func (cs Columns)Names() ColumnNames {
+	ret := ColumnNames{}
+	for _, v := range cs {
+		ret = append(ret, v.Name)
+	}
+
+	return ret
+}
+
 func PrimaryKey() Key {
 	return Key{Type: PrimaryKeyType}
 }

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"errors"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
-	//"fmt"
+	"fmt"
 )
 
 type ArgCfg struct {
@@ -51,25 +51,48 @@ func (ac *ArgCfg) ParseValues (
 }
 
 func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
+	columns, err := args.SqlColumns(ts)
+	if err != nil {
+		return sqlx.Q(), err
+	}
+
+	cs, err := args.SqlConditions()
+	if err != nil {
+		return sqlx.Q(), err
+	}
+
+	fmt.Println(columns)
+	q := sqlx.Query{
+		From: ts.Name,
+		Columns: columns,
+		Where: cs,
+	}
+
+	return q, nil
+}
+
+func (args Args)SqlColumns(ts *sqlx.TableSchema) (sqlx.ColumnNames, error) {
 	colArg, ok := args["c"]
 	if !ok {
-		return sqlx.Query{}, NoColumnsSpecifiedErr
+		return sqlx.ColumnNames{}, NoColumnsSpecifiedErr
 	}
 
 	columnsStr := colArg.Values
 	columns := make(sqlx.ColumnNames, 0)
 	for _, c := range columnsStr {
+		if c == "*" {
+			return ts.Columns.Names(), nil
+		}
 		columns = append(
 			columns,
 			sqlx.ColumnName(c),
 		)
 	}
 
-	q := sqlx.Query{
-		From: ts.Name,
-		Columns: columns,
-	}
+	return columns, nil
+}
 
+func (args Args)SqlConditions() (sqlx.Conditions, error) {
 	cs := sqlx.Conditions{}
 	for k, arg := range args {
 		if k == "c" {
@@ -77,8 +100,8 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 		}
 
 		if len(arg.Splits) != 2 {
-			return sqlx.Query{},
-				WrongSplitOperatorFormatErr 
+			return sqlx.Conditions{},
+				WrongSplitOperatorFormatErr
 		}
 		name := arg.Splits[0]
 		opStr := arg.Splits[1]
@@ -97,7 +120,5 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 		cs = append(cs, c)
 	}
 
-	q.Where = cs
-
-	return q, nil
+	return cs, nil
 }

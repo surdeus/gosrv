@@ -92,6 +92,10 @@ var (
 	}
 )
 
+func Q() Query {
+	return Query{}
+}
+
 func (db *DB)Q() Query {
 	return Query{}.WithDB(db)
 }
