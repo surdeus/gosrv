@@ -147,7 +147,6 @@ return func(a muxx.HndlArg) {
 		a.NotFound()
 		return
 	}
-	fmt.Printf("%q\n", ret)
 	js, err := json.Marshal(ret)
 	if err != nil {
 		http.Error(a.W, err.Error(), http.StatusInternalServerError)

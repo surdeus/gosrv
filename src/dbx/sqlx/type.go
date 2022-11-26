@@ -118,8 +118,18 @@ func (db *DB)ReadRowValues(
 			row[i] = new(sql.NullByte)
 		case SmallintColumnVarType :
 			row[i] = new(sql.NullInt16)
+		case BigintColumnVarType :
+			row[i] = new(sql.NullInt64)
 		case DoubleColumnVarType :
 			row[i] = new(sql.NullFloat64)
+		case TimeColumnVarType :
+			fallthrough
+		case DatetimeColumnVarType :
+			fallthrough
+		case DateColumnVarType :
+			fallthrough
+		case TimestampColumnVarType :
+			row[i] = new(sql.NullTime)
 		default:
 			return null, UnknownColumnTypeErr
 		}
@@ -131,27 +141,26 @@ func (db *DB)ReadRowValues(
 		if err != nil{
 			return null, err
 		}
-		fmt.Println(row)
 		rowMap := make(RowValues)
 		for i, v := range row {
 			cname := cnames[i]
 			switch v.(type) {
 			case *sql.NullString:
-				rowMap[cname] = nil
-				//rowMap[cname] = *(v.(*sql.NullString))
+				rowMap[cname] = *(v.(*sql.NullString))
+			case *sql.NullBool :
+				rowMap[cname] = *(v.(*sql.NullBool))
 			case *sql.NullInt32 :
 				rowMap[cname] = *(v.(*sql.NullInt32))
-
 			case *sql.NullByte:
-				
 				rowMap[cname] = *(v.(*sql.NullByte))
-
 			case *sql.NullInt16 :
 				rowMap[cname] = *(v.(*sql.NullInt16))
-
+			case *sql.NullInt64 :
+				rowMap[cname] = *(v.(*sql.NullInt64))
 			case *sql.NullFloat64 :
 				rowMap[cname] = *(v.(*sql.NullFloat64))
-
+			case *sql.NullTime :
+				rowMap[cname] = *(v.(*sql.NullTime))
 			default:
 				return null, UnknownColumnTypeErr
 			}

@@ -53,6 +53,7 @@ const (
 
 const (
 	NoColumnVarType = iota
+	BoolColumnVaryType
 	IntColumnVarType
 	SmallintColumnVarType
 
