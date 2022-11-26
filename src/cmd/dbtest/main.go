@@ -51,7 +51,7 @@ func main(){
 		}
 	}
 
-	err = db.Migrate(
+	/*err = db.Migrate(
 		[]sqlx.Sqler{
 			structs.Test{},
 			structs.AnotherTest{},
@@ -59,16 +59,17 @@ func main(){
 	)
 	if err != nil {
 	    log.Println(err)
-	}
+	}*/
 
 	db.RenameColumn("Tests", "SuckValue", "DickValue")
 	
 	schema := structs.Test{}.Sql()
 	col := schema.Columns[1]
-	err = db.MigrateRenameColumn(schema.Name, col)
+	err = db.MigrateAlterColumnType(schema.Name, col)
 	if err != nil {
 		log.Println(err)
 	}
+	return
 
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))

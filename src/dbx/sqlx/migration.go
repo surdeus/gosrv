@@ -82,42 +82,45 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	return nil
 }
 
-/*func (db *DB)MigrateSchema(schema *TableSchema) error {
-	var (
-		tableName TableName
-	)
-
-	if schema.OldName != "" {
-		tableName = schema.OldName
-	} else {
-		if schema.Name == "" {
-			return WrongValuerFormatErr
-		}
-		tableName = schema.Name
-	}
-
+func (db *DB)MigrateSchema(
+	tableName TableName,
+	schema *TableSchema,
+) error {
+	/*MigrateRenameTable()
 	for {
-		diff, err := db.CompareColumns()
-		if err != nil {
-			return err
-		}
-
-		if diff == NoColumnDiff {
-			break
-		}
-
-		switch diff {
-		case NameColumnDiff :
-		}
-	}
+	}*/
 
 	return nil
-}*/
+}
 
 func (db *DB)MigrateAlterColumnType(
 	tableName TableName,
 	column *Column,
 ) (error) {
+	curSchema, err := db.GetColumnSchema(
+		tableName, column.Name,
+	)
+	if err != nil {
+		return err
+	}
+
+	curSql, err := db.ColumnToAlterSql(curSchema)
+	if err != nil {
+		return err
+	}
+
+	newSql, err := db.ColumnToAlterSql(column)
+	if err != nil {
+		return err
+	}
+
+	if curSql != newSql {
+		err = db.AlterColumnType(tableName, column)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
