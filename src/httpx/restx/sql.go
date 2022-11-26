@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
 	"github.com/surdeus/go-srv/src/httpx/muxx"
+	"github.com/surdeus/godat/src/slicex"
 	//"github.com/surdeus/go-srv/src/urlx"
 	"strings"
 	"regexp"
 	"fmt"
 	"log"
 	"encoding/json"
+	//"reflect"
 )
 
 func Sql(
@@ -74,9 +76,16 @@ func MakeSqlTableHandler(
 		panic(err)
 	}
 
+	tsMap := slicex.MakeMap(
+		ts.Columns,
+		func(cols []*sqlx.Column, i int) sqlx.ColumnName {
+			return cols[i].Name
+		},
+	)
+	fmt.Println(tsMap)
 	cfg := StdArgCfg()
 	handlers := muxx.Handlers {
-		"GET" : SqlMakeGetHandler(db, ts, cfg),
+		"GET" : SqlMakeGetHandler(db, ts, cfg, tsMap),
 		"POST" : SqlMakePostHandler(db, ts, cfg),
 		"PUT" : SqlMakePutHandler(db, ts, cfg),
 		"PATCH" : SqlMakePatchHandler(db, ts, cfg),
@@ -101,6 +110,7 @@ func SqlMakeGetHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
+	tsMap map[sqlx.ColumnName] *sqlx.Column,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	//fmt.Println("in getting handler")
@@ -131,22 +141,41 @@ return func(a muxx.HndlArg) {
 	}
 	defer rows.Close()
 
-	ret := make([][]string, 0)
-	row := make([][]byte, len(q.ColumnNames))
-	rowPtr := make([]any, len(q.ColumnNames))
-	for i := range row {
-		rowPtr[i] = &row[i]
+	ret := []any{}
+	row := []any{}
+	for _, v := range q.ColumnNames {
+		c, ok := tsMap[v]
+		if !ok {
+			a.NotFound()
+			return
+		}
+		switch c.Type.VarType {
+		case sqlx.VarcharColumnVarType :
+			row = append(row, new(string))
+		case sqlx.IntColumnVarType :
+			row = append(row, new(int))
+		default:
+			a.NotFound()
+			return
+		}
 	}
 	for rows.Next() {
-		err = rows.Scan(rowPtr...)
-		add := []string{}
+		err = rows.Scan(row...)
+		fmt.Println(err)
+		add := []any{}
 		for _, v := range row {
-			add = append(add, string(v))
+			switch v.(type) {
+			case *int :
+				add = append(add, *(v.(*int)))
+			case *string :
+				println("in")
+				add = append(add, *(v.(*string)))
+			}
 		}
 		ret = append(ret, add)
 	}
 
-	fmt.Println(ret)
+	fmt.Printf("%q\n", ret)
 	js, err := json.Marshal(ret)
 	if err != nil {
 		http.Error(a.W, err.Error(), http.StatusInternalServerError)
