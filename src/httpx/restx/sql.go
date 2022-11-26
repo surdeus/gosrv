@@ -101,11 +101,6 @@ func MakeSqlTableHandler(
 	return fin
 }
 
-func SqlParseParseValues(hndl muxx.Handler) muxx.Handler {
-return func(a muxx.HndlArg) {
-	hndl(a)
-}}
-
 func SqlMakeGetHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
@@ -141,40 +136,17 @@ return func(a muxx.HndlArg) {
 	}
 	defer rows.Close()
 
-	ret := []any{}
-	row := []any{}
-	for _, v := range q.ColumnNames {
-		c, ok := tsMap[v]
-		if !ok {
-			a.NotFound()
-			return
-		}
-		switch c.Type.VarType {
-		case sqlx.VarcharColumnVarType :
-			row = append(row, new(string))
-		case sqlx.IntColumnVarType :
-			row = append(row, new(int))
-		default:
-			a.NotFound()
-			return
-		}
+	ret, err := db.ReadRowValues(
+		rows,
+		ts,
+		q.ColumnNames,
+		tsMap,
+	)
+	if err != nil {
+		println(err)
+		a.NotFound()
+		return
 	}
-	for rows.Next() {
-		err = rows.Scan(row...)
-		fmt.Println(err)
-		add := []any{}
-		for _, v := range row {
-			switch v.(type) {
-			case *int :
-				add = append(add, *(v.(*int)))
-			case *string :
-				println("in")
-				add = append(add, *(v.(*string)))
-			}
-		}
-		ret = append(ret, add)
-	}
-
 	fmt.Printf("%q\n", ret)
 	js, err := json.Marshal(ret)
 	if err != nil {
