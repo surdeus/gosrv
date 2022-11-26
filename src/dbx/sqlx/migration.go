@@ -100,7 +100,8 @@ func (db *DB)MigrateSchema(
 	for _, c := range schema.Columns {
 		err := db.
 			MigrateRenameColumn(schema.Name, c)
-		if err != nil{
+		if err != nil &&
+			err != ColumnAlreadyExistsErr {
 			return err
 		}
 
