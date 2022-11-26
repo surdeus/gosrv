@@ -55,7 +55,7 @@ func main(){
 	    log.Println(err)
 	}
 
-	err = db.CreateTable(structs.Test{})
+	err = db.RenameColumn("Tests", "DickValue", "SuckValue")
 	if err != nil {
 		log.Println(err)
 	}

@@ -278,6 +278,18 @@ func (db *DB)RenameTable(old, n TableName) error {
 	return nil
 }
 
+func (db *DB)RenameColumn(
+	table TableName,
+	o, n ColumnName,
+) error {
+	_, err := db.Q().
+		RenameColumn().
+		WithFrom(table).
+		WithColumns(ColumnNames{o, n}).
+		Do()
+	return err
+}
+
 func (db *DB)ParseColumnType(
 	t string,
 ) (ColumnType, error) {
@@ -520,9 +532,13 @@ func (db *DB)ColumnExists(
 }
 
 func (db *DB)DropTablePrimaryKey(name TableName) error {
-	_, err := db.Exec(fmt.Sprintf(
+	rawName, err := name.SqlRawValue(db)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(fmt.Sprintf(
 		"alter table %s drop primary key ;",
-		name,
+		rawName,
 	))
 
 	if err != nil {

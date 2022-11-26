@@ -72,6 +72,7 @@ const (
 	InsertQueryType
 	DeleteQueryType
 	RenameTableQueryType
+	RenameColumnQueryType
 	CreateTableQueryType
 	ModifyQueryType
 )
@@ -79,6 +80,8 @@ const (
 var (
 	NoTablesSpecifiedErr = errors.New("no table specified")
 	NoColumnsSpecifiedErr = errors.New("no columns specified")
+	WrongNumOfColumnsSpecifiedErr = errors.New(
+		"wrong number of columns specified")
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
 	NoDBSpecifiedErr = errors.New("no database specified")
@@ -145,16 +148,14 @@ func (w Conditions)SqlCode(db *DB) (Code, error) {
 	return Code(ret), nil
 }
 
-func (q Query)RenameTable() Query {
-	q.Type = RenameTableQueryType
-	return q
-}
-
 func (q Query)SqlCode(db *DB) (Code, error) {
 	var (
 		ret string
 		err error
 	)
+	if db != nil {
+		q.DB = db
+	}
 	switch q.Type {
 	case SelectQueryType :
 		if q.From == TableName("") {
@@ -186,11 +187,48 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 		if q.From == "" || q.To == "" {
 			return "", NoTablesSpecifiedErr
 		}
+
+		from, err := q.From.SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		to, err := q.To.SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
 		ret = fmt.Sprintf(
 			"alter table %s rename %s ;",
-			q.From,
-			q.To,
+			from,
+			to,
 		)
+	case RenameColumnQueryType :
+		if len(q.Columns) != 2 {
+			return "", WrongNumOfColumnsSpecifiedErr
+		}
+		oldName, err := q.Columns[0].SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		newName, err := q.Columns[1].SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		table, err := q.From.SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		ret = fmt.Sprintf(
+			"alter table %s rename column %s to %s ;",
+			table,
+			oldName,
+			newName,
+		)
+
 	case CreateTableQueryType :
 		if q.Schema == nil {
 			return "", NoSchemaSpecifiedErr
@@ -238,6 +276,13 @@ func (q Query)WithWhere(where Conditions) Query {
 	return q
 }
 
+func (q Query)WithColumns(
+	columns ColumnNames,
+) Query {
+	q.Columns = columns
+	return q
+}
+
 func (q Query)Select() Query {
 	return q.WithType(SelectQueryType)
 }
@@ -248,6 +293,16 @@ func (q Query)Insert() Query {
 
 func (q Query)CreateTable() Query {
 	return q.WithType(CreateTableQueryType)
+}
+
+func (q Query)RenameTable() Query {
+	q.Type = RenameTableQueryType
+	return q
+}
+
+func (q Query)RenameColumn() Query {
+	q.Type = RenameColumnQueryType
+	return q
 }
 
 func (q Query)Do() (*sql.Rows, error) {
