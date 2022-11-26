@@ -89,6 +89,7 @@ var (
 	WrongQueryInputFormatErr = errors.New(
 		"wrong query input format",
 	)
+	WrongValuerFormatErr = errors.New("wrong valuer format")
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
 	NoDBSpecifiedErr = errors.New("no database specified")
@@ -374,10 +375,16 @@ func (q Query)Do() (*sql.Rows, error) {
 }
 
 func (v TableName)SqlRawValue(db *DB) (RawValue, error) {
+	if v == "" {
+		return "", WrongValuerFormatErr
+	}
 	return RawValue(v), nil
 }
 
 func (v ColumnName)SqlRawValue(db *DB) (RawValue, error) {
+	if v == "" {
+		return "", WrongValuerFormatErr
+	}
 	return RawValue(v), nil
 }
 

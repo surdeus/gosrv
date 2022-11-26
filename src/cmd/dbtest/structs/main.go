@@ -26,7 +26,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Name: "DickValue",
 				Type: sqlx.CT().Int(11),
 				Nullable: true,
-				Default: sqlx.Int(5),
+				Default: sqlx.Int(25),
 			},{
 				Name: "StringValue",
 				Type: sqlx.CT().Varchar(64),
