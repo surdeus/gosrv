@@ -103,21 +103,21 @@ func (db *DB)ReadRowValues(
 	cnames ColumnNames,
 	tsMap map[ColumnName] *Column,
 	rc any,
-) ([]RowValues, error) {
-	null := []RowValues{}
+) ([]any, error) {
+	null := []any{}
 	row := make([]any, len(cnames))
 	t := reflect.TypeOf(rc)
 	val := reflect.New(t)
 	val = val.Elem()
 	for i, v := range cnames {
 		f := val.FieldByName(string(v)).Addr()
-		fmt.Println("val:", val, v)
-		fmt.Println("field:", f)
-		c, ok := tsMap[v]
-		if !ok {
+		_, ok := tsMap[v]
+		if !ok  || !f.IsValid() {
 			return null, ColumnDoesNotExistErr
 		}
-		switch c.Type.VarType {
+
+		row[i] = f.Interface()
+		/*switch c.Type.VarType {
 		case VarcharColumnVarType :
 			row[i] = new(sql.NullString)
 		case IntColumnVarType :
@@ -140,17 +140,17 @@ func (db *DB)ReadRowValues(
 			row[i] = new(sql.NullTime)
 		default:
 			return null, UnknownColumnTypeErr
-		}
+		}*/
+
 	}
 
-	ret := []RowValues{}
+	ret := []any{}
 	for rs.Next() {
 		err := rs.Scan(row...)
 		if err != nil{
 			return null, err
 		}
-		rowMap := make(RowValues)
-		for i, v := range row {
+		/*for i, v := range row {
 			cname := cnames[i]
 			switch v.(type) {
 			case *sql.NullString:
@@ -172,8 +172,8 @@ func (db *DB)ReadRowValues(
 			default:
 				return null, UnknownColumnTypeErr
 			}
-		}
-		ret = append(ret, rowMap)
+		}*/
+		ret = append(ret, val.Interface())
 	}
 
 	return ret, nil
