@@ -59,6 +59,11 @@ func main(){
 	    log.Println(err)
 	}
 
+	err = db.RenameTable("NewTests", "Tests")
+	if err != nil {
+		log.Println(err)
+	}
+
 	return
 	fmt.Println(db.ColumnExists("Tests", "Value"))
 	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))

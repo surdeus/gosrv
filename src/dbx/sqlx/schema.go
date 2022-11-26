@@ -257,6 +257,18 @@ func (db *DB)TableExists(name TableName) bool {
 	return ret
 }
 
+func (db *DB)RenameTable(old, n TableName) error {
+	_, err := db.Q().
+		RenameTable().
+		WithFrom(old).
+		WithTo(n).Do()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *DB)ParseColumnType(
 	t string,
 ) (ColumnType, error) {

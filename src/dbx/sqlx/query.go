@@ -67,10 +67,11 @@ const (
 )
 
 const (
-	SelectQueryType QueryType = iota
+	NoQueryType QueryType = iota
+	SelectQueryType
 	InsertQueryType
 	DeleteQueryType
-	AlterTableRenameQueryType
+	RenameTableQueryType
 	ModifyQueryType
 )
 
@@ -143,6 +144,11 @@ func (w Conditions)SqlCode(db *DB) (Code, error) {
 	return Code(ret), nil
 }
 
+func (q Query)RenameTable() Query {
+	q.Type = RenameTableQueryType
+	return q
+}
+
 func (q Query)SqlCode(db *DB) (Code, error) {
 	var (
 		ret string
@@ -174,7 +180,7 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 			from,
 			where,
 		)
-	case AlterTableRenameQueryType :
+	case RenameTableQueryType :
 		ret = fmt.Sprintf(
 			"alter table %s rename %s ;",
 			q.From,
@@ -210,11 +216,6 @@ func (q Query)WithTo(to TableName) Query {
 func (q Query)WithWhere(where Conditions) Query {
 	q.Where = where
 	return q
-}
-
-
-func (q Query)AlterTableRename() Query {
-	return q.WithType(AlterTableRenameQueryType)
 }
 
 func (q Query)Select() Query {
