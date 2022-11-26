@@ -64,7 +64,7 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 	fmt.Println(columns)
 	q := sqlx.Query{
 		From: ts.Name,
-		Columns: columns,
+		ColumnNames: columns,
 		Where: cs,
 	}
 

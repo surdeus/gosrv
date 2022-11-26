@@ -153,6 +153,12 @@ func (cs Columns)Names() ColumnNames {
 	return ret
 }
 
+func NotKey() Key {
+	return Key {
+		Type : NotKeyType,
+	}
+}
+
 func PrimaryKey() Key {
 	return Key{Type: PrimaryKeyType}
 }
@@ -287,7 +293,7 @@ func (db *DB)RenameColumn(
 	_, err := db.Q().
 		RenameColumn().
 		WithFrom(table).
-		WithColumns(o, n).
+		WithColumnNames(o, n).
 		Do()
 	return err
 }
@@ -424,6 +430,14 @@ func (f Column)String() string {
 	)
 }
 
+func (db *DB)ColumnToAlterSql(
+	c *Column,
+) (Code, error) {
+	buf := *c
+	buf.Key = NotKey()
+	return db.ColumnToSql(&buf)
+}
+
 func (db *DB)ColumnToSql(f *Column) (Code, error) {
 	name, err := f.Name.SqlRawValue(db)
 	if err != nil {
@@ -508,14 +522,12 @@ func (db *DB)CreateTableBySchema(ts *TableSchema) error {
 
 func (db *DB)AlterColumnType(
 	table TableName,
-	column ColumnName,
-	t ColumnType,
+	c *Column,
 ) error {
 	_, err := db.Q().
 		AlterColumnType().
-		WithTables(table).
-		WithColumns(column).
-		WithColumnTypes(t).
+		WithTableNames(table).
+		WithColumns(c).
 		Do()
 
 	return err

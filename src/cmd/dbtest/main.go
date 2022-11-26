@@ -55,11 +55,17 @@ func main(){
 	    log.Println(err)
 	}
 
+	db.RenameColumn("Tests", "SuckValue", "DickValue")
+	
+	schema := structs.Test{}.Sql()
 	t, err = db.ParseColumnType("bigint(5)")
 	if err != nil {
 		log.Println(err)
 	} else {
-		err = db.AlterColumnType("Tests", "SuckValue", t)
+		err = db.AlterColumnType(
+			"Tests",
+			schema.Columns[1],
+		)
 		if err != nil {
 			log.Println(err)
 		}

@@ -53,8 +53,9 @@ type Query struct {
 	From TableName
 	To TableName
 	Schema *TableSchema
-	Columns ColumnNames
-	Tables TableNames
+	ColumnNames ColumnNames
+	TableNames TableNames
+	Columns Columns
 	ColumnTypes []ColumnType
 	Where Conditions
 }
@@ -168,7 +169,7 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 			return "", NoTablesSpecifiedErr
 		}
 
-		columns, err := q.Columns.SqlRawValue(q.DB)
+		columns, err := q.ColumnNames.SqlRawValue(q.DB)
 		if err != nil {
 			return Code(""), err
 		}
@@ -210,15 +211,15 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 			to,
 		)
 	case RenameColumnQueryType :
-		if len(q.Columns) != 2 {
+		if len(q.ColumnNames) != 2 {
 			return "", WrongNumOfColumnsSpecifiedErr
 		}
-		oldName, err := q.Columns[0].SqlRawValue(q.DB)
+		oldName, err := q.ColumnNames[0].SqlRawValue(q.DB)
 		if err != nil {
 			return "", err
 		}
 
-		newName, err := q.Columns[1].SqlRawValue(q.DB)
+		newName, err := q.ColumnNames[1].SqlRawValue(q.DB)
 		if err != nil {
 			return "", err
 		}
@@ -246,34 +247,28 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 			return "", err
 		}
 	case AlterColumnTypeQueryType :
-		if len(q.Tables) != 1 ||
-			len(q.Columns) != 1 ||
-			len(q.ColumnTypes) != 1 {
+		if len(q.TableNames) != 1 ||
+			len(q.Columns) != 1 {
 			return "",
 				WrongQueryInputFormatErr
 		}
-		rtable, err := q.Tables[0].
+		rtable, err := q.TableNames[0].
 			SqlRawValue(q.DB)
 		if err != nil {
 			return "", err
 		}
 
-		rcolumn, err := q.Columns[0].
-			SqlRawValue(q.DB)
-		if err != nil {
-			return "", err
-		}
-
-		rtype, err := q.ColumnTypes[0].SqlCode(q.DB)
+		rcode, err := db.ColumnToAlterSql(
+			q.Columns[0],
+		)
 		if err != nil {
 			return "", err
 		}
 
 		ret = fmt.Sprintf(
-			"alter table %s modify %s %s ;",
+			"alter table %s modify %s ;",
 			rtable,
-			rcolumn,
-			rtype,
+			rcode,
 		)
 	default:
 		return "", UnknownQueryTypeErr
@@ -312,8 +307,15 @@ func (q Query)WithWhere(where Conditions) Query {
 	return q
 }
 
-func (q Query)WithColumns(
+func (q Query)WithColumnNames(
 	columns ...ColumnName,
+) Query {
+	q.ColumnNames = columns
+	return q
+}
+
+func (q Query)WithColumns(
+	columns ...*Column,
 ) Query {
 	q.Columns = columns
 	return q
@@ -326,10 +328,10 @@ func (q Query)WithColumnTypes(
 	return q
 }
 
-func (q Query)WithTables(
+func (q Query)WithTableNames(
 	tables ...TableName,
 ) Query {
-	q.Tables = tables
+	q.TableNames = tables
 	return q
 }
 
