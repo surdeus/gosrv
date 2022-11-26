@@ -285,7 +285,7 @@ func (db *DB)RenameColumn(
 	_, err := db.Q().
 		RenameColumn().
 		WithFrom(table).
-		WithColumns(ColumnNames{o, n}).
+		WithColumns(o, n).
 		Do()
 	return err
 }
@@ -504,6 +504,21 @@ func (db *DB)CreateTableBySchema(ts *TableSchema) error {
 	return err
 }
 
+func (db *DB)AlterColumnType(
+	table TableName,
+	column ColumnName,
+	t ColumnType,
+) error {
+	_, err := db.Q().
+		AlterColumnType().
+		WithTables(table).
+		WithColumns(column).
+		WithColumnTypes(t).
+		Do()
+
+	return err
+}
+
 func (db *DB)ColumnExists(
 	table TableName,
 	column ColumnName,
@@ -541,11 +556,7 @@ func (db *DB)DropTablePrimaryKey(name TableName) error {
 		rawName,
 	))
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (db *DB)KeysEq(k1, k2 Key) bool {

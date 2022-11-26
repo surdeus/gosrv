@@ -54,6 +54,8 @@ type Query struct {
 	To TableName
 	Schema *TableSchema
 	Columns ColumnNames
+	Tables TableNames
+	ColumnTypes []ColumnType
 	Where Conditions
 }
 
@@ -74,6 +76,7 @@ const (
 	RenameTableQueryType
 	RenameColumnQueryType
 	CreateTableQueryType
+	AlterColumnTypeQueryType
 	ModifyQueryType
 )
 
@@ -82,6 +85,9 @@ var (
 	NoColumnsSpecifiedErr = errors.New("no columns specified")
 	WrongNumOfColumnsSpecifiedErr = errors.New(
 		"wrong number of columns specified")
+	WrongQueryInputFormatErr = errors.New(
+		"wrong query input format",
+	)
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
 	NoDBSpecifiedErr = errors.New("no database specified")
@@ -239,6 +245,36 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 		if err != nil {
 			return "", err
 		}
+	case AlterColumnTypeQueryType :
+		if len(q.Tables) != 1 ||
+			len(q.Columns) != 1 ||
+			len(q.ColumnTypes) != 1 {
+			return "",
+				WrongQueryInputFormatErr
+		}
+		rtable, err := q.Tables[0].
+			SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		rcolumn, err := q.Columns[0].
+			SqlRawValue(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		rtype, err := q.ColumnTypes[0].SqlCode(q.DB)
+		if err != nil {
+			return "", err
+		}
+
+		ret = fmt.Sprintf(
+			"alter table %s modify %s %s ;",
+			rtable,
+			rcolumn,
+			rtype,
+		)
 	default:
 		return "", UnknownQueryTypeErr
 	}
@@ -277,9 +313,23 @@ func (q Query)WithWhere(where Conditions) Query {
 }
 
 func (q Query)WithColumns(
-	columns ColumnNames,
+	columns ...ColumnName,
 ) Query {
 	q.Columns = columns
+	return q
+}
+
+func (q Query)WithColumnTypes(
+	types ...ColumnType,
+) Query {
+	q.ColumnTypes = types
+	return q
+}
+
+func (q Query)WithTables(
+	tables ...TableName,
+) Query {
+	q.Tables = tables
 	return q
 }
 
@@ -303,6 +353,10 @@ func (q Query)RenameTable() Query {
 func (q Query)RenameColumn() Query {
 	q.Type = RenameColumnQueryType
 	return q
+}
+
+func (q Query)AlterColumnType() Query {
+	return q.WithType(AlterColumnTypeQueryType)
 }
 
 func (q Query)Do() (*sql.Rows, error) {

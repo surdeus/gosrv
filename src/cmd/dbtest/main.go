@@ -55,9 +55,13 @@ func main(){
 	    log.Println(err)
 	}
 
-	err = db.RenameColumn("Tests", "DickValue", "SuckValue")
+	t, err = db.ParseColumnType("int(5)")
 	if err != nil {
-		log.Println(err)
+	} else {
+		err = db.AlterColumnType("Tests", "SuckValue", t)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	fmt.Println(db.TableExists("Organizations"))
