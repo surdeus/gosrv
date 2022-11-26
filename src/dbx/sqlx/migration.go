@@ -74,21 +74,41 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	if err != nil {
 		return err
 	}
-	newSchemas := TableSchemas{}
+	schemas := TableSchemas{}
 	for _, sqler := range sqlers {
-		newSchemas = append(newSchemas, sqler.Sql())
+		schemas = append(schemas, sqler.Sql())
+	}
+
+	for _, schema := range schemas {
+		err = db.MigrateSchema(schema)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (db *DB)MigrateSchema(
-	tableName TableName,
 	schema *TableSchema,
 ) error {
-	/*MigrateRenameTable()
-	for {
-	}*/
+	err := db.MigrateRenameTable(schema)
+	if err != nil &&
+			err != TableAlreadyExistsErr {
+		return err
+	}
+	for _, c := range schema.Columns {
+		err := db.
+			MigrateRenameColumn(schema.Name, c)
+		if err != nil{
+			return err
+		}
+
+		err = db.MigrateAlterColumnType(schema.Name, c)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

@@ -36,7 +36,13 @@ func (ct ColumnType)Varchar(n int) ColumnType {
 	return ct
 }
 
-func (ct ColumnType)Int(n int) ColumnType {
+func (ct ColumnType)Int() ColumnType {
+	ct.VarType = IntColumnVarType
+	ct.Args = RawValuers{Int(11)}
+	return ct
+}
+
+func (ct ColumnType)IntN(n int) ColumnType {
 	ct.VarType = IntColumnVarType
 	ct.Args = RawValuers{Int(n)}
 	return ct

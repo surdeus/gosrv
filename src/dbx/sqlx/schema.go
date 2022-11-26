@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"github.com/surdeus/godat/src/mapx"
+	"database/sql"
 )
 
 type Sqler interface {
@@ -287,7 +288,8 @@ func (db *DB)GetTableSchema(
 
 func (db *DB)ColumnFromRawValues(
 	cname, t, nullable,
-	key, def, extra string,
+	key, extra string,
+	def sql.NullString,
 ) (*Column, error) {
 	var err error
 	column := new(Column)
@@ -308,10 +310,10 @@ func (db *DB)ColumnFromRawValues(
 	}
 	column.Key.Type = keyType
 
-	if def == "" {
+	if !def.Valid {
 		column.Default = nil
 	} else {
-		column.Default = RawValue(def)
+		column.Default = RawValue(def.String)
 	}
 	column.Extra = Code(extra)
 
@@ -345,8 +347,9 @@ func (db *DB)GetColumnSchema(
 	}
 
 	var (
-		cname, t, def, extra,
+		cname, t, extra,
 			key, nullable string
+		def sql.NullString
 	)
 
 	/*if !rows.Next() {
@@ -367,7 +370,8 @@ func (db *DB)GetColumnSchema(
 
 	return db.ColumnFromRawValues(
 		cname, t, nullable,
-		key, def, extra,
+		key, extra,
+		def,
 	)
 }
 
@@ -511,8 +515,9 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 	}
 
 	var (
-		cname, t, def, extra,
+		cname, t, extra,
 			key, nullable string
+		def sql.NullString
 	)
 	for rows.Next() {
 		column := &Column{}
@@ -527,7 +532,8 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 
 		column, err := db.ColumnFromRawValues(
 			cname, t, nullable,
-			key, def, extra,
+			key, extra,
+			def,
 		)
 		if err != nil {
 			return nil, err

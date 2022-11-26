@@ -1,7 +1,7 @@
 package main
 
 import(
-	"fmt"
+	//"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
@@ -19,79 +19,19 @@ func main(){
 			Name: "test",
 		},
 	)
-	defer db.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
-	t, err := db.ParseColumnType("suck(11)")
-	fmt.Printf("%v %s\n", t, err)
-
-	names, err := db.GetTableNames()
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Printf("%q\n", names)
+	sqlers := []sqlx.Sqler{
+		structs.Test{},
+		structs.AnotherTest{},
 	}
 
-	fmt.Println(db.TableCreationStringFor(structs.Test{}))
-	schemas, err := db.GetTableSchemas()
-	if err != nil {
+	err = db.Migrate(sqlers)
+	if err != nil{
 		log.Println(err)
-	}
-	for _, schema := range schemas {
-		for _, f := range schema.Columns {
-			sql, err := db.ColumnToSql(f)
-			if err != nil {
-				log.Println(err)
-			} else {
-				fmt.Printf("\"%s\"\n", sql)
-				fmt.Printf("%v\n", f)
-			}
-		}
-	}
-
-	/*err = db.Migrate(
-		[]sqlx.Sqler{
-			structs.Test{},
-			structs.AnotherTest{},
-		},
-	)
-	if err != nil {
-	    log.Println(err)
-	}*/
-
-	db.RenameColumn("Tests", "SuckValue", "DickValue")
-	
-	schema := structs.Test{}.Sql()
-	col := schema.Columns[1]
-	err = db.MigrateAlterColumnType(schema.Name, col)
-	if err != nil {
-		log.Println(err)
-	}
-	return
-
-	fmt.Println(db.TableExists("Organizations"))
-	fmt.Println(db.TableExists("SurelyDoesNot"))
-	fmt.Println(db.ColumnExists("Tests", "DickValue"))
-	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
-
-	coln, err := db.GetColumnSchema("Tests", "DickValue")
-	if err != nil {
-		println("in err")
-		log.Println(err)
-	} else {
-		println("in")
-		fmt.Printf("%q\n", coln.Name)
-	}
-
-	return
-	ts := structs.Test{}.Sql()
-	i, f, err := ts.PrimaryKeyColumn()
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Println(i, f)
 	}
 }
 

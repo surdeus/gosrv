@@ -18,7 +18,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 		Columns: sqlx.Columns {
 			{
 				Name: "Id",
-				Type: sqlx.CT().Int(11),
+				Type: sqlx.CT().Int(),
 				Nullable: false,
 				Key: sqlx.PrimaryKey(),
 				Extra: "auto_increment",
@@ -26,9 +26,9 @@ func (t Test)Sql() *sqlx.TableSchema {
 				//OldName: "SuckValue",
 				//OldName: "NewValueName",
 				Name: "DickValue",
-				Type: sqlx.CT().Int(32),
+				Type: sqlx.CT().Int(),
 				Nullable: true,
-				Default: sqlx.Int(25),
+				Default: sqlx.Int(5),
 			},{
 				Name: "StringValue",
 				Type: sqlx.CT().Varchar(64),
@@ -37,7 +37,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 					"some русская' string"),
 			},{
 				Name: "NewValue",
-				Type: sqlx.CT().Int(11),
+				Type: sqlx.CT().Int(),
 				Nullable: true,
 				Default: sqlx.Int(0),
 			},
@@ -58,13 +58,13 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 		Columns: sqlx.Columns {
 			{
 				Name: "Id",
-				Type: sqlx.CT().Int(11),
+				Type: sqlx.CT().Int(),
 				Nullable: false,
 				Key: sqlx.PrimaryKey(),
 				//Extra: "auto_increment",
 			},{
 				Name: "AnotherValue",
-				Type: sqlx.CT().Int(11),
+				Type: sqlx.CT().Int(),
 				Nullable: true,
 				Default: sqlx.Int(25),
 			},
