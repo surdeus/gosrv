@@ -44,9 +44,9 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Default: sqlx.Int(0),
 			},{
 				Name: "AnotherValue",
-				Type: sqlx.CT().Int(),
+				Type: sqlx.CT().Double(),
 				Nullable: true,
-				Default: sqlx.Int(100),
+				Default: sqlx.Double(100.),
 			},
 		},
 	}

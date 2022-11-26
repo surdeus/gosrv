@@ -24,8 +24,7 @@ type RawValuers []RawValuer
 type String string
 type Int int
 type Ints []Int
-type Float32 float32
-type Float64 float64
+type Double float64
 type Variable string
 type Null struct{}
 
@@ -395,6 +394,11 @@ func (v ColumnName)SqlRawValue(db *DB) (RawValue, error) {
 
 func (v RawValue)SqlRawValue(db *DB) (RawValue, error) {
 	return v, nil
+}
+
+func (d Double)SqlRawValue(db *DB) (RawValue, error) {
+	return RawValue(strconv.FormatFloat(float64(d), 'f', -1, 64)),
+		nil
 }
 
 func (i Int)SqlRawValue(db *DB) (RawValue, error) {

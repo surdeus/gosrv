@@ -98,6 +98,12 @@ func (ct ColumnType)Nvarchar(n int) ColumnType {
 	return ct
 }
 
+func (ct ColumnType)Double() ColumnType {
+	ct.VarType = DoubleColumnVarType
+	ct.Args = RawValuers{Int(16), Int(2)}
+	return ct
+}
+
 func (db *DB)ReadRowValues(
 	rs *sql.Rows,
 	ts *TableSchema,
