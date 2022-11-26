@@ -97,6 +97,9 @@ var (
 	WrongColumnTypeFormatErr = errors.New(
 		"wrong column type format",
 	)
+	TableDoesNotExistErr = errors.New(
+		"specified table does not exist",
+	)
 
 	MysqlStringMapKeyType = map[string] KeyType {
 		"" : NotKeyType,
@@ -215,6 +218,55 @@ func (ts TableSchema)FindColumn(
 	}
 
 	return -1, nil
+}
+
+func (db *DB)GetTableNames(
+) (TableNames, error) {
+	var (
+		ret TableNames
+	)
+
+	rows, err := db.Query(
+		"select " +
+		"TABLE_NAME " +
+		"from INFORMATION_SCHEMA.TABLES " +
+		"where TABLE_SCHEMA = database() " +
+		"",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		name := TableName("")
+		rows.Scan(&name)
+		ret = append(ret, name)
+	}
+
+	return ret, nil
+}
+
+func (db *DB)GetTableSchema(
+	name TableName,
+) (*TableSchema, error) {
+	var err error
+	exists, err := db.TableExists(name)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, TableDoesNotExistErr
+	}
+
+	ret := &TableSchema{}
+	ret.Name = name
+	ret.Columns, err = db.GetColumnsByTableName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 func (db* DB)GetTableSchemas() (TableSchemas, error) {

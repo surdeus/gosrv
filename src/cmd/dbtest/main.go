@@ -27,6 +27,13 @@ func main(){
 	t, err := db.ParseColumnType("suck(11)")
 	fmt.Printf("%v %s\n", t, err)
 
+	names, err := db.GetTableNames()
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Printf("%q\n", names)
+	}
+
 	fmt.Println(db.TableCreationStringFor(structs.Test{}))
 	schemas, err := db.GetTableSchemas()
 	if err != nil {
@@ -39,7 +46,7 @@ func main(){
 			if err != nil {
 				log.Println(err)
 			} else {
-				fmt.Printf("'%s'\n", sql)
+				fmt.Printf("\"%s\"\n", sql)
 				fmt.Printf("%v\n", f)
 			}
 		}

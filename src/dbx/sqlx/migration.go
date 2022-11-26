@@ -77,3 +77,43 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	return nil
 }
 
+/*func (db *DB)MigrateSchema(schema *TableSchema) error {
+	var (
+		tableName TableName
+	)
+
+	if schema.OldName != "" {
+		tableName = schema.OldName
+	} else {
+		if schema.Name == "" {
+			return WrongValuerFormatErr
+		}
+		tableName = schema.Name
+	}
+
+	for {
+		diff, err := db.CompareColumns()
+		if err != nil {
+			return err
+		}
+
+		if diff == NoColumnDiff {
+			break
+		}
+
+		switch diff {
+		case NameColumnDiff :
+		}
+	}
+
+	return nil
+}
+
+func (db *DB)MigrateRenameTable(ts *TableSchema) error {
+	if ts.OldName == "" {
+		return nil
+	}
+
+	
+}*/
+
