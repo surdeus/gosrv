@@ -9,6 +9,45 @@ var (
 	UnknownColumnType = errors.New("unknown column type")
 )
 
+func C() *Column {
+	return &Column{}
+}
+
+func (c *Column) WOldName(n ColumnName) *Column {
+	c.OldName = n
+	return c
+}
+
+func (c *Column) WName(n ColumnName) *Column {
+	c.Name = n
+	return c
+}
+
+func (c *Column) WNullable() *Column {
+	c.Nullable = true
+	return c
+}
+
+func (c *Column) WType(t ColumnType) *Column {
+	c.Type = t
+	return c
+}
+
+func (c *Column) WDefault(d RawValuer) *Column {
+	c.Default = d
+	return c
+}
+
+func (c *Column) WKey(k Key) *Column {
+	c.Key = k
+	return c
+}
+
+func (c *Column) WExtra(e Code) *Column {
+	c.Extra = e
+	return c
+}
+
 func CT() ColumnType {
 	return ColumnType{}
 }

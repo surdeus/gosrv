@@ -27,6 +27,7 @@ type Ints []Int
 type Float32 float32
 type Float64 float64
 type Variable string
+type Null struct{}
 
 type ColumnName string
 type ColumnNames []ColumnName
@@ -372,6 +373,10 @@ func (q Query)Do() (*sql.Rows, error) {
 	}
 
 	return q.DB.Query(string(qs))
+}
+
+func (v Null)SqlRawValue(db *DB) (RawValue, error){
+	return RawValue("null"), nil
 }
 
 func (v TableName)SqlRawValue(db *DB) (RawValue, error) {

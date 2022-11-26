@@ -53,6 +53,7 @@ const (
 
 const (
 	NoColumnVarType = iota
+	NullColumnVarType
 	IntColumnVarType
 
 	BigintColumnVarType

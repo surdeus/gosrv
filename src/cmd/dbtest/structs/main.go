@@ -19,7 +19,6 @@ func (t Test)Sql() *sqlx.TableSchema {
 			{
 				Name: "Id",
 				Type: sqlx.CT().Int(),
-				Nullable: false,
 				Key: sqlx.PrimaryKey(),
 				Extra: "auto_increment",
 			},{
@@ -35,7 +34,8 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Type: sqlx.CT().Varchar(32),
 				Nullable: true,
 				Default: sqlx.String(
-					"some русская' string"),
+					"some русская' string",
+				),
 			},{
 				Name: "NewValue",
 				Type: sqlx.CT().Int(),
