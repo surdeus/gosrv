@@ -23,7 +23,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 			{
 				Name: "Id",
 				Type: sqlx.CT().Int(),
-				Key: sqlx.PrimaryKey(),
+				Key: sqlx.K().Primary(),
 				Extra: "auto_increment",
 			},{
 				Name: "DickValue",
@@ -66,7 +66,7 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 				Name: "Id",
 				Type: sqlx.CT().Int(),
 				Nullable: false,
-				Key: sqlx.PrimaryKey(),
+				Key: sqlx.K().Primary(),
 				//Extra: "auto_increment",
 			},{
 				Name: "AnotherValue",
