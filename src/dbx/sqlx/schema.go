@@ -59,6 +59,9 @@ const (
 	BitColumnVarType
 	TinyintColumnVarType
 
+	DoubleColumnVarType
+	FloatColumnVarType
+
 	VarcharColumnVarType
 	NvarcharColumnVarType
 
@@ -121,6 +124,10 @@ var (
 	)
 	MysqlColumnTypeMapString = map[ColumnVarType] string {
 		IntColumnVarType : "int",
+
+		FloatColumnVarType : "float",
+		DoubleColumnVarType : "double",
+
 		BigintColumnVarType : "bigint",
 		BitColumnVarType : "bit",
 		TinyintColumnVarType : "tinyint",
@@ -278,6 +285,93 @@ func (db *DB)GetTableSchema(
 	return ret, nil
 }
 
+func (db *DB)ColumnFromRawValues(
+	cname, t, nullable,
+	key, def, extra string,
+) (*Column, error) {
+	var err error
+	column := new(Column)
+
+	column.Name = ColumnName(cname)
+	column.Type, err = db.ParseColumnType(t)
+	if err != nil {
+		return nil, err
+	}
+
+	if nullable == "YES" {
+		column.Nullable = true
+	} 
+
+	keyType, ok := MysqlStringMapKeyType[key]
+	if !ok {
+		return nil, UnknownKeyTypeErr
+	}
+	column.Key.Type = keyType
+
+	if def == "" {
+		column.Default = nil
+	} else {
+		column.Default = RawValue(def)
+	}
+	column.Extra = Code(extra)
+
+	return column, nil
+}
+
+func (db *DB)GetColumnSchema(
+	table TableName,
+	colName ColumnName,
+) (*Column, error) {
+	exists, err := db.ColumnExists(table, colName)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ColumnDoesNotExistErr
+	}
+
+	rows, err := db.Query(
+		"select "+
+		"COLUMN_NAME, COLUMN_TYPE, " +
+		"IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, EXTRA " +
+		"from INFORMATION_SCHEMA.COLUMNS " +
+		"where TABLE_NAME in (?) and COLUMN_NAME in (?)"+
+		"",
+		table,
+		colName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		cname, t, def, extra,
+			key, nullable string
+	)
+
+	/*if !rows.Next() {
+		return nil, ColumnDoesNotExistErr
+	}*/
+	rows.Next()
+	err = rows.Scan(
+		&cname,
+		&t,
+		&nullable,
+		&key,
+		&def,
+		&extra,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return db.ColumnFromRawValues(
+		cname, t, nullable,
+		key, def, extra,
+	)
+}
+
+
 func (db* DB)GetTableSchemas() (TableSchemas, error) {
 	var (
 		ret TableSchemas
@@ -368,7 +462,8 @@ func (db *DB)ParseColumnType(
 	if f {
 		if argStr[len(argStr)-1] != ')' {
 			return ColumnType{},
-				WrongColumnTypeFormatErr
+				fmt.Errorf("ParseColumn: %s: %w",
+					t, WrongColumnTypeFormatErr )
 		}
 	}
 
@@ -378,7 +473,8 @@ func (db *DB)ParseColumnType(
 		MysqlStringMapColumnType[varTypeStr]
 	if !ok {
 		return ColumnType{},
-			UnknownColumnTypeErr
+			fmt.Errorf("ParseColumn: %s: %w",
+					t, UnknownColumnTypeErr)
 	}
 
 	if f {
@@ -429,31 +525,19 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 			&extra,
 		)
 
-		column.Name = ColumnName(cname)
-
-		column.Type, err = db.ParseColumnType(t)
-
-		if nullable == "YES" {
-			column.Nullable = true
-		} 
-
-		keyType, ok := MysqlStringMapKeyType[key]
-		if !ok {
-			return Columns{}, UnknownKeyTypeErr
+		column, err := db.ColumnFromRawValues(
+			cname, t, nullable,
+			key, def, extra,
+		)
+		if err != nil {
+			return nil, err
 		}
-		column.Key.Type = keyType
-
-		if def == "" {
-			column.Default = nil
-		} else {
-			column.Default = RawValue(def)
-		}
-		column.Extra = Code(extra)
 
 		ret = append(ret, column)
 	}
 
 
+	fmt.Println("returning")
 	return ret, nil
 }
 

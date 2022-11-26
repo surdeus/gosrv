@@ -24,8 +24,8 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Extra: "auto_increment",
 			},{
 				//OldName: "SuckValue",
-				OldName: "DickValue",
-				Name: "NewValueName",
+				//OldName: "NewValueName",
+				Name: "DickValue",
 				Type: sqlx.CT().Int(11),
 				Nullable: true,
 				Default: sqlx.Int(25),

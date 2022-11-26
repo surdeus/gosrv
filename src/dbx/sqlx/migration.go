@@ -114,6 +114,13 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	return nil
 }*/
 
+func (db *DB)MigrateAlterColumnType(
+	tableName TableName,
+	column *Column,
+) (error) {
+	return nil
+}
+
 func (db *DB)MigrateRenameColumn(
 	tableName TableName,
 	column *Column,

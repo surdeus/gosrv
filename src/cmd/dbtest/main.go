@@ -39,7 +39,6 @@ func main(){
 	if err != nil {
 		log.Println(err)
 	}
-
 	for _, schema := range schemas {
 		for _, f := range schema.Columns {
 			sql, err := db.ColumnToSql(f)
@@ -70,24 +69,20 @@ func main(){
 	if err != nil {
 		log.Println(err)
 	}
-	return
-	t, err = db.ParseColumnType("bigint(5)")
-	if err != nil {
-		log.Println(err)
-	} else {
-		err = db.AlterColumnType(
-			"Tests",
-			schema.Columns[1],
-		)
-		if err != nil {
-			log.Println(err)
-		}
-	}
 
 	fmt.Println(db.TableExists("Organizations"))
 	fmt.Println(db.TableExists("SurelyDoesNot"))
 	fmt.Println(db.ColumnExists("Tests", "DickValue"))
 	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
+
+	coln, err := db.GetColumnSchema("Tests", "DickValue")
+	if err != nil {
+		println("in err")
+		log.Println(err)
+	} else {
+		println("in")
+		fmt.Printf("%q\n", coln.Name)
+	}
 
 	return
 	ts := structs.Test{}.Sql()
