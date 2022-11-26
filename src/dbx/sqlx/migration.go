@@ -95,10 +95,30 @@ func (db *DB)MigrateSchema(
 	err := db.MigrateRenameTable(schema)
 	if err != nil &&
 			err != TableAlreadyExistsErr {
+
+		if err == TableDoesNotExistErr {
+			err := db.CreateTableBySchema(schema)
+			return err
+		}
+
 		return err
 	}
+
+
 	for _, c := range schema.Columns {
-		err := db.
+		var err error
+		exists, err := db.ColumnExists(schema.Name, c.Name)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			err = db.AlterAddColumn(schema.Name, c)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		err = db.
 			MigrateRenameColumn(schema.Name, c)
 		if err != nil &&
 			err != ColumnAlreadyExistsErr {

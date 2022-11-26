@@ -53,7 +53,6 @@ const (
 
 const (
 	NoColumnVarType = iota
-	NullColumnVarType
 	IntColumnVarType
 
 	BigintColumnVarType
@@ -670,6 +669,33 @@ func (db *DB)CreateTableBySchema(ts *TableSchema) error {
 	db.Q()
 	_, err := (db.TableCreationStringForSchema(ts))
 	return err
+}
+
+func (db *DB)AlterAddColumn(
+	tn TableName, c *Column,
+) error {
+	var err error
+	table, err := tn.SqlRawValue(db)
+	if err != nil {
+		return err
+	}
+	t, err := db.ColumnToAlterSql(c)
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(
+	fmt.Sprintf(
+		"alter table %s add %s;",
+		table,
+		t,
+	))
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	return nil
 }
 
 func (db *DB)AlterColumnType(
