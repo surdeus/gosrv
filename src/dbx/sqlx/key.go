@@ -7,3 +7,4 @@ func K() Key {
 func (k Key) Primary() Key {
 	return PrimaryKey()
 }
+
