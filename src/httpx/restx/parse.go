@@ -64,7 +64,6 @@ func (args Args)SqlGetQuery(
 		return sqlx.Q(), err
 	}
 
-	fmt.Println("reached")
 	fmt.Println(columns)
 	q := sqlx.Query{
 		From: ts.Name,

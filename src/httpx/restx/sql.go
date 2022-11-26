@@ -10,7 +10,8 @@ import (
 	"regexp"
 	"fmt"
 	"log"
-	"encoding/json"
+	//"encoding/json"
+	"encoding/gob"
 	//"reflect"
 )
 
@@ -56,10 +57,8 @@ func SqlHandler(
 	) {
 		tsName := a.R.URL.Path[len(pref):]
 		tsName = strings.SplitN(tsName, "/", 2)[0]
-		fmt.Println(tsName, mp)
 		hndl, ok := mp[sqlx.TableName(tsName)]
 		if !ok {
-			fmt.Println("in")
 			a.NotFound()
 			return
 		}
@@ -84,7 +83,6 @@ func MakeSqlTableHandler(
 			return cols[i].Name
 		},
 	)
-	fmt.Println(tsMap)
 	cfg := StdArgCfg()
 	handlers := muxx.Handlers {
 		"GET" : SqlMakeGetHandler(db, ts, cfg, tsMap, rc),
@@ -111,9 +109,7 @@ func SqlMakeGetHandler(
 	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
-	//fmt.Println("in getting handler")
 	args := cfg.ParseValues(a.Values())
-	//fmt.Println(args)
 	
 	q, err := args.SqlGetQuery(ts, tsMap)
 	if err != nil {
@@ -124,44 +120,37 @@ return func(a muxx.HndlArg) {
 	q = q.WithDB(db).
 		WithType(sqlx.SelectQueryType)
 
-	s, err := q.SqlCode(db)
+	rows, err := q.Do()
 	if err != nil {
 		log.Println(err)
 		a.NotFound()
 		return
 	}
-	println(s)
-
-	rows, err := q.Do()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 	defer rows.Close()
 
-	ret, err := db.ReadRowValues(
+	if err != nil {
+		a.NotFound()
+		return
+	}
+
+	values, err := db.ReadRowValues(
 		rows,
 		ts,
 		q.ColumnNames,
 		tsMap,
 		rc,
 	)
-	if err != nil {
-		println(err)
-		a.NotFound()
-		return
-	}
-	js, err := json.Marshal(ret)
-	if err != nil {
-		http.Error(a.W, err.Error(), http.StatusInternalServerError)
-		return
-	}
 
 	a.W.Header().Set(
 		"Content-Type",
-		"application/json",
+		"application/gob",
 	)
-	a.W.Write(js)
+
+	
+	enc := gob.NewEncoder(a.W)
+	for v := range values {
+		enc.Encode(v)
+	}
 }}
 
 func SqlMakePostHandler(

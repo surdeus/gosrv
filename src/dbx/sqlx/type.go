@@ -5,6 +5,7 @@ import (
 	"errors"
 	"database/sql"
 	"reflect"
+	"log"
 )
 
 type RowValues = map[ColumnName] any
@@ -103,8 +104,7 @@ func (db *DB)ReadRowValues(
 	cnames ColumnNames,
 	tsMap map[ColumnName] *Column,
 	rc any,
-) ([]any, error) {
-	null := []any{}
+) (chan any, error) {
 	row := make([]any, len(cnames))
 	t := reflect.TypeOf(rc)
 	val := reflect.New(t)
@@ -113,68 +113,23 @@ func (db *DB)ReadRowValues(
 		f := val.FieldByName(string(v)).Addr()
 		_, ok := tsMap[v]
 		if !ok  || !f.IsValid() {
-			return null, ColumnDoesNotExistErr
+			return nil, ColumnDoesNotExistErr
 		}
-
 		row[i] = f.Interface()
-		/*switch c.Type.VarType {
-		case VarcharColumnVarType :
-			row[i] = new(sql.NullString)
-		case IntColumnVarType :
-			row[i] = new(sql.NullInt32)
-		case TinyintColumnVarType :
-			row[i] = new(sql.NullByte)
-		case SmallintColumnVarType :
-			row[i] = new(sql.NullInt16)
-		case BigintColumnVarType :
-			row[i] = new(sql.NullInt64)
-		case DoubleColumnVarType :
-			row[i] = new(sql.NullFloat64)
-		case TimeColumnVarType :
-			fallthrough
-		case DatetimeColumnVarType :
-			fallthrough
-		case DateColumnVarType :
-			fallthrough
-		case TimestampColumnVarType :
-			row[i] = new(sql.NullTime)
-		default:
-			return null, UnknownColumnTypeErr
-		}*/
-
 	}
 
-	ret := []any{}
-	for rs.Next() {
-		err := rs.Scan(row...)
-		if err != nil{
-			return null, err
-		}
-		/*for i, v := range row {
-			cname := cnames[i]
-			switch v.(type) {
-			case *sql.NullString:
-				rowMap[cname] = *(v.(*sql.NullString))
-			case *sql.NullBool :
-				rowMap[cname] = *(v.(*sql.NullBool))
-			case *sql.NullInt32 :
-				rowMap[cname] = *(v.(*sql.NullInt32))
-			case *sql.NullByte:
-				rowMap[cname] = *(v.(*sql.NullByte))
-			case *sql.NullInt16 :
-				rowMap[cname] = *(v.(*sql.NullInt16))
-			case *sql.NullInt64 :
-				rowMap[cname] = *(v.(*sql.NullInt64))
-			case *sql.NullFloat64 :
-				rowMap[cname] = *(v.(*sql.NullFloat64))
-			case *sql.NullTime :
-				rowMap[cname] = *(v.(*sql.NullTime))
-			default:
-				return null, UnknownColumnTypeErr
+	ret := make(chan any)
+	go func(){
+		for rs.Next() {
+			err := rs.Scan(row...)
+			if err != nil{
+				log.Println(err)
+				return
 			}
-		}*/
-		ret = append(ret, val.Interface())
-	}
+			ret <- val.Interface()
+		}
+		close(ret)
+	}()
 
 	return ret, nil
 }
