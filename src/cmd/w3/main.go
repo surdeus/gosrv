@@ -352,7 +352,7 @@ func main(){
 		DB: db,
 		Type: sqlx.SelectQueryType,
 		From: sqlx.TableName("Tests"),
-		Columns: sqlx.ColumnNames {
+		ColumnNames: sqlx.ColumnNames {
 			"DickValue",
 			"StringValue",
 		},
