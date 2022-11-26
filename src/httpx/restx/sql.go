@@ -115,7 +115,7 @@ return func(a muxx.HndlArg) {
 	args := cfg.ParseValues(a.Values())
 	//fmt.Println(args)
 	
-	q, err := args.SqlGetQuery(ts)
+	q, err := args.SqlGetQuery(ts, tsMap)
 	if err != nil {
 		log.Println(err)
 		a.NotFound()

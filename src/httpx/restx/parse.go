@@ -50,8 +50,11 @@ func (ac *ArgCfg) ParseValues (
 	return ret
 }
 
-func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
-	columns, err := args.SqlColumns(ts)
+func (args Args)SqlGetQuery(
+	ts *sqlx.TableSchema,
+	tsMap map[sqlx.ColumnName] *sqlx.Column,
+) (sqlx.Query, error) {
+	columns, err := args.SqlColumns(ts, tsMap)
 	if err != nil {
 		return sqlx.Q(), err
 	}
@@ -72,7 +75,10 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 	return q, nil
 }
 
-func (args Args)SqlColumns(ts *sqlx.TableSchema) (sqlx.ColumnNames, error) {
+func (args Args)SqlColumns(
+	ts *sqlx.TableSchema,
+	tsMap map[sqlx.ColumnName] *sqlx.Column,
+) (sqlx.ColumnNames, error) {
 	colArg, ok := args["c"]
 	if !ok {
 		return sqlx.ColumnNames{}, NoColumnsSpecifiedErr
@@ -83,6 +89,11 @@ func (args Args)SqlColumns(ts *sqlx.TableSchema) (sqlx.ColumnNames, error) {
 	for _, c := range columnsStr {
 		if c == "*" {
 			return ts.Columns.Names(), nil
+		}
+		_, exists := tsMap[sqlx.ColumnName(c)]
+		if !exists {
+			return sqlx.ColumnNames{},
+				sqlx.ColumnDoesNotExistErr
 		}
 		columns = append(
 			columns,

@@ -12,6 +12,7 @@ type Test struct {
 	StringValue sql.NullString
 	NewValue sql.NullInt32
 	AnotherValue sql.NullInt32
+	Shit int
 }
 
 func (t Test)Sql() *sqlx.TableSchema {
@@ -53,8 +54,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 
 type AnotherTest struct {
 	Id int
-	Value int
-	StringValue string
+	AnotherValue int
 }
 
 func (t AnotherTest)Sql() *sqlx.TableSchema {

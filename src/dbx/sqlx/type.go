@@ -107,8 +107,12 @@ func (db *DB)ReadRowValues(
 	null := []RowValues{}
 	row := make([]any, len(cnames))
 	t := reflect.TypeOf(rc)
-	fmt.Println(t)
+	val := reflect.New(t)
+	val = val.Elem()
 	for i, v := range cnames {
+		f := val.FieldByName(string(v)).Addr()
+		fmt.Println("val:", val, v)
+		fmt.Println("field:", f)
 		c, ok := tsMap[v]
 		if !ok {
 			return null, ColumnDoesNotExistErr
