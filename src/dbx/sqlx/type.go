@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"errors"
 	"database/sql"
+	"reflect"
 )
 
 type RowValues = map[ColumnName] any
@@ -101,9 +102,12 @@ func (db *DB)ReadRowValues(
 	ts *TableSchema,
 	cnames ColumnNames,
 	tsMap map[ColumnName] *Column,
+	rc any,
 ) ([]RowValues, error) {
 	null := []RowValues{}
 	row := make([]any, len(cnames))
+	t := reflect.TypeOf(rc)
+	fmt.Println(t)
 	for i, v := range cnames {
 		c, ok := tsMap[v]
 		if !ok {

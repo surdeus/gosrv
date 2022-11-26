@@ -17,7 +17,7 @@ import (
 func Sql(
 	db *sqlx.DB,
 	pref string,
-	sqlers []sqlx.Sqler,
+	sqlers []any,
 ) muxx.HndlDef {
 	ret := muxx.HndlDef{}
 	ret.Pref = pref
@@ -34,20 +34,21 @@ func Sql(
 func SqlHandler(
 	db *sqlx.DB,
 	pref string,
-	sqlers []sqlx.Sqler,
+	rcs []any,
 ) muxx.Handler {
 	schemas := sqlx.TableSchemas{}
-	for _, sqler := range sqlers {
-		ts := sqler.Sql()
+	for _, sqler := range rcs {
+		ts := sqler.(sqlx.Sqler).Sql()
 		schemas = append(schemas, ts)
 	}
 
 	mp := make(map[sqlx.TableName] http.HandlerFunc)
-	for _, schema := range schemas {
+	for i, schema := range schemas {
 		mp[schema.Name] = MakeSqlTableHandler(
 			db,
 			pref + string(schema.Name) + "/",
 			schema,
+			rcs[i],
 		)
 	}
 	return func(
@@ -70,6 +71,7 @@ func MakeSqlTableHandler(
 	db *sqlx.DB,
 	pref string,
 	ts *sqlx.TableSchema,
+	rc any,
 ) http.HandlerFunc {
 	_, _, err := ts.PrimaryKeyColumn()
 	if err != nil {
@@ -85,11 +87,11 @@ func MakeSqlTableHandler(
 	fmt.Println(tsMap)
 	cfg := StdArgCfg()
 	handlers := muxx.Handlers {
-		"GET" : SqlMakeGetHandler(db, ts, cfg, tsMap),
-		"POST" : SqlMakePostHandler(db, ts, cfg),
-		"PUT" : SqlMakePutHandler(db, ts, cfg),
-		"PATCH" : SqlMakePatchHandler(db, ts, cfg),
-		"DELETE" : SqlMakeDeleteHandler(db, ts, cfg),
+		"GET" : SqlMakeGetHandler(db, ts, cfg, tsMap, rc),
+		"POST" : SqlMakePostHandler(db, ts, cfg, rc),
+		"PUT" : SqlMakePutHandler(db, ts, cfg, rc),
+		"PATCH" : SqlMakePatchHandler(db, ts, cfg, rc),
+		"DELETE" : SqlMakeDeleteHandler(db, ts, cfg, rc),
 	}
 
 	fin := muxx.MakeHttpHandleFunc(
@@ -106,6 +108,7 @@ func SqlMakeGetHandler(
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	tsMap map[sqlx.ColumnName] *sqlx.Column,
+	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	//fmt.Println("in getting handler")
@@ -141,6 +144,7 @@ return func(a muxx.HndlArg) {
 		ts,
 		q.ColumnNames,
 		tsMap,
+		rc,
 	)
 	if err != nil {
 		println(err)
@@ -164,6 +168,7 @@ func SqlMakePostHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
+	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in posting handler")
@@ -173,6 +178,7 @@ func SqlMakePutHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
+	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in putting handler")
@@ -182,6 +188,7 @@ func SqlMakePatchHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
+	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in patching handler")
@@ -191,6 +198,7 @@ func SqlMakeDeleteHandler(
 	db *sqlx.DB,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
+	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in deleting handler")

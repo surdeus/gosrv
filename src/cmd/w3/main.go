@@ -290,6 +290,10 @@ func main(){
 		dbtest.Test{},
 		dbtest.AnotherTest{},
 	}
+	anys := []any{}
+	for _, v := range sqlers {
+		anys = append(anys, any(v))
+	}
 	db.Migrate(sqlers)
 
 	defs := []muxx.HndlDef {
@@ -306,7 +310,7 @@ func main(){
 			},
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
-		restx.Sql(db, "/api/", sqlers),
+		restx.Sql(db, "/api/", anys),
 	}
 
 	mux := muxx.Define(nil, defs)

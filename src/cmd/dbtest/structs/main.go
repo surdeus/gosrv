@@ -2,13 +2,16 @@ package structs
 
 import (
 	"github.com/surdeus/go-srv/src/dbx/sqlx"
+	"database/sql"
 )
 
 
 type Test struct {
-	Id int
-	Value int
-	StringValue string
+	Id sql.NullInt32
+	DickValue sql.NullInt32
+	StringValue sql.NullString
+	NewValue sql.NullInt32
+	AnotherValue sql.NullInt32
 }
 
 func (t Test)Sql() *sqlx.TableSchema {
