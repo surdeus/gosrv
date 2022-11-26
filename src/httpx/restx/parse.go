@@ -61,6 +61,7 @@ func (args Args)SqlGetQuery(ts *sqlx.TableSchema) (sqlx.Query, error) {
 		return sqlx.Q(), err
 	}
 
+	fmt.Println("reached")
 	fmt.Println(columns)
 	q := sqlx.Query{
 		From: ts.Name,
@@ -78,7 +79,7 @@ func (args Args)SqlColumns(ts *sqlx.TableSchema) (sqlx.ColumnNames, error) {
 	}
 
 	columnsStr := colArg.Values
-	columns := make(sqlx.ColumnNames, 0)
+	columns := sqlx.ColumnNames{}
 	for _, c := range columnsStr {
 		if c == "*" {
 			return ts.Columns.Names(), nil

@@ -132,17 +132,13 @@ return func(a muxx.HndlArg) {
 	defer rows.Close()
 
 	ret := make([][]string, 0)
-	row := make([][]byte, len(q.Columns))
-	rowPtr := make([]any, len(q.Columns))
+	row := make([][]byte, len(q.ColumnNames))
+	rowPtr := make([]any, len(q.ColumnNames))
 	for i := range row {
 		rowPtr[i] = &row[i]
 	}
 	for rows.Next() {
-		rows.Scan(rowPtr...)
-		fmt.Printf(
-			"%q\n",
-			row,
-		)
+		err = rows.Scan(rowPtr...)
 		add := []string{}
 		for _, v := range row {
 			add = append(add, string(v))
@@ -150,6 +146,7 @@ return func(a muxx.HndlArg) {
 		ret = append(ret, add)
 	}
 
+	fmt.Println(ret)
 	js, err := json.Marshal(ret)
 	if err != nil {
 		http.Error(a.W, err.Error(), http.StatusInternalServerError)
