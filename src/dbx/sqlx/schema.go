@@ -103,6 +103,12 @@ var (
 	TableAlreadyExistsErr = errors.New(
 		"specified table already exists",
 	)
+	ColumnDoesNotExistErr = errors.New(
+		"specified column does not exist",
+	)
+	ColumnAlreadyExistsErr = errors.New(
+		"specified column already exists",
+	)
 
 	MysqlStringMapKeyType = map[string] KeyType {
 		"" : NotKeyType,

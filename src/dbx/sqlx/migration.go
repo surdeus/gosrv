@@ -114,6 +114,46 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	return nil
 }*/
 
+func (db *DB)MigrateRenameColumn(
+	tableName TableName,
+	column *Column,
+) (error) {
+	if column.OldName == "" {
+		return nil
+	}
+
+	existsOld, err := db.ColumnExists(tableName,
+		column.OldName)
+	if err != nil {
+		return err
+	}
+
+	existsNew, err := db.ColumnExists(tableName,
+		column.Name)
+	if err != nil {
+		return err
+	}
+
+	if existsNew {
+		return ColumnAlreadyExistsErr
+	}
+
+	if !existsOld {
+		return ColumnDoesNotExistErr
+	}
+
+	err = db.RenameColumn(
+		tableName,
+		column.OldName,
+		column.Name,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *DB)MigrateRenameTable(
 	ts *TableSchema,
 ) (error) {
