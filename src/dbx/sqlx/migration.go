@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	//"fmt"
+	"errors"
 )
 
 type ColumnDiff int
@@ -14,6 +15,10 @@ const (
 	KeyColumnDiff
 	DefaultColumnDiff
 	ExtraColumnDiff
+)
+
+var (
+	OldAndNewTablesExistErr = errors.New("old and new tables exist")
 )
 
 func (db *DB)CompareColumns(
@@ -107,13 +112,38 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	}
 
 	return nil
-}
+}*/
 
-func (db *DB)MigrateRenameTable(ts *TableSchema) error {
+func (db *DB)MigrateRenameTable(
+	ts *TableSchema,
+) (error) {
 	if ts.OldName == "" {
 		return nil
 	}
 
-	
-}*/
+	existsOld, err := db.TableExists(ts.OldName)
+	if err != nil {
+		return err
+	}
+
+	existsNew, err := db.TableExists(ts.Name)
+	if err != nil {
+		return err
+	}
+
+	if existsNew {
+		return TableAlreadyExistsErr
+	}
+
+	if !existsOld {
+		return TableDoesNotExistErr
+	}
+
+	err = db.RenameTable(ts.OldName, ts.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 

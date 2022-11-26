@@ -65,6 +65,11 @@ func main(){
 	db.RenameColumn("Tests", "SuckValue", "DickValue")
 	
 	schema := structs.Test{}.Sql()
+	err = db.MigrateRenameTable(schema)
+	if err != nil {
+		log.Println(err)
+	}
+	return
 	t, err = db.ParseColumnType("bigint(5)")
 	if err != nil {
 		log.Println(err)

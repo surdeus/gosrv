@@ -13,6 +13,7 @@ type Test struct {
 
 func (t Test)Sql() *sqlx.TableSchema {
 	return &sqlx.TableSchema {
+		OldName: "NewTests",
 		Name: "Tests",
 		Columns: sqlx.Columns {
 			{
