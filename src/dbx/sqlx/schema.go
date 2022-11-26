@@ -246,15 +246,24 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 	return ret, nil
 }
 
-func (db *DB)TableExists(name TableName) bool {
+func (db *DB)TableExists(name TableName) (bool, error) {
 	ret := false
-	rows, err := db.Query(fmt.Sprintf("select * from %s ;", name))
+	raw, err := name.SqlRawValue(db)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := db.Query(fmt.Sprintf(
+		"select * from %s ;",
+		raw,
+	))
+
 	if err == nil {
 		defer rows.Close()
 		ret = true
 	}
 
-	return ret
+	return ret, nil
 }
 
 func (db *DB)RenameTable(old, n TableName) error {
@@ -470,26 +479,44 @@ func (db *DB)TableCreationStringFor(v Sqler) (string, error) {
 	return db.TableCreationStringForSchema(v.Sql())
 }
 
-func (db *DB)CreateTableBy(v Sqler) error {
-	return db.CreateTableBySchema(v.Sql())
+func (db *DB)CreateTable(v Sqler) error {
+	_, err := db.Q().CreateTable().
+		WithSchema(v.Sql()).
+		Do()
+	return err
 }
 
 func (db *DB)CreateTableBySchema(ts *TableSchema) error {
-	_, err := db.Query(db.TableCreationStringForSchema(ts))
+	db.Q()
+	_, err := (db.TableCreationStringForSchema(ts))
 	return err
 }
 
 func (db *DB)ColumnExists(
 	table TableName,
 	column ColumnName,
-) bool {
-	rows, err := db.Query(fmt.Sprintf("select %s from %s limit 1 ;", column, table))
-	if err == nil {
-		rows.Close()
-		return true
+) (bool, error) {
+	traw, err := table.SqlRawValue(db)
+	if err != nil {
+		return false, err
 	}
 
-	return false
+	craw, err := column.SqlRawValue(db)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := db.Query(fmt.Sprintf(
+		"select %s from %s limit 1 ;",
+		craw,
+		traw,
+	))
+	if err == nil {
+		rows.Close()
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (db *DB)DropTablePrimaryKey(name TableName) error {

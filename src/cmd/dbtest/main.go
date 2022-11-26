@@ -45,10 +45,6 @@ func main(){
 		}
 	}
 
-
-	fmt.Println(db.TableExists("Organizations"))
-	fmt.Println(db.TableExists("SurelyDoesNot"))
-
 	err = db.Migrate(
 		[]sqlx.Sqler{
 			structs.Test{},
@@ -59,15 +55,17 @@ func main(){
 	    log.Println(err)
 	}
 
-	err = db.RenameTable("NewTests", "Tests")
+	err = db.CreateTable(structs.Test{})
 	if err != nil {
 		log.Println(err)
 	}
 
-	return
-	fmt.Println(db.ColumnExists("Tests", "Value"))
+	fmt.Println(db.TableExists("Organizations"))
+	fmt.Println(db.TableExists("SurelyDoesNot"))
+	fmt.Println(db.ColumnExists("Tests", "DickValue"))
 	fmt.Println(db.ColumnExists("Tests", "SurelyDoesNot"))
 
+	return
 	ts := structs.Test{}.Sql()
 	i, f, err := ts.PrimaryKeyColumn()
 	if err != nil {

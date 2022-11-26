@@ -72,6 +72,7 @@ const (
 	InsertQueryType
 	DeleteQueryType
 	RenameTableQueryType
+	CreateTableQueryType
 	ModifyQueryType
 )
 
@@ -80,8 +81,8 @@ var (
 	NoColumnsSpecifiedErr = errors.New("no columns specified")
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
-	NoDBSpecifiedErr = errors.New("No database specified")
-
+	NoDBSpecifiedErr = errors.New("no database specified")
+	NoSchemaSpecifiedErr = errors.New("no schema specified")
 	ConditionOpMap = map[ConditionOp] String {
 		EqConditionOp : "=",
 		NeConditionOp : "<>",
@@ -152,6 +153,7 @@ func (q Query)RenameTable() Query {
 func (q Query)SqlCode(db *DB) (Code, error) {
 	var (
 		ret string
+		err error
 	)
 	switch q.Type {
 	case SelectQueryType :
@@ -181,11 +183,24 @@ func (q Query)SqlCode(db *DB) (Code, error) {
 			where,
 		)
 	case RenameTableQueryType :
+		if q.From == "" || q.To == "" {
+			return "", NoTablesSpecifiedErr
+		}
 		ret = fmt.Sprintf(
 			"alter table %s rename %s ;",
 			q.From,
 			q.To,
 		)
+	case CreateTableQueryType :
+		if q.Schema == nil {
+			return "", NoSchemaSpecifiedErr
+		}
+
+		ret, err = db.
+			TableCreationStringForSchema(q.Schema)
+		if err != nil {
+			return "", err
+		}
 	default:
 		return "", UnknownQueryTypeErr
 	}
@@ -208,6 +223,11 @@ func (q Query)WithFrom(from TableName) Query {
 	return q
 }
 
+func (q Query)WithSchema(schema *TableSchema) Query {
+	q.Schema = schema
+	return q
+}
+
 func (q Query)WithTo(to TableName) Query {
 	q.To = to
 	return q
@@ -224,6 +244,10 @@ func (q Query)Select() Query {
 
 func (q Query)Insert() Query {
 	return q.WithType(InsertQueryType)
+}
+
+func (q Query)CreateTable() Query {
+	return q.WithType(CreateTableQueryType)
 }
 
 func (q Query)Do() (*sql.Rows, error) {
