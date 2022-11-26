@@ -55,8 +55,9 @@ func main(){
 	    log.Println(err)
 	}
 
-	t, err = db.ParseColumnType("int(5)")
+	t, err = db.ParseColumnType("bigint(5)")
 	if err != nil {
+		log.Println(err)
 	} else {
 		err = db.AlterColumnType("Tests", "SuckValue", t)
 		if err != nil {

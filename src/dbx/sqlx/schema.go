@@ -54,6 +54,8 @@ const (
 	NoColumnVarType = iota
 	IntColumnVarType
 
+	BigintColumnVarType
+
 	BitColumnVarType
 	TinyintColumnVarType
 
@@ -107,7 +109,7 @@ var (
 	)
 	MysqlColumnTypeMapString = map[ColumnVarType] string {
 		IntColumnVarType : "int",
-
+		BigintColumnVarType : "bigint",
 		BitColumnVarType : "bit",
 		TinyintColumnVarType : "tinyint",
 
