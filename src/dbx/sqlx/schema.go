@@ -21,74 +21,16 @@ type TableSchema struct {
 
 type TableSchemas []*TableSchema
 
-type ColumnVarType int
-type ColumnType struct {
-	VarType ColumnVarType
-	Args Rawers
-}
-
 type KeyType int
 type Key struct {
 	Type KeyType
 }
-
-type Column struct {
-	OldName ColumnName
-	Name ColumnName
-	Type ColumnType
-	Nullable bool
-	Key Key
-	Default Rawer
-	Extra Raw
-}
-
-type Columns []*Column
 
 const (
 	NotKeyType KeyType = iota
 	PrimaryKeyType
 	UniqueKeyType
 	ForeignKeyType
-)
-
-const (
-	NoColumnVarType = iota
-	BoolColumnVaryType
-	IntColumnVarType
-	SmallintColumnVarType
-
-	BigintColumnVarType
-
-	BitColumnVarType
-	TinyintColumnVarType
-
-	DoubleColumnVarType
-	FloatColumnVarType
-
-	VarcharColumnVarType
-	NvarcharColumnVarType
-
-	CharColumnVarType
-	NcharColumnVarType
-
-	TextColumnVarType
-	NtextColumnVarType
-
-	DateColumnVarType
-	TimeColumnVarType
-	TimestampColumnVarType
-	DatetimeColumnVarType
-	YearColumnVarType
-
-	BinaryColumnVarType
-	VarbinaryColumnVarType
-
-	ImageColumnVarType
-
-	ClobColumnVarType
-	BlobColumnVarType
-	XmlColumnVarType
-	JsonColumnVarType
 )
 
 var (
@@ -240,7 +182,7 @@ func (ts TableSchema)FindColumn(
 	return -1, nil
 }
 
-func (db *DB)GetTableNames(
+func (db *Db)GetTableNames(
 ) (TableNames, error) {
 	var (
 		ret TableNames
@@ -267,7 +209,7 @@ func (db *DB)GetTableNames(
 	return ret, nil
 }
 
-func (db *DB)GetTableSchema(
+func (db *Db)GetTableSchema(
 	name TableName,
 ) (*TableSchema, error) {
 	var err error
@@ -289,7 +231,7 @@ func (db *DB)GetTableSchema(
 	return ret, nil
 }
 
-func (db *DB)ColumnFromRaws(
+func (db *Db)ColumnFromRaws(
 	cname, t, nullable,
 	key, extra string,
 	def sql.NullString,
@@ -323,7 +265,7 @@ func (db *DB)ColumnFromRaws(
 	return column, nil
 }
 
-func (db *DB)GetColumnSchema(
+func (db *Db)GetColumnSchema(
 	table TableName,
 	colName ColumnName,
 ) (*Column, error) {
@@ -379,7 +321,7 @@ func (db *DB)GetColumnSchema(
 }
 
 
-func (db* DB)GetTableSchemas() (TableSchemas, error) {
+func (db* Db)GetTableSchemas() (TableSchemas, error) {
 	var (
 		ret TableSchemas
 	)
@@ -416,7 +358,7 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 	return ret, nil
 }
 
-func (db *DB)TableExists(name TableName) (bool, error) {
+func (db *Db)TableExists(name TableName) (bool, error) {
 	ret := false
 	raw, err := name.SqlRaw(db)
 	if err != nil {
@@ -436,7 +378,7 @@ func (db *DB)TableExists(name TableName) (bool, error) {
 	return ret, nil
 }
 
-func (db *DB)RenameTable(old, n TableName) error {
+func (db *Db)RenameTable(old, n TableName) error {
 	_, err := db.Q().
 		RenameTable().
 		WithTableNames(old, n).
@@ -448,7 +390,7 @@ func (db *DB)RenameTable(old, n TableName) error {
 	return nil
 }
 
-func (db *DB)RenameColumn(
+func (db *Db)RenameColumn(
 	table TableName,
 	o, n ColumnName,
 ) error {
@@ -460,7 +402,7 @@ func (db *DB)RenameColumn(
 	return err
 }
 
-func (db *DB)ParseColumnType(
+func (db *Db)ParseColumnType(
 	t string,
 ) (ColumnType, error) {
 	ret := ColumnType{}
@@ -502,7 +444,7 @@ func (db *DB)ParseColumnType(
 	return ret, nil
 }
 
-func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
+func (db *Db)GetColumnsByTableName(name TableName) (Columns, error) {
 	ret := Columns{}
 	rows, err := db.Query(
 		"select "+
@@ -584,7 +526,7 @@ func (f Column)String() string {
 	)
 }
 
-func (db *DB)ColumnToAlterSql(
+func (db *Db)ColumnToAlterSql(
 	c *Column,
 ) (Raw, error) {
 	buf := *c
@@ -592,7 +534,7 @@ func (db *DB)ColumnToAlterSql(
 	return db.ColumnToSql(&buf)
 }
 
-func (db *DB)ColumnToSql(f *Column) (Raw, error) {
+func (db *Db)ColumnToSql(f *Column) (Raw, error) {
 	name, err := f.Name.SqlRaw(db)
 	if err != nil {
 		return "", err
@@ -639,7 +581,7 @@ func (db *DB)ColumnToSql(f *Column) (Raw, error) {
 	return Raw(ret), nil
 }
 
-func (db *DB)TableCreationStringForSchema(ts *TableSchema) (string, error) {
+func (db *Db)TableCreationStringForSchema(ts *TableSchema) (string, error) {
 	ret := fmt.Sprintf("create table %s (\n", ts.Name)
 	for i, f := range ts.Columns{
 		sql, err := db.ColumnToSql(f)
@@ -657,24 +599,24 @@ func (db *DB)TableCreationStringForSchema(ts *TableSchema) (string, error) {
 	return ret, nil
 }
 
-func (db *DB)TableCreationStringFor(v Sqler) (string, error) {
+func (db *Db)TableCreationStringFor(v Sqler) (string, error) {
 	return db.TableCreationStringForSchema(v.Sql())
 }
 
-func (db *DB)CreateTable(v Sqler) error {
+func (db *Db)CreateTable(v Sqler) error {
 	_, err := db.Q().CreateTable().
 		WithTableSchemas(v.Sql()).
 		Do()
 	return err
 }
 
-func (db *DB)CreateTableBySchema(ts *TableSchema) error {
+func (db *Db)CreateTableBySchema(ts *TableSchema) error {
 	db.Q()
 	_, err := (db.TableCreationStringForSchema(ts))
 	return err
 }
 
-func (db *DB)AlterAddColumn(
+func (db *Db)AlterAddColumn(
 	tn TableName, c *Column,
 ) error {
 	var err error
@@ -701,7 +643,7 @@ func (db *DB)AlterAddColumn(
 	return nil
 }
 
-func (db *DB)AlterColumnType(
+func (db *Db)AlterColumnType(
 	table TableName,
 	c *Column,
 ) error {
@@ -714,7 +656,7 @@ func (db *DB)AlterColumnType(
 	return err
 }
 
-func (db *DB)ColumnExists(
+func (db *Db)ColumnExists(
 	table TableName,
 	column ColumnName,
 ) (bool, error) {
@@ -741,7 +683,7 @@ func (db *DB)ColumnExists(
 	return false, nil
 }
 
-func (db *DB)DropTablePrimaryKey(name TableName) error {
+func (db *Db)DropTablePrimaryKey(name TableName) error {
 	rawName, err := name.SqlRaw(db)
 	if err != nil {
 		return err
@@ -754,7 +696,7 @@ func (db *DB)DropTablePrimaryKey(name TableName) error {
 	return err
 }
 
-func (db *DB)KeysEq(k1, k2 Key) bool {
+func (db *Db)KeysEq(k1, k2 Key) bool {
 	return k1.Type == k2.Type
 }
 

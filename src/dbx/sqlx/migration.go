@@ -21,7 +21,7 @@ var (
 	OldAndNewTablesExistErr = errors.New("old and new tables exist")
 )
 
-func (db *DB)CompareColumns(
+func (db *Db)CompareColumns(
 	c1, c2 *Column,
 ) (ColumnDiff, error) {
 
@@ -67,7 +67,7 @@ func (db *DB)CompareColumns(
 
 // Simple migration. Fuck writing much of shit in SQL directly.
 
-func (db *DB)Migrate(sqlers []Sqler) error {
+func (db *Db)Migrate(sqlers []Sqler) error {
 	var err error
 
 	//curSchemas, err := db.GetTableSchemas()
@@ -89,7 +89,7 @@ func (db *DB)Migrate(sqlers []Sqler) error {
 	return nil
 }
 
-func (db *DB)MigrateSchema(
+func (db *Db)MigrateSchema(
 	schema *TableSchema,
 ) error {
 	err := db.MigrateRenameTable(schema)
@@ -134,7 +134,7 @@ func (db *DB)MigrateSchema(
 	return nil
 }
 
-func (db *DB)MigrateAlterColumnType(
+func (db *Db)MigrateAlterColumnType(
 	tableName TableName,
 	column *Column,
 ) (error) {
@@ -165,7 +165,7 @@ func (db *DB)MigrateAlterColumnType(
 	return nil
 }
 
-func (db *DB)MigrateRenameColumn(
+func (db *Db)MigrateRenameColumn(
 	tableName TableName,
 	column *Column,
 ) (error) {
@@ -205,7 +205,7 @@ func (db *DB)MigrateRenameColumn(
 	return nil
 }
 
-func (db *DB)MigrateRenameTable(
+func (db *Db)MigrateRenameTable(
 	ts *TableSchema,
 ) (error) {
 	if ts.OldName == "" {

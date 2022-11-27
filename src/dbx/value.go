@@ -12,4 +12,3 @@ type RelValuer interface {
 	IsValid() bool
 }
 
-

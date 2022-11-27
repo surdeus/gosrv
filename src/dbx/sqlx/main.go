@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type DB struct {
+type Db struct {
 	*sql.DB
 	ConnConfig ConnConfig
 }
@@ -27,12 +27,22 @@ func (c ConnConfig)String() string {
 	)
 }
 
-func Open(cfg ConnConfig) (*DB, error) {
+
+func Open(cfg ConnConfig) (*Db, error) {
 	db, err := sql.Open(cfg.Driver, cfg.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return &DB{db, cfg}, nil
+	return &Db{db, cfg}, nil
+}
+
+func (db *Db)Do(q Query) (*sql.Rows, error) {
+	qs, err := q.SqlRaw()
+	if err != nil {
+		return nil, err
+	}
+
+	return db.DB.Query(string(qs))
 }
 

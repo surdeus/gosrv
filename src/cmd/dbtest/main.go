@@ -29,9 +29,13 @@ func main(){
 		structs.AnotherTest{},
 	}
 
-	err = db.Migrate(sqlers)
+	/*err = db.Migrate(sqlers)
 	if err != nil{
 		log.Println(err)
-	}
+	}*/
+	q := sqlx.Q().
+		Select("Column").
+		From("Table")
+	s, err := q.SqlRaw(db)
 }
 
