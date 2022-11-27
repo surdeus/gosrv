@@ -37,7 +37,8 @@ func main(){
 		Select("Column", "Column1").
 		From("Table").
 		Where("Column", sqlx.Gt, sqlx.Int(32)).
-		And("Column1", sqlx.Lt, sqlx.Float(1.731))
+		And("Column1", sqlx.Lt, sqlx.Float(1.731)).
+		And("Column2", sqlx.In, sqlx.Int(1), sqlx.Int(2))
 	s, err := q.SqlRaw(db)
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 

@@ -4,7 +4,7 @@ type ConditionOp int
 type Condition struct {
 	Column ColumnName
 	Op ConditionOp
-	Value Valuer
+	Values Valuers
 }
 type Conditions []Condition
 
@@ -52,11 +52,11 @@ func (w Conditions)SqlRaw(db *Db) (Raw, error) {
 		}
 
 		cond, err := db.Rprintf(
-			"%s%s %s %s",
+			"%s%s %s (%s)",
 			prespace,
 			c.Column,
 			op,
-			Raw("?"),
+			db.MultiBuf(c.Values),
 		)
 		if err != nil {
 			return "", err

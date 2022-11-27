@@ -61,20 +61,20 @@ func (q Query)Insert(cn ...ColumnName) Query {
 func (q Query)Where(
 	cn ColumnName,
 	op ConditionOp,
-	v Valuer,
+	vs ...Valuer,
 ) Query {
-	q.conditions = Conditions{{cn, op, v}}
+	q.conditions = Conditions{{cn, op, vs}}
 	return q
 }
 
 func (q Query)And(
 	cn ColumnName,
 	op ConditionOp,
-	v Valuer,
+	vs ...Valuer,
 ) Query {
 	q.conditions = append(
 		q.conditions,
-		Condition{cn, op, v},
+		Condition{cn, op, vs},
 	)
 	return q
 }
@@ -122,7 +122,9 @@ func (q Query)GetValues() Valuers {
 	case SelectQueryType :
 		vals := Valuers{}
 		for _, c := range q.conditions {
-			vals = append(vals, c.Value)
+			for _, v := range c.Values {
+				vals = append(vals, v)
+			}
 		}
 		return vals
 	case InsertQueryType :
