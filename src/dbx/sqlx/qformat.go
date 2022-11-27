@@ -1,5 +1,9 @@
 package sqlx
 
+import (
+	"fmt"
+)
+
 // The interface type must implement to be converted to
 // SQL code to be inserted for safety.
 type Rawer interface {
@@ -63,32 +67,29 @@ func selectQuery(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	if len(q.TableNames) != 1 {
+	if len(q.tableNames) != 1 {
 		return "", NoTablesSpecifiedErr
 	}
 
-	if len(q.ColumnNames) < 1 {
+	if len(q.columnNames) < 1 {
 		return "", NoColumnsSpecifiedErr
 	}
 
-	if len(q.Conditions) > 1 {
+	if len(q.conditions) > 1 {
 		return "", WrongQueryInputFormatErr
-	} else if len(q.Conditions) >= 1 {
+	} else if len(q.conditions) >= 1 {
 		return db.Rprintf(
 			"select %s from %s where %s ;",
-			q.ColumnNames[0],
-			q.TableNames[0],
-			q.Conditions,
+			q.columnNames[0],
+			q.tableNames[0],
+			q.conditions,
 		)
 	} else {
 		return db.Rprintf(
 			"select %s from %s ;",
-			q.ColumnNames[0],
-			q.TableNames[0],
+			q.columnNames[0],
+			q.tableNames[0],
 		)
-	}
-	if err != nil {
-		return "", err
 	}
 }
 
@@ -96,16 +97,16 @@ func renameColumn(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	if len(q.ColumnNames) != 2 ||
-			len(q.TableNames) != 1 {
+	if len(q.columnNames) != 2 ||
+			len(q.tableNames) != 1 {
 		return "", WrongNumOfColumnsSpecifiedErr
 	}
 
 	return db.Rprintf(
 		"alter table %s rename column %s to %s ;",
-		q.TableNames[0],
-		q.ColumnNames[0],
-		q.ColumnNames[1],
+		q.tableNames[0],
+		q.columnNames[0],
+		q.columnNames[1],
 	)
 }
 
@@ -113,14 +114,14 @@ func renameTable(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	if len(q.TableNames) != 2 {
+	if len(q.tableNames) != 2 {
 		return "", NoTablesSpecifiedErr
 	}
 
 	return db.Rprintf(
 		"alter table %s rename %s ;",
-		q.TableNames[0],
-		q.TableNames[1],
+		q.tableNames[0],
+		q.tableNames[1],
 	)
 }
 
@@ -128,18 +129,17 @@ func createTable(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	if len(q.TableSchemas) != 1 {
+	if len(q.tableSchemas) != 1 {
 		return "", NoSchemaSpecifiedErr
 	}
 
 	buf, err := db.
-		TableCreationStringForSchema(q.TableSchemas[0])
+		TableCreationStringForSchema(q.tableSchemas[0])
 	if err != nil {
 		return "", err
 	}
 
-	ret = Raw(buf)
-	return ret, err
+	return Raw(buf), err
 }
 
 
@@ -147,14 +147,14 @@ func alterColumnType(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	if len(q.TableNames) != 1 ||
-		len(q.Columns) != 1 {
+	if len(q.tableNames) != 1 ||
+		len(q.columns) != 1 {
 		return "",
 			WrongQueryInputFormatErr
 	}
 
 	rcode, err := db.ColumnToAlterSql(
-		q.Columns[0],
+		q.columns[0],
 	)
 	if err != nil {
 		return "", err
@@ -162,7 +162,7 @@ func alterColumnType(
 
 	buf := fmt.Sprintf(
 		"alter table %s modify %s ;",
-		q.TableNames[0],
+		q.tableNames[0],
 		rcode,
 	)
 

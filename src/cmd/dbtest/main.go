@@ -1,11 +1,11 @@
 package main
 
 import(
-	//"fmt"
+	"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
+	//"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 )
 
 func main(){
@@ -24,10 +24,10 @@ func main(){
 	}
 	defer db.Close()
 
-	sqlers := []sqlx.Sqler{
+	/*sqlers := []sqlx.Sqler{
 		structs.Test{},
 		structs.AnotherTest{},
-	}
+	}*/
 
 	/*err = db.Migrate(sqlers)
 	if err != nil{
@@ -35,7 +35,15 @@ func main(){
 	}*/
 	q := sqlx.Q().
 		Select("Column").
-		From("Table")
+		From("Table").
+		Where(
+			sqlx.Condition{
+				"Column",
+				sqlx.GtConditionOp,
+				sqlx.Int(32),
+			},
+		)
 	s, err := q.SqlRaw(db)
+	fmt.Printf("%q, %q", s, err)
 }
 

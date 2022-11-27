@@ -1,12 +1,12 @@
 package sqlx
 
 import (
-	"fmt"
-	"strings"
+	//"fmt"
+	//"strings"
 	"errors"
-	"database/sql"
-	"database/sql/driver"
-	"strconv"
+	//"database/sql"
+	//"database/sql/driver"
+	//"strconv"
 )
 
 
@@ -38,19 +38,19 @@ func (q Query)SqlRaw(db *Db) (Raw, error) {
 	return fn(db, q)
 }
 
-func (q Query)wDatabase(db *Db) Query {
-	q.DB = db
-	return q
-}
-
 func (q Query)wType(t QueryType) Query {
 	q.typ = t
 	return q
 }
 
 func (q Query)Select(cn ...ColumnName) Query {
-	q.ColumnNames 
+	q.columnNames = cn
 	return q.wType(SelectQueryType)
+}
+
+func (q Query)From(table TableName) Query {
+	q.tableNames = TableNames{table}
+	return q
 }
 
 func (q Query)Insert() Query {
@@ -58,28 +58,40 @@ func (q Query)Insert() Query {
 }
 
 func (q Query)Where(c ...Condition) Query {
-	q.Conditions = c
+	q.conditions = c
 	return q
 }
 
 func (q Query)And(c ...Condition) Query {
-	q.Conditions = append(q.Conditions, c...)
+	q.conditions = append(q.conditions, c...)
 	return q
 }
 
-func (q Query)CreateTable() Query {
+func (q Query)CreateTable(ts *TableSchema) Query {
+	q.tableSchemas = TableSchemas{ts}
 	return q.wType(CreateTableQueryType)
 }
 
-func (q Query)RenameTable() Query {
+func (q Query)RenameTable(old, n TableName) Query {
+	q.tableNames = TableNames{old, n}
 	return q.wType(RenameTableQueryType)
 }
 
-func (q Query)RenameColumn() Query {
+func (q Query)RenameColumn(
+	table TableName,
+	old, n ColumnName,
+) Query {
+	q.tableNames = TableNames{table}
+	q.columnNames = ColumnNames{old, n}
 	return q.wType(RenameColumnQueryType)
 }
 
-func (q Query)AlterColumnType() Query {
+func (q Query)AlterColumnType(
+	table TableName,
+	c *Column,
+) Query {
+	q.tableNames = TableNames{table}
+	q.columns = Columns{c}
 	return q.wType(AlterColumnTypeQueryType)
 }
 

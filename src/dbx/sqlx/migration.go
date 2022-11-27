@@ -2,9 +2,9 @@ package sqlx
 
 import (
 	//"fmt"
-	"errors"
+	//"errors"
 )
-
+/*
 type ColumnDiff int
 
 const (
@@ -237,4 +237,4 @@ func (db *Db)MigrateRenameTable(
 
 	return nil
 }
-
+*/

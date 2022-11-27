@@ -38,7 +38,7 @@ func Open(cfg ConnConfig) (*Db, error) {
 }
 
 func (db *Db)Do(q Query) (*sql.Rows, error) {
-	qs, err := q.SqlRaw()
+	qs, err := q.SqlRaw(db)
 	if err != nil {
 		return nil, err
 	}

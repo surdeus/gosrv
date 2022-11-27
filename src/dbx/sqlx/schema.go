@@ -258,7 +258,7 @@ func (db *Db)ColumnFromRaws(
 	if !def.Valid {
 		column.Default = nil
 	} else {
-		column.Default = Raw(def.String)
+		//column.Default = Raw(def.String)
 	}
 	column.Extra = Raw(extra)
 
@@ -379,10 +379,9 @@ func (db *Db)TableExists(name TableName) (bool, error) {
 }
 
 func (db *Db)RenameTable(old, n TableName) error {
-	_, err := db.Q().
-		RenameTable().
-		WithTableNames(old, n).
-		Do()
+	_, err := db.Do(
+		Q().RenameTable(old, n),
+	)
 	if err != nil {
 		return err
 	}
@@ -394,11 +393,9 @@ func (db *Db)RenameColumn(
 	table TableName,
 	o, n ColumnName,
 ) error {
-	_, err := db.Q().
-		RenameColumn().
-		WithTableNames(table).
-		WithColumnNames(o, n).
-		Do()
+	_, err := db.Do(
+		Q().RenameColumn(table, o, n),
+	)
 	return err
 }
 
@@ -439,7 +436,7 @@ func (db *Db)ParseColumnType(
 	}
 
 	ret.VarType = varType
-	ret.Args = args
+	//ret.Args = args
 
 	return ret, nil
 }
@@ -499,14 +496,7 @@ func (f Column)String() string {
 		return ""
 	}
 
-	var def Raw
-	if f.Default != nil {
-		def, err = f.Default.SqlRaw(nil)
-		if err != nil {
-			log.Println(err)
-			return ""
-		}
-	}
+	def, err := f.Default.Value()
 
 	return fmt.Sprintf(
 		"{\n" +
@@ -521,7 +511,7 @@ func (f Column)String() string {
 		string(t),
 		f.Nullable,
 		f.Key.Type,
-		string(def),
+		def,
 		f.Extra,
 	)
 }
@@ -565,18 +555,8 @@ func (db *Db)ColumnToSql(f *Column) (Raw, error) {
 		ret += " " + string(f.Extra)
 	}
 	
-	var (
-		def Raw
-	)
-	if f.Default != nil {
-		def, err = f.Default.SqlRaw(db)
-		if err != nil {
-			return "", err
-		}
-	}
-	if def != "" {
-		ret += " default " + string(def)
-	}
+	//def, err := f.Default.Value()
+	//ret += " default " + def
 
 	return Raw(ret), nil
 }
@@ -604,15 +584,16 @@ func (db *Db)TableCreationStringFor(v Sqler) (string, error) {
 }
 
 func (db *Db)CreateTable(v Sqler) error {
-	_, err := db.Q().CreateTable().
-		WithTableSchemas(v.Sql()).
-		Do()
+	_, err := db.Do(
+		Q().CreateTable(v.Sql()),
+	)
 	return err
 }
 
 func (db *Db)CreateTableBySchema(ts *TableSchema) error {
-	db.Q()
-	_, err := (db.TableCreationStringForSchema(ts))
+	_, err := db.Query(
+		db.TableCreationStringForSchema(ts),
+	)
 	return err
 }
 
@@ -647,11 +628,9 @@ func (db *Db)AlterColumnType(
 	table TableName,
 	c *Column,
 ) error {
-	_, err := db.Q().
-		AlterColumnType().
-		WithTableNames(table).
-		WithColumns(c).
-		Do()
+	_, err := db.Do(
+		Q().AlterColumnType(table, c),
+	)
 
 	return err
 }

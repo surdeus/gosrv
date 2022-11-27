@@ -125,7 +125,7 @@ func (rvs Rawers) SqlMultival(db *Db) (Raw, error) {
 
 // Return multivalue embraced with () .
 func (rvs Rawers) SqlTuple(db *Db) (Raw, error) {
-	mval, err := rvs.SqlMultiValue(db)
+	mval, err := rvs.SqlMultival(db)
 	if err != nil {
 		return Raw(""), err
 	}

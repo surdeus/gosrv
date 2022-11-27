@@ -2,8 +2,8 @@ package sqlx
 
 type ConditionOp int
 type Condition struct {
-	Op ConditionOp
 	Column ColumnName
+	Op ConditionOp
 	Value Valuer
 }
 type Conditions []Condition
@@ -44,6 +44,7 @@ func (w Conditions)SqlRaw(db *Db) (Raw, error) {
 	}
 
 	ret := Raw("")
+	prespace := Raw("")
 	for i, c := range w {
 		op, ok := ConditionOpMap[c.Op]
 		if !ok {
@@ -52,7 +53,7 @@ func (w Conditions)SqlRaw(db *Db) (Raw, error) {
 
 		cond, err := db.Rprintf(
 			"%s%s %s %s",
-			Raw(" "),
+			prespace,
 			c.Column,
 			op,
 			Raw("?"),
@@ -60,6 +61,7 @@ func (w Conditions)SqlRaw(db *Db) (Raw, error) {
 		if err != nil {
 			return "", err
 		}
+		prespace = " "
 		ret += cond
 
 		if i < len(w)-1 {
