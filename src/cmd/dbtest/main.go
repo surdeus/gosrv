@@ -44,6 +44,10 @@ func main(){
 			},
 		)
 	s, err := q.SqlRaw(db)
-	fmt.Printf("%q, %q", s, err)
+	fmt.Printf("%q, %q\n", s, err)
+
+	q = sqlx.Q().RenameTable("Table", "NewName")
+	s, err = q.SqlRaw(db)
+	fmt.Printf("%q, %q\n", s, err)
 }
 
