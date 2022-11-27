@@ -24,7 +24,7 @@ type TableSchemas []*TableSchema
 type ColumnVarType int
 type ColumnType struct {
 	VarType ColumnVarType
-	Args RawValuers
+	Args Rawers
 }
 
 type KeyType int
@@ -38,8 +38,8 @@ type Column struct {
 	Type ColumnType
 	Nullable bool
 	Key Key
-	Default RawValuer
-	Extra Code
+	Default Rawer
+	Extra Raw
 }
 
 type Columns []*Column
@@ -289,7 +289,7 @@ func (db *DB)GetTableSchema(
 	return ret, nil
 }
 
-func (db *DB)ColumnFromRawValues(
+func (db *DB)ColumnFromRaws(
 	cname, t, nullable,
 	key, extra string,
 	def sql.NullString,
@@ -316,9 +316,9 @@ func (db *DB)ColumnFromRawValues(
 	if !def.Valid {
 		column.Default = nil
 	} else {
-		column.Default = RawValue(def.String)
+		column.Default = Raw(def.String)
 	}
-	column.Extra = Code(extra)
+	column.Extra = Raw(extra)
 
 	return column, nil
 }
@@ -371,7 +371,7 @@ func (db *DB)GetColumnSchema(
 		return nil, err
 	}
 
-	return db.ColumnFromRawValues(
+	return db.ColumnFromRaws(
 		cname, t, nullable,
 		key, extra,
 		def,
@@ -418,7 +418,7 @@ func (db* DB)GetTableSchemas() (TableSchemas, error) {
 
 func (db *DB)TableExists(name TableName) (bool, error) {
 	ret := false
-	raw, err := name.SqlRawValue(db)
+	raw, err := name.SqlRaw(db)
 	if err != nil {
 		return false, err
 	}
@@ -439,8 +439,8 @@ func (db *DB)TableExists(name TableName) (bool, error) {
 func (db *DB)RenameTable(old, n TableName) error {
 	_, err := db.Q().
 		RenameTable().
-		WithFrom(old).
-		WithTo(n).Do()
+		WithTableNames(old, n).
+		Do()
 	if err != nil {
 		return err
 	}
@@ -454,7 +454,7 @@ func (db *DB)RenameColumn(
 ) error {
 	_, err := db.Q().
 		RenameColumn().
-		WithFrom(table).
+		WithTableNames(table).
 		WithColumnNames(o, n).
 		Do()
 	return err
@@ -487,13 +487,13 @@ func (db *DB)ParseColumnType(
 	if f {
 		argStr = argStr[:len(argStr)-1]
 	}
-	args := RawValuers{}
+	args := Rawers{}
 	argStrs := strings.Split(
 		argStr,
 		",",
 	)
 	for _, v := range argStrs {
-		args = append(args, RawValue(v))
+		args = append(args, Raw(v))
 	}
 
 	ret.VarType = varType
@@ -533,7 +533,7 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 			&extra,
 		)
 
-		column, err := db.ColumnFromRawValues(
+		column, err := db.ColumnFromRaws(
 			cname, t, nullable,
 			key, extra,
 			def,
@@ -551,15 +551,15 @@ func (db *DB)GetColumnsByTableName(name TableName) (Columns, error) {
 }
 
 func (f Column)String() string {
-	t, err := f.Type.SqlCode(nil)
+	t, err := f.Type.SqlRaw(nil)
 	if err != nil {
 		log.Println(err)
 		return ""
 	}
 
-	var def RawValue
+	var def Raw
 	if f.Default != nil {
-		def, err = f.Default.SqlRawValue(nil)
+		def, err = f.Default.SqlRaw(nil)
 		if err != nil {
 			log.Println(err)
 			return ""
@@ -586,19 +586,19 @@ func (f Column)String() string {
 
 func (db *DB)ColumnToAlterSql(
 	c *Column,
-) (Code, error) {
+) (Raw, error) {
 	buf := *c
 	buf.Key = NotKey()
 	return db.ColumnToSql(&buf)
 }
 
-func (db *DB)ColumnToSql(f *Column) (Code, error) {
-	name, err := f.Name.SqlRawValue(db)
+func (db *DB)ColumnToSql(f *Column) (Raw, error) {
+	name, err := f.Name.SqlRaw(db)
 	if err != nil {
 		return "", err
 	}
 
-	t, err := f.Type.SqlCode(db)
+	t, err := f.Type.SqlRaw(db)
 	if err != nil {
 		return "", err
 	}
@@ -624,10 +624,10 @@ func (db *DB)ColumnToSql(f *Column) (Code, error) {
 	}
 	
 	var (
-		def RawValue
+		def Raw
 	)
 	if f.Default != nil {
-		def, err = f.Default.SqlRawValue(db)
+		def, err = f.Default.SqlRaw(db)
 		if err != nil {
 			return "", err
 		}
@@ -636,7 +636,7 @@ func (db *DB)ColumnToSql(f *Column) (Code, error) {
 		ret += " default " + string(def)
 	}
 
-	return Code(ret), nil
+	return Raw(ret), nil
 }
 
 func (db *DB)TableCreationStringForSchema(ts *TableSchema) (string, error) {
@@ -663,7 +663,7 @@ func (db *DB)TableCreationStringFor(v Sqler) (string, error) {
 
 func (db *DB)CreateTable(v Sqler) error {
 	_, err := db.Q().CreateTable().
-		WithSchema(v.Sql()).
+		WithTableSchemas(v.Sql()).
 		Do()
 	return err
 }
@@ -678,7 +678,7 @@ func (db *DB)AlterAddColumn(
 	tn TableName, c *Column,
 ) error {
 	var err error
-	table, err := tn.SqlRawValue(db)
+	table, err := tn.SqlRaw(db)
 	if err != nil {
 		return err
 	}
@@ -718,12 +718,12 @@ func (db *DB)ColumnExists(
 	table TableName,
 	column ColumnName,
 ) (bool, error) {
-	traw, err := table.SqlRawValue(db)
+	traw, err := table.SqlRaw(db)
 	if err != nil {
 		return false, err
 	}
 
-	craw, err := column.SqlRawValue(db)
+	craw, err := column.SqlRaw(db)
 	if err != nil {
 		return false, err
 	}
@@ -742,7 +742,7 @@ func (db *DB)ColumnExists(
 }
 
 func (db *DB)DropTablePrimaryKey(name TableName) error {
-	rawName, err := name.SqlRawValue(db)
+	rawName, err := name.SqlRaw(db)
 	if err != nil {
 		return err
 	}

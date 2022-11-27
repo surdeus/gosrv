@@ -29,7 +29,7 @@ func (db *DB)CompareColumns(
 		return NameColumnDiff, nil
 	}
 
-	eq, err := db.CodersEq(c1.Type, c2.Type)
+	eq, err := db.RawersEq(c1.Type, c2.Type)
 	if err != nil {
 		return NoColumnDiff, err
 	}
@@ -45,7 +45,7 @@ func (db *DB)CompareColumns(
 		return KeyColumnDiff, nil
 	}
 
-	eq, err = db.RawValuersEq(c1.Default, c2.Default)
+	eq, err = db.RawersEq(c1.Default, c2.Default)
 	if err != nil {
 		return NoColumnDiff, err
 	}
@@ -54,7 +54,7 @@ func (db *DB)CompareColumns(
 		return DefaultColumnDiff, nil
 	}
 
-	eq, err = db.CodersEq(c1.Extra, c2.Extra)
+	eq, err = db.RawersEq(c1.Extra, c2.Extra)
 	if err != nil {
 		return NoColumnDiff, err
 	}

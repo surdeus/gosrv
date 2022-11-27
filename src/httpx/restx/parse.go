@@ -66,9 +66,9 @@ func (args Args)SqlGetQuery(
 
 	fmt.Println(columns)
 	q := sqlx.Query{
-		From: ts.Name,
+		TableNames: sqlx.TableNames{ts.Name},
 		ColumnNames: columns,
-		Where: cs,
+		Wheres: sqlx.Wheres{sqlx.Where(cs)},
 	}
 
 	return q, nil
@@ -122,9 +122,9 @@ func (args Args)SqlConditions() (sqlx.Conditions, error) {
 
 		c := sqlx.Condition{
 			Op: op,
-			Values: [2]sqlx.RawValuer {
-				sqlx.RawValue(name),
-				sqlx.RawValue(arg.Values[0]),
+			Values: [2]sqlx.Rawer {
+				sqlx.Raw(name),
+				sqlx.Raw(arg.Values[0]),
 			},
 		}
 
