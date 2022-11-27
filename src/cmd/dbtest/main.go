@@ -5,7 +5,7 @@ import(
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	//"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
+	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 )
 
 func main(){
@@ -56,5 +56,11 @@ func main(){
 	q = sqlx.Q().RenameColumn("Table", "OldName", "NewName")
 	s, err = q.SqlRaw(db)
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
+
+	q = sqlx.Q().CreateTable(
+		structs.Test{}.Sql(),
+	)
+	s, err = q.SqlRaw(db)
+	fmt.Println(s, err, q.GetValues())
 }
 

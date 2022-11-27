@@ -148,8 +148,7 @@ func createTable(
 		return "", NoSchemaSpecifiedErr
 	}
 
-	buf, err := db.
-		TableCreationStringForSchema(q.tableSchemas[0])
+	buf, err := q.tableSchemas[0].SqlRaw(db)
 	if err != nil {
 		return "", err
 	}

@@ -525,21 +525,14 @@ func (db *Db)ColumnToAlterSql(
 }
 
 func (db *Db)ColumnToSql(f *Column) (Raw, error) {
-	name, err := f.Name.SqlRaw(db)
-	if err != nil {
-		return "", err
-	}
-
-	t, err := f.Type.SqlRaw(db)
-	if err != nil {
-		return "", err
-	}
-
-	ret := fmt.Sprintf(
+	ret, err := db.Rprintf(
 		"%s %s",
-		name,
-		t,
+		f.Name,
+		f.Type,
 	)
+	if err != nil {
+		return "", err
+	}
 
 	if !f.Nullable {
 		ret += " not null"
@@ -551,17 +544,18 @@ func (db *Db)ColumnToSql(f *Column) (Raw, error) {
 	default:
 	}
 
-	if string(f.Extra) != "" {
-		ret += " " + string(f.Extra)
+	if f.Extra != "" {
+		ret += " " + f.Extra
 	}
 	
-	//def, err := f.Default.Value()
-	//ret += " default " + def
+	if f.Default != nil {
+		ret += " default ?"
+	}
 
 	return Raw(ret), nil
 }
 
-func (db *Db)TableCreationStringForSchema(ts *TableSchema) (string, error) {
+func (ts *TableSchema)SqlRaw(db *Db) (Raw, error) {
 	ret := fmt.Sprintf("create table %s (\n", ts.Name)
 	for i, f := range ts.Columns{
 		sql, err := db.ColumnToSql(f)
@@ -576,11 +570,12 @@ func (db *Db)TableCreationStringForSchema(ts *TableSchema) (string, error) {
 
 	ret += "\n) ;"	
 
-	return ret, nil
+	return Raw(ret), nil
 }
 
 func (db *Db)TableCreationStringFor(v Sqler) (string, error) {
-	return db.TableCreationStringForSchema(v.Sql())
+	c, err := v.Sql().SqlRaw(db)
+	return string(c), err
 }
 
 func (db *Db)CreateTable(v Sqler) error {
@@ -591,10 +586,7 @@ func (db *Db)CreateTable(v Sqler) error {
 }
 
 func (db *Db)CreateTableBySchema(ts *TableSchema) error {
-	_, err := db.Query(
-		db.TableCreationStringForSchema(ts),
-	)
-	return err
+	return nil
 }
 
 func (db *Db)AlterAddColumn(
