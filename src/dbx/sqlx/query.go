@@ -57,13 +57,24 @@ func (q Query)Insert() Query {
 	return q.wType(InsertQueryType)
 }
 
-func (q Query)Where(c ...Condition) Query {
-	q.conditions = c
+func (q Query)Where(
+	cn ColumnName,
+	op ConditionOp,
+	v Valuer,
+) Query {
+	q.conditions = Conditions{{cn, op, v}}
 	return q
 }
 
-func (q Query)And(c ...Condition) Query {
-	q.conditions = append(q.conditions, c...)
+func (q Query)And(
+	cn ColumnName,
+	op ConditionOp,
+	v Valuer,
+) Query {
+	q.conditions = append(
+		q.conditions,
+		Condition{cn, op, v},
+	)
 	return q
 }
 
@@ -93,5 +104,25 @@ func (q Query)AlterColumnType(
 	q.tableNames = TableNames{table}
 	q.columns = Columns{c}
 	return q.wType(AlterColumnTypeQueryType)
+}
+
+func (q Query)Values(vs ...Valuer) Query {
+	q.values = vs
+	return q
+}
+
+func (q Query)GetValues() Valuers {
+	switch q.typ {
+	case SelectQueryType :
+		vals := Valuers{}
+		for _, c := range q.conditions {
+			vals = append(vals, c.Value)
+		}
+		return vals
+	case InsertQueryType :
+		return q.values
+	default:
+		return Valuers{}
+	}
 }
 

@@ -9,33 +9,33 @@ type Condition struct {
 type Conditions []Condition
 
 const (
-	EqConditionOp ConditionOp = iota
-	GtConditionOp
-	LtConditionOp
-	GeConditionOp
-	LeConditionOp
-	NeConditionOp
-	InConditionOp
+	Eq ConditionOp = iota
+	Gt
+	Lt
+	Ge
+	Le
+	Ne
+	In
 )
 
 var (
 	// For the restx package.
 	ConditionOpStringMap = map[string] ConditionOp {
-		"eq" : EqConditionOp,
-		"ne" : NeConditionOp,
-		"gt" : GtConditionOp,
-		"ge" : GeConditionOp,
-		"lt" : LtConditionOp,
-		"le" : LeConditionOp,
+		"eq" : Eq,
+		"ne" : Ne,
+		"gt" : Gt,
+		"ge" : Ge,
+		"lt" : Lt,
+		"le" : Le,
 	}
 	ConditionOpMap = map[ConditionOp] Raw {
-		EqConditionOp : "=",
-		NeConditionOp : "<>",
-		GtConditionOp : ">",
-		GeConditionOp : ">=",
-		LtConditionOp : "<",
-		LeConditionOp : "<=",
-		InConditionOp : "in",
+		Eq: "=",
+		Ne: "<>",
+		Gt: ">",
+		Ge: ">=",
+		Lt: "<",
+		Le: "<=",
+		In: "in",
 	}
 )
 func (w Conditions)SqlRaw(db *Db) (Raw, error) {

@@ -3,6 +3,13 @@ package sqlx
 import (
 	"fmt"
 	"strings"
+	"errors"
+)
+
+var (
+	WrongRawFormatErr = errors.New(
+		"wrong raw value format error",
+	)
 )
 
 // Substitute raw values with fmt.Sprintf
@@ -50,7 +57,7 @@ func (db *Db)TupleBuf(vs Valuers) Raw {
 
 func (v TableName)SqlRaw(db *Db) (Raw, error) {
 	if v == "" {
-		return "", WrongValuerFormatErr
+		return "", WrongRawFormatErr
 	}
 	return Raw(v), nil
 }
@@ -68,44 +75,27 @@ func (v Raw)SqlRaw(db *Db) (Raw, error) {
 
 
 func (tn TableNames)SqlRaw(db *Db) (Raw, error) {
-	if len(tn) == 0 {
-		return Raw(""), NoTablesSpecifiedErr
+	ml := Rawers{}
+	for _, n := range tn {
+		ml = append(ml, Rawer(n))
 	}
-
-	buf := make([]string, 0)
-	for _, t := range tn {
-		v, err := t.SqlRaw(db)
-		if err != nil {
-			return Raw(""), err
-		}
-		buf = append(buf, string(v))
-	}
-
-	ret := strings.Join(buf, ", ")
-	return Raw(ret), nil
+	return db.SqlMultival(ml)
 }
 
 func (cn ColumnNames)SqlRaw(db *Db) (Raw, error) {
-	if len(cn) == 0 {
-		return Raw(""), NoColumnsSpecifiedErr
+	ml := Rawers{}
+	for _, n := range cn {
+		ml = append(ml, Rawer(n))
 	}
-
-	buf := make([]string, 0)
-	for _, c := range cn {
-		v, err := c.SqlRaw(db)
-		if err != nil {
-			return Raw(""), err
-		}
-		buf = append(buf, string(v))
-	}
-
-	ret := strings.Join(buf, ", ")
-	return Raw(ret), nil
+	return db.SqlMultival(ml)
 }
 
 // Return raw values separated by comma for
 // column and table names and also values.
-func (rvs Rawers) SqlMultival(db *Db) (Raw, error) {
+func (db *Db) SqlMultival(rvs Rawers) (Raw, error) {
+	if len(rvs) < 1 {
+		return "", WrongRawFormatErr
+	}
 	var ret Raw
 	for i, v := range rvs {
 		raw, err := v.SqlRaw(db)
@@ -124,8 +114,8 @@ func (rvs Rawers) SqlMultival(db *Db) (Raw, error) {
 }
 
 // Return multivalue embraced with () .
-func (rvs Rawers) SqlTuple(db *Db) (Raw, error) {
-	mval, err := rvs.SqlMultival(db)
+func (db *Db) SqlTuple(rvs Rawers) (Raw, error) {
+	mval, err := db.SqlMultival(rvs)
 	if err != nil {
 		return Raw(""), err
 	}

@@ -31,6 +31,7 @@ type Query struct {
 	columns Columns
 	columnTypes []ColumnType
 	conditions Conditions
+	values Valuers
 }
 
 const (
@@ -75,19 +76,17 @@ func selectQuery(
 		return "", NoColumnsSpecifiedErr
 	}
 
-	if len(q.conditions) > 1 {
-		return "", WrongQueryInputFormatErr
-	} else if len(q.conditions) >= 1 {
+	if len(q.conditions) >= 1 {
 		return db.Rprintf(
 			"select %s from %s where %s ;",
-			q.columnNames[0],
+			q.columnNames,
 			q.tableNames[0],
 			q.conditions,
 		)
 	} else {
 		return db.Rprintf(
 			"select %s from %s ;",
-			q.columnNames[0],
+			q.columnNames,
 			q.tableNames[0],
 		)
 	}

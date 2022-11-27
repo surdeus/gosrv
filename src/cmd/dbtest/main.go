@@ -34,20 +34,19 @@ func main(){
 		log.Println(err)
 	}*/
 	q := sqlx.Q().
-		Select("Column").
+		Select("Column", "Column1").
 		From("Table").
-		Where(
-			sqlx.Condition{
-				"Column",
-				sqlx.GtConditionOp,
-				sqlx.Int(32),
-			},
-		)
+		Where("Column", sqlx.Gt, sqlx.Int(32)).
+		And("Column1", sqlx.Lt, sqlx.Float(1.731))
 	s, err := q.SqlRaw(db)
-	fmt.Printf("%q, %q\n", s, err)
+	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 
 	q = sqlx.Q().RenameTable("Table", "NewName")
 	s, err = q.SqlRaw(db)
-	fmt.Printf("%q, %q\n", s, err)
+	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
+
+	q = sqlx.Q().RenameColumn("Table", "OldName", "NewName")
+	s, err = q.SqlRaw(db)
+	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 }
 
