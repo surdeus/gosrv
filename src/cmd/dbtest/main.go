@@ -41,6 +41,13 @@ func main(){
 	s, err := q.SqlRaw(db)
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 
+	q = sqlx.Q().
+		Insert("Column1", "Column2").
+		Into("Table1").
+		Values(sqlx.Int(25), sqlx.Float(64))
+	s, err = q.SqlRaw(db)
+	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
+
 	q = sqlx.Q().RenameTable("Table", "NewName")
 	s, err = q.SqlRaw(db)
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())

@@ -61,7 +61,23 @@ func insertQuery(
 	db *Db,
 	q Query,
 ) (Raw, error) {
-	return Raw(""), nil
+	if len(q.tableNames) != 1 ||
+			len(q.columnNames) < 1 ||
+			len(q.columnNames) != len(q.values) {
+		return "", WrongQueryInputFormatErr
+	}
+
+	r, err := db.Rprintf(
+		"insert into %s (%s) values %s ;",
+		q.tableNames[0],
+		q.columnNames,
+		db.TupleBuf(q.values),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return r, nil
 }
 
 func selectQuery(

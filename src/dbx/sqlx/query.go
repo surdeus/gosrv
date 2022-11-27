@@ -53,7 +53,8 @@ func (q Query)From(table TableName) Query {
 	return q
 }
 
-func (q Query)Insert() Query {
+func (q Query)Insert(cn ...ColumnName) Query {
+	q.columnNames = cn
 	return q.wType(InsertQueryType)
 }
 
@@ -108,6 +109,11 @@ func (q Query)AlterColumnType(
 
 func (q Query)Values(vs ...Valuer) Query {
 	q.values = vs
+	return q
+}
+
+func (q Query)Into(table TableName) Query {
+	q.tableNames = TableNames{table}
 	return q
 }
 
