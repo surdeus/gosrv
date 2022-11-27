@@ -1,4 +1,4 @@
-module github.com/surdeus/go-srv
+module github.com/surdeus/gosrv
 
 go 1.19
 

@@ -4,8 +4,8 @@ import(
 	//"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/surdeus/go-srv/src/dbx/sqlx"
-	"github.com/surdeus/go-srv/src/cmd/dbtest/structs"
+	"github.com/surdeus/gosrv/src/dbx/sqlx"
+	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 )
 
 func main(){

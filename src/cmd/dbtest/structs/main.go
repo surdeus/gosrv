@@ -1,7 +1,7 @@
 package structs
 
 import (
-	"github.com/surdeus/go-srv/src/dbx/sqlx"
+	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"database/sql"
 )
 
