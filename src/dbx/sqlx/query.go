@@ -117,28 +117,36 @@ func (q Query)Into(table TableName) Query {
 	return q
 }
 
-func (q Query)GetValues() Valuers {
+func (q Query)GetValues() []any {
 	switch q.typ {
 	case SelectQueryType :
-		vals := Valuers{}
+		vals := []any{}
 		for _, c := range q.conditions {
 			for _, v := range c.Values {
-				vals = append(vals, v)
+				vals = append(vals, any(v))
 			}
 		}
 		return vals
 	case InsertQueryType :
-		return q.values
+		vals := []any{}
+		for _, v := range q.values {
+			vals = append(vals, any(v))
+		}
+		return vals
 	case CreateTableQueryType :
-		vals := Valuers{}
+		vals := []any{}
 		for _, col := range q.tableSchemas[0].Columns {
 			if col.Default != nil {
-				vals = append(vals, col.Default)
+				vals = append(vals, any(col.Default))
 			}
 		}
 		return vals
 	default:
-		return Valuers{}
+		return []any{}
 	}
+}
+
+func (q Query)GetType() QueryType {
+	return q.typ
 }
 

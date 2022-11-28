@@ -106,7 +106,7 @@ func (db *Db) SqlMultival(rvs Rawers) (Raw, error) {
 		ret += raw
 
 		if i != len(rvs) - 1 {
-			ret += ","
+			ret += ", "
 		}
 	}
 

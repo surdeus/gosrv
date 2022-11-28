@@ -36,12 +36,19 @@ func Open(cfg ConnConfig) (*Db, error) {
 	return &Db{db, cfg}, nil
 }
 
-func (db *Db)Do(q Query) (*sql.Rows, error) {
+func (db *Db)Do(q Query) (sql.Result, *sql.Rows, error) {
 	qs, err := q.SqlRaw(db)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return db.DB.Query(string(qs))
+	switch q.GetType() {
+	case SelectQueryType :
+		rs, err := db.DB.Query(string(qs), q.GetValues()...)
+		return nil, rs, err
+	}
+
+	res, err := db.DB.Exec(string(qs), q.GetValues()...)
+	return res, nil, err
 }
 

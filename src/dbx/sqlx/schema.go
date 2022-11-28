@@ -379,7 +379,7 @@ func (db *Db)TableExists(name TableName) (bool, error) {
 }
 
 func (db *Db)RenameTable(old, n TableName) error {
-	_, err := db.Do(
+	_, _, err := db.Do(
 		Q().RenameTable(old, n),
 	)
 	if err != nil {
@@ -393,7 +393,7 @@ func (db *Db)RenameColumn(
 	table TableName,
 	o, n ColumnName,
 ) error {
-	_, err := db.Do(
+	_, _, err := db.Do(
 		Q().RenameColumn(table, o, n),
 	)
 	return err
@@ -579,7 +579,7 @@ func (db *Db)TableCreationStringFor(v Sqler) (string, error) {
 }
 
 func (db *Db)CreateTable(v Sqler) error {
-	_, err := db.Do(
+	_, _, err := db.Do(
 		Q().CreateTable(v.Sql()),
 	)
 	return err
@@ -620,7 +620,7 @@ func (db *Db)AlterColumnType(
 	table TableName,
 	c *Column,
 ) error {
-	_, err := db.Do(
+	_, _, err := db.Do(
 		Q().AlterColumnType(table, c),
 	)
 
