@@ -3,13 +3,13 @@ package sqlx
 import (
 	"errors"
 	"fmt"
-	"database/sql"
+	//"database/sql"
 )
 
 type ColumnVarType int
 type ColumnType struct {
 	VarType ColumnVarType
-	Args Valuers
+	Args []int
 }
 
 const (
@@ -67,41 +67,46 @@ func (ct ColumnType)SqlRaw(db *Db) (Raw, error) {
 		return "", UnknownColumnType
 	}
 
-	ret = fmt.Sprintf("%s%s", t, db.TupleBuf(ct.Args))
+	args := ""
+	for i, a := range ct.Args {
+		args += fmt.Sprintf("%d", a)
+		if i != len(ct.Args)-1 {
+			args += ","
+		}
+	}
+
+	ret = fmt.Sprintf("%s(%s)", t, args)
 
 	return Raw(ret), nil
 }
 
-func (ct ColumnType)Varchar(n int32) ColumnType {
+func (ct ColumnType)Varchar(n int) ColumnType {
 	ct.VarType = VarcharColumnVarType
-	ct.Args = Valuers{sql.NullInt32{n, true}}
+	ct.Args = []int{n}
 	return ct
 }
 
 func (ct ColumnType)Int() ColumnType {
 	ct.VarType = IntColumnVarType
-	ct.Args = Valuers{sql.NullInt32{11, true}}
+	ct.Args = []int{11}
 	return ct
 }
 
-func (ct ColumnType)IntN(n int32) ColumnType {
+func (ct ColumnType)IntN(n int) ColumnType {
 	ct.VarType = IntColumnVarType
-	ct.Args = Valuers{sql.NullInt32{n, true}}
+	ct.Args = []int{n}
 	return ct
 }
 
-func (ct ColumnType)Nvarchar(n int32) ColumnType {
+func (ct ColumnType)Nvarchar(n int) ColumnType {
 	ct.VarType = NvarcharColumnVarType
-	ct.Args = Valuers{sql.NullInt32{n, true}}
+	ct.Args = []int{n}
 	return ct
 }
 
 func (ct ColumnType)Double() ColumnType {
 	ct.VarType = DoubleColumnVarType
-	ct.Args = Valuers{
-		sql.NullInt32{16, true},
-		sql.NullInt32{2, true},
-	}
+	ct.Args = []int{16, 2}
 	return ct
 }
 

@@ -27,7 +27,6 @@ func (c ConnConfig)String() string {
 	)
 }
 
-
 func Open(cfg ConnConfig) (*Db, error) {
 	db, err := sql.Open(cfg.Driver, cfg.String())
 	if err != nil {

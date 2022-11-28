@@ -33,6 +33,18 @@ func main(){
 	if err != nil{
 		log.Println(err)
 	}*/
+
+	qs := `create table NewShit (
+	        Id int(11) not null primary key auto_increment,
+	                DickValue int(11) default ?,
+	                        StringValue varchar(32) not null default ?,
+	                                NewValue int(11) default ?,
+	                                        AnotherValue double(16,2) default ?
+	                                        ) ;`
+
+	_, err = db.Query(qs, 60, "some string", 30, 35.5)
+	fmt.Println(err)
+	return 
 	q := sqlx.Q().
 		Select("Column", "Column1").
 		From("Table").
@@ -43,11 +55,16 @@ func main(){
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 
 	q = sqlx.Q().
-		Insert("Column1", "Column2").
-		Into("Table1").
-		Values(sqlx.Int(25), sqlx.Float(64))
+		Insert("DickValue", "StringValue").
+		Into("Tests").
+		Values(sqlx.Int(25), sqlx.String("new"))
 	s, err = q.SqlRaw(db)
-	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
+	vals := []any{}
+	for _, v := range q.GetValues() {
+		vals = append(vals, any(v))
+	}
+	_, err = db.Query(string(s), vals...)
+	fmt.Printf("%q, %q, %v\n", s, err, vals)
 
 	q = sqlx.Q().RenameTable("Table", "NewName")
 	s, err = q.SqlRaw(db)
@@ -57,10 +74,15 @@ func main(){
 	s, err = q.SqlRaw(db)
 	fmt.Printf("%q, %q, %v\n", s, err, q.GetValues())
 
+	ts := structs.Test{}.Sql()
+	ts.Name = "NewShit"
 	q = sqlx.Q().CreateTable(
-		structs.Test{}.Sql(),
+		ts,
 	)
 	s, err = q.SqlRaw(db)
 	fmt.Println(s, err, q.GetValues())
+	_, err = db.Query(string(s), vals...)
+	fmt.Println(err)
+
 }
 

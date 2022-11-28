@@ -132,9 +132,6 @@ func (q Query)GetValues() Valuers {
 	case CreateTableQueryType :
 		vals := Valuers{}
 		for _, col := range q.tableSchemas[0].Columns {
-			for _, arg := range col.Type.Args {
-				vals = append(vals, arg)
-			}
 			if col.Default != nil {
 				vals = append(vals, col.Default)
 			}
