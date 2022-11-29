@@ -4,58 +4,10 @@ package sqlx
 // for more friendly usage.
 
 import (
-	"database/sql/driver"
 	"database/sql"
 	"time"
 	"strconv"
 	"errors"
-)
-
-type Valuer = driver.Valuer
-type Valuers []Valuer
-
-// The type defining string data to convert into
-// the right type.
-type SqlType int
-
-var (
-	VarTypeMapSqlType = map[ColumnVarType] SqlType {
-		BoolColumnVarType : BoolSqlType,
-		BitColumnVarType : BoolSqlType,
-
-		IntColumnVarType : Int32SqlType,
-		SmallintColumnVarType : Int16SqlType,
-		TinyintColumnVarType : ByteSqlType,
-		BigintColumnVarType : Int64SqlType,
-
-		DoubleColumnVarType : Float64SqlType,
-		FloatColumnVarType : Float64SqlType,
-
-		VarcharColumnVarType : StringSqlType,
-		NvarcharColumnVarType : StringSqlType,
-
-		CharColumnVarType : StringSqlType,
-		NcharColumnVarType : StringSqlType,
-
-		TextColumnVarType : StringSqlType,
-		NtextColumnVarType : StringSqlType,
-
-		DateColumnVarType : TimeSqlType,
-		TimeColumnVarType : TimeSqlType,
-		TimestampColumnVarType : TimeSqlType,
-		DatetimeColumnVarType : TimeSqlType,
-		YearColumnVarType : TimeSqlType,
-
-		BinaryColumnVarType : RawBytesSqlType,
-		VarbinaryColumnVarType : RawBytesSqlType,
-
-		ImageColumnVarType : RawBytesSqlType,
-
-		ClobColumnVarType : RawBytesSqlType,
-		BlobColumnVarType : RawBytesSqlType,
-		XmlColumnVarType : RawBytesSqlType,
-		JsonColumnVarType : RawBytesSqlType,
-	}
 )
 
 func Bool(b bool) sql.NullBool {

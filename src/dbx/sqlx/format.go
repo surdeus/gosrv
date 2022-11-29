@@ -3,13 +3,6 @@ package sqlx
 import (
 	"fmt"
 	"strings"
-	"errors"
-)
-
-var (
-	WrongRawFormatErr = errors.New(
-		"wrong raw value format error",
-	)
 )
 
 // Substitute raw values with fmt.Sprintf

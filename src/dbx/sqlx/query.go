@@ -1,31 +1,5 @@
 package sqlx
 
-import (
-	//"fmt"
-	//"strings"
-	"errors"
-	//"database/sql"
-	//"database/sql/driver"
-	//"strconv"
-)
-
-
-var (
-	NoTablesSpecifiedErr = errors.New("no table specified")
-	NoColumnsSpecifiedErr = errors.New("no columns specified")
-	WrongNumOfColumnsSpecifiedErr = errors.New(
-		"wrong number of columns specified")
-	WrongQueryInputFormatErr = errors.New(
-		"wrong query input format",
-	)
-	WrongValuerFormatErr = errors.New("wrong valuer format")
-	UnknownQueryTypeErr = errors.New("unknown query type")
-	UnknownConditionOpErr = errors.New("unknown condition operator")
-	NoDBSpecifiedErr = errors.New("no database specified")
-	NoSchemaSpecifiedErr = errors.New("no schema specified")
-
-)
-
 func Q() Query {
 	return Query{}
 }

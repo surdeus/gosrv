@@ -1,13 +1,5 @@
 package sqlx
 
-type ConditionOp int
-type Condition struct {
-	Column ColumnName
-	Op ConditionOp
-	Values Valuers
-}
-type Conditions []Condition
-
 const (
 	Eq ConditionOp = iota
 	Gt
@@ -38,6 +30,7 @@ var (
 		In: "in",
 	}
 )
+
 func (w Conditions)SqlRaw(db *Db) (Raw, error) {
 	if len(w) == 0 {
 		return "", nil

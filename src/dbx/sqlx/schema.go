@@ -3,116 +3,15 @@ package sqlx
 import (
 	"strings"
 	"fmt"
-	"errors"
 	"log"
-	"github.com/surdeus/godat/src/mapx"
 	"database/sql"
 )
-
-type Sqler interface {
-	Sql() *TableSchema
-}
-type Sqlers []Sqler
-
-type TableSchema struct {
-	OldName TableName
-	Name TableName
-	Columns Columns
-}
-
-type TableSchemas []*TableSchema
-
-type ColumnMap map[ColumnName] *Column
-type TableMap map[TableName] *TableSchema
-type TableColumnMap map[TableName] ColumnMap
-type AnyMap map[TableName] any
-
-type KeyType int
-type Key struct {
-	Type KeyType
-}
 
 const (
 	NotKeyType KeyType = iota
 	PrimaryKeyType
 	UniqueKeyType
 	ForeignKeyType
-)
-
-var (
-	MultiplePrimaryKeysErr = errors.New("multiple primary keys")
-	NoPrimaryKeySpecifiedErr = errors.New("no primary key specified")
-	UnknownKeyTypeErr = errors.New(
-		"unknown key type",
-	)
-	UnknownColumnTypeErr = errors.New(
-		"unknown column type",
-	)
-	WrongColumnTypeFormatErr = errors.New(
-		"wrong column type format",
-	)
-	TableDoesNotExistErr = errors.New(
-		"specified table does not exist",
-	)
-	TableAlreadyExistsErr = errors.New(
-		"specified table already exists",
-	)
-	ColumnDoesNotExistErr = errors.New(
-		"specified column does not exist",
-	)
-	ColumnAlreadyExistsErr = errors.New(
-		"specified column already exists",
-	)
-
-	MysqlStringMapKeyType = map[string] KeyType {
-		"" : NotKeyType,
-		"PRI" : PrimaryKeyType,
-		"UNI" : UniqueKeyType,
-		"MUL" : ForeignKeyType,
-	}
-	MysqlKeyTypeMapString = mapx.Reverse(
-		MysqlStringMapKeyType,
-	)
-	MysqlColumnTypeMapString = map[ColumnVarType] string {
-		IntColumnVarType : "int",
-		SmallintColumnVarType : "smallint",
-
-		FloatColumnVarType : "float",
-		DoubleColumnVarType : "double",
-
-		BigintColumnVarType : "bigint",
-		BitColumnVarType : "bit",
-		TinyintColumnVarType : "tinyint",
-
-		VarcharColumnVarType : "varchar",
-		NvarcharColumnVarType : "nvarchar",
-
-		CharColumnVarType : "char",
-		NcharColumnVarType : "nchar",
-
-		TextColumnVarType : "text",
-		NtextColumnVarType : "ntext",
-
-		DateColumnVarType : "date",
-		TimeColumnVarType : "time",
-		TimestampColumnVarType : "timestamp",
-		DatetimeColumnVarType : "datetime",
-		YearColumnVarType : "year",
-
-		BinaryColumnVarType : "binary",
-		VarbinaryColumnVarType : "varbinary",
-
-		ImageColumnVarType : "image",
-
-		ClobColumnVarType : "clob",
-		BlobColumnVarType : "blob",
-		XmlColumnVarType : "xml",
-		JsonColumnVarType : "json",
-	}
-
-	MysqlStringMapColumnType = mapx.Reverse(
-		MysqlColumnTypeMapString,
-	)
 )
 
 func (sqlers Sqlers)TableMap() TableMap {

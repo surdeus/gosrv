@@ -1,20 +1,11 @@
 package sqlx
 
 import (
-	"errors"
 	"fmt"
-	//"database/sql"
 )
 
-type ColumnVarType int
-type ColumnType struct {
-	VarType ColumnVarType
-	Args []int
-}
-
-
 const (
-	NoColumnVarType = iota
+	NoColumnVarType ColumnVarType = iota
 	BoolColumnVarType
 	BitColumnVarType
 
@@ -63,10 +54,6 @@ const (
 	StringSqlType
 	TimeSqlType
 	RawBytesSqlType
-)
-
-var (
-	UnknownColumnType = errors.New("unknown column type")
 )
 
 func CT() ColumnType {
