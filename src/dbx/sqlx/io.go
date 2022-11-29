@@ -8,9 +8,8 @@ import (
 
 func (db *Db)ReadRowValues(
 	rs *sql.Rows,
-	ts *TableSchema,
 	cnames ColumnNames,
-	tsMap map[ColumnName] *Column,
+	cMap map[ColumnName] *Column,
 	rc any,
 ) (chan any, error) {
 	row := make([]any, len(cnames))
@@ -19,7 +18,7 @@ func (db *Db)ReadRowValues(
 	val = val.Elem()
 	for i, v := range cnames {
 		f := val.FieldByName(string(v)).Addr()
-		_, ok := tsMap[v]
+		_, ok := cMap[v]
 		if !ok  || !f.IsValid() {
 			return nil, ColumnDoesNotExistErr
 		}
@@ -41,3 +40,4 @@ func (db *Db)ReadRowValues(
 
 	return ret, nil
 }
+

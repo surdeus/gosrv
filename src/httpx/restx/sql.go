@@ -104,13 +104,13 @@ func SqlMakeGetHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	tsMap map[sqlx.ColumnName] *sqlx.Column,
+	cMap map[sqlx.ColumnName] *sqlx.Column,
 	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	args := cfg.ParseValues(a.Values())
 	
-	q, err := args.SqlGetQuery(ts, tsMap)
+	q, err := args.SqlGetQuery(ts, cMap)
 	if err != nil {
 		log.Println(err)
 		a.NotFound()
@@ -132,9 +132,8 @@ return func(a muxx.HndlArg) {
 
 	values, err := db.ReadRowValues(
 		rows,
-		ts,
-		q.GetColumns(),
-		tsMap,
+		q.GetColumnNames(),
+		cMap,
 		rc,
 	)
 	if err != nil {

@@ -42,7 +42,7 @@ func (db *Db)Do(q Query) (sql.Result, *sql.Rows, error) {
 		return nil, nil, err
 	}
 
-	switch q.GetType() {
+	switch q.Type {
 	case SelectQueryType :
 		rs, err := db.DB.Query(string(qs), q.GetValues()...)
 		return nil, rs, err

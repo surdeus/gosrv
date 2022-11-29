@@ -12,6 +12,7 @@ import (
 type Sqler interface {
 	Sql() *TableSchema
 }
+type Sqlers []Sqler
 
 type TableSchema struct {
 	OldName TableName
@@ -20,8 +21,11 @@ type TableSchema struct {
 }
 
 type TableSchemas []*TableSchema
-// Useful type.
-type TableSchemaMap map[ColumnName] *Column
+
+type ColumnMap map[ColumnName] *Column
+type TableMap map[TableName] *TableSchema
+type TableColumnMap map[TableName] ColumnMap
+type AnyMap map[TableName] any
 
 type KeyType int
 type Key struct {
@@ -110,6 +114,45 @@ var (
 		MysqlColumnTypeMapString,
 	)
 )
+
+func (sqlers Sqlers)TableMap() TableMap {
+	ret := make(TableMap)
+	for _, sqler := range sqlers {
+		ts := sqler.Sql()
+		ret[ts.Name] = ts
+	}
+
+	return ret
+}
+
+func (sqlers Sqlers)AnyMap() AnyMap {
+	ret := make(AnyMap)
+	for _, sqler := range sqlers {
+		ts := sqler.Sql()
+		ret[ts.Name] = any(sqler)
+	}
+	return ret
+}
+
+func (sqlers Sqlers)TableColumnMap() TableColumnMap {
+	ret := make(TableColumnMap)
+	for _, sqler := range sqlers {
+		ts := sqler.Sql()
+		ret[ts.Name] = ts.Columns.ColumnMap()
+	}
+
+	return ret
+}
+
+func (cols Columns)ColumnMap() ColumnMap {
+	ret := make(ColumnMap)
+	for _, col := range cols {
+		ret[col.Name] = col
+	}
+
+	return ret
+}
+
 
 func (cs Columns)Names() ColumnNames {
 	ret := ColumnNames{}

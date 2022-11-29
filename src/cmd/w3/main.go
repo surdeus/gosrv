@@ -13,6 +13,7 @@ import(
 	"github.com/surdeus/gosrv/src/authx"
 	"github.com/surdeus/gosrv/src/httpx/restx"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
+	"github.com/surdeus/gosrv/src/httpx/apix"
 	dbtest "github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 	//"github.com/surdeus/gosrv/src/dbx/sqlx/qx"
 	_ "github.com/go-sql-driver/mysql"
@@ -309,6 +310,7 @@ func main(){
 			},
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
+		apix.Sql("/api/sql/", apix.SqlConfig{db, sqlers}),
 		restx.Sql(db, "/api/", anys),
 	}
 

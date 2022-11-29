@@ -31,7 +31,7 @@ func Q() Query {
 }
 
 func (q Query)SqlRaw(db *Db) (Raw, error) {
-	fn, ok := queryFormatMap[q.typ]
+	fn, ok := queryFormatMap[q.Type]
 	if !ok {
 		return "", UnknownQueryTypeErr
 	}
@@ -39,22 +39,22 @@ func (q Query)SqlRaw(db *Db) (Raw, error) {
 }
 
 func (q Query)wType(t QueryType) Query {
-	q.typ = t
+	q.Type = t
 	return q
 }
 
 func (q Query)Select(cn ...ColumnName) Query {
-	q.columnNames = cn
+	q.ColumnNames = cn
 	return q.wType(SelectQueryType)
 }
 
 func (q Query)From(table TableName) Query {
-	q.tableNames = TableNames{table}
+	q.TableNames = TableNames{table}
 	return q
 }
 
 func (q Query)Insert(cn ...ColumnName) Query {
-	q.columnNames = cn
+	q.ColumnNames = cn
 	return q.wType(InsertQueryType)
 }
 
@@ -63,7 +63,7 @@ func (q Query)Where(
 	op ConditionOp,
 	vs ...Valuer,
 ) Query {
-	q.conditions = Conditions{{cn, op, vs}}
+	q.Conditions = Conditions{{cn, op, vs}}
 	return q
 }
 
@@ -72,20 +72,20 @@ func (q Query)And(
 	op ConditionOp,
 	vs ...Valuer,
 ) Query {
-	q.conditions = append(
-		q.conditions,
+	q.Conditions = append(
+		q.Conditions,
 		Condition{cn, op, vs},
 	)
 	return q
 }
 
 func (q Query)CreateTable(ts *TableSchema) Query {
-	q.tableSchemas = TableSchemas{ts}
+	q.Tables = TableSchemas{ts}
 	return q.wType(CreateTableQueryType)
 }
 
 func (q Query)RenameTable(old, n TableName) Query {
-	q.tableNames = TableNames{old, n}
+	q.TableNames = TableNames{old, n}
 	return q.wType(RenameTableQueryType)
 }
 
@@ -93,8 +93,8 @@ func (q Query)RenameColumn(
 	table TableName,
 	old, n ColumnName,
 ) Query {
-	q.tableNames = TableNames{table}
-	q.columnNames = ColumnNames{old, n}
+	q.TableNames = TableNames{table}
+	q.ColumnNames = ColumnNames{old, n}
 	return q.wType(RenameColumnQueryType)
 }
 
@@ -102,34 +102,34 @@ func (q Query)AlterColumnType(
 	table TableName,
 	c *Column,
 ) Query {
-	q.tableNames = TableNames{table}
-	q.columns = Columns{c}
+	q.TableNames = TableNames{table}
+	q.Columns = Columns{c}
 	return q.wType(AlterColumnTypeQueryType)
 }
 
 func (q Query)Values(vs ...Valuer) Query {
-	q.values = vs
+	q.Valuers = vs
 	return q
 }
 
 func (q Query)DropPrimaryKey(
 	table TableName,
 ) Query {
-	q.typ = DropPrimaryKeyQueryType
-	q.tableNames = TableNames{table}
+	q.Type = DropPrimaryKeyQueryType
+	q.TableNames = TableNames{table}
 	return q
 }
 
 func (q Query)Into(table TableName) Query {
-	q.tableNames = TableNames{table}
+	q.TableNames = TableNames{table}
 	return q
 }
 
 func (q Query)GetValues() []any {
-	switch q.typ {
+	switch q.Type {
 	case SelectQueryType :
 		vals := []any{}
-		for _, c := range q.conditions {
+		for _, c := range q.Conditions {
 			for _, v := range c.Values {
 				vals = append(vals, any(v))
 			}
@@ -137,13 +137,13 @@ func (q Query)GetValues() []any {
 		return vals
 	case InsertQueryType :
 		vals := []any{}
-		for _, v := range q.values {
+		for _, v := range q.Valuers {
 			vals = append(vals, any(v))
 		}
 		return vals
 	case CreateTableQueryType :
 		vals := []any{}
-		for _, col := range q.tableSchemas[0].Columns {
+		for _, col := range q.Tables[0].Columns {
 			if col.Default != nil {
 				vals = append(vals, any(col.Default))
 			}
@@ -154,16 +154,20 @@ func (q Query)GetValues() []any {
 	}
 }
 
-func (q Query) GetColumns() ColumnNames {
-	return q.columnNames
+func (q Query) GetColumnNames() ColumnNames {
+	return q.ColumnNames
+}
+func (q Query) GetTableName() TableName {
+	switch q.Type {
+	case SelectQueryType :
+		return q.TableNames[0]
+	default :
+		return ""
+	}
 }
 
 func (q Query) WConditions(cs Conditions) Query {
-	q.conditions = cs
+	q.Conditions = cs
 	return q
-}
-
-func (q Query)GetType() QueryType {
-	return q.typ
 }
 
