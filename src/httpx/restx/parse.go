@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"errors"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"fmt"
+	//"fmt"
 )
 
 type ArgCfg struct {
@@ -59,17 +59,15 @@ func (args Args)SqlGetQuery(
 		return sqlx.Q(), err
 	}
 
-	cs, err := args.SqlConditions()
+	cs, err := args.SqlConditions(tsMap)
 	if err != nil {
 		return sqlx.Q(), err
 	}
 
-	fmt.Println(columns)
-	q := sqlx.Query{
-		TableNames: sqlx.TableNames{ts.Name},
-		ColumnNames: columns,
-		Wheres: sqlx.Wheres{sqlx.Where(cs)},
-	}
+	q := sqlx.Q().
+		Select(columns...).
+		From(ts.Name).
+		WConditions(cs)
 
 	return q, nil
 }
@@ -103,7 +101,9 @@ func (args Args)SqlColumns(
 	return columns, nil
 }
 
-func (args Args)SqlConditions() (sqlx.Conditions, error) {
+func (args Args)SqlConditions(
+	tsMap map[ColumnName] *Column,
+) (sqlx.Conditions, error) {
 	cs := sqlx.Conditions{}
 	for k, arg := range args {
 		if k == "c" {
@@ -120,11 +120,10 @@ func (args Args)SqlConditions() (sqlx.Conditions, error) {
 		op, _ := sqlx.
 			ConditionOpStringMap[opStr]
 
-		c := sqlx.Condition{
+		c := sqlx.Condition {
+			Column: sqlx.ColumnName(name),
 			Op: op,
-			Values: [2]sqlx.Rawer {
-				sqlx.Raw(name),
-				sqlx.Raw(arg.Values[0]),
+			Values: sqlx.Valuer{ sqlx.Raw(name),
 			},
 		}
 

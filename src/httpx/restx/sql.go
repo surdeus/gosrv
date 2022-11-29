@@ -16,7 +16,7 @@ import (
 )
 
 func Sql(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	pref string,
 	sqlers []any,
 ) muxx.HndlDef {
@@ -33,7 +33,7 @@ func Sql(
 // SQL REST access implementetaion
 // based on sqlx package migration description.
 func SqlHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	pref string,
 	rcs []any,
 ) muxx.Handler {
@@ -67,7 +67,7 @@ func SqlHandler(
 }
 
 func MakeSqlTableHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	pref string,
 	ts *sqlx.TableSchema,
 	rc any,
@@ -102,7 +102,7 @@ func MakeSqlTableHandler(
 }
 
 func SqlMakeGetHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	tsMap map[sqlx.ColumnName] *sqlx.Column,
@@ -117,10 +117,8 @@ return func(a muxx.HndlArg) {
 		a.NotFound()
 		return
 	}
-	q = q.WithDB(db).
-		WithType(sqlx.SelectQueryType)
 
-	rows, err := q.Do()
+	_, rows, err := db.Do(q)
 	if err != nil {
 		log.Println(err)
 		a.NotFound()
@@ -136,7 +134,7 @@ return func(a muxx.HndlArg) {
 	values, err := db.ReadRowValues(
 		rows,
 		ts,
-		q.ColumnNames,
+		q.GetColumns(),
 		tsMap,
 		rc,
 	)
@@ -154,7 +152,7 @@ return func(a muxx.HndlArg) {
 }}
 
 func SqlMakePostHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	rc any,
@@ -164,7 +162,7 @@ return func(a muxx.HndlArg) {
 }}
 
 func SqlMakePutHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	rc any,
@@ -174,7 +172,7 @@ return func(a muxx.HndlArg) {
 }}
 
 func SqlMakePatchHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	rc any,
@@ -184,7 +182,7 @@ return func(a muxx.HndlArg) {
 }}
 
 func SqlMakeDeleteHandler(
-	db *sqlx.DB,
+	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
 	rc any,

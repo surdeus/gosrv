@@ -53,9 +53,7 @@ func main(){
 		fmt.Println(id, dick, s)
 	}
 
-	q = sqlx.Q().Insert("NewValue", "Age").
-		Into("Tests").
-		Values(sqlx.Int(5), sqlx.Int(1337))
+	q = sqlx.Q().DropPrimaryKey("Tests")
 	_, _, err = db.Do(q)
 	if err != nil {
 		panic(err)

@@ -112,6 +112,14 @@ func (q Query)Values(vs ...Valuer) Query {
 	return q
 }
 
+func (q Query)DropPrimaryKey(
+	table TableName,
+) Query {
+	q.typ = DropPrimaryKeyQueryType
+	q.tableNames = TableNames{table}
+	return q
+}
+
 func (q Query)Into(table TableName) Query {
 	q.tableNames = TableNames{table}
 	return q
@@ -144,6 +152,15 @@ func (q Query)GetValues() []any {
 	default:
 		return []any{}
 	}
+}
+
+func (q Query) GetColumns() ColumnNames {
+	return q.columnNames
+}
+
+func (q Query) WConditions(cs Conditions) Query {
+	q.conditions = cs
+	return q
 }
 
 func (q Query)GetType() QueryType {

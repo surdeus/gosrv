@@ -42,6 +42,7 @@ const (
 	RenameTableQueryType
 	RenameColumnQueryType
 	CreateTableQueryType
+	DropPrimaryKeyQueryType
 	AlterColumnTypeQueryType
 	ModifyQueryType
 )
@@ -54,6 +55,7 @@ var (
 		RenameColumnQueryType : renameColumn,
 		CreateTableQueryType : createTable,
 		AlterColumnTypeQueryType : alterColumnType,
+		DropPrimaryKeyQueryType : dropPrimaryKey,
 	}
 )
 
@@ -182,3 +184,19 @@ func alterColumnType(
 
 	return Raw(buf), nil
 }
+
+func dropPrimaryKey(
+	db *Db,
+	q Query,
+) (Raw, error) {
+	if len(q.tableNames) != 1 {
+		return "", WrongQueryInputFormatErr
+	}
+	r, err := db.Rprintf(
+		"alter table %s drop primary key ;",
+		q.tableNames[0],
+	)
+
+	return r, err
+}
+

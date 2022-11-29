@@ -654,15 +654,9 @@ func (db *Db)ColumnExists(
 	return false, nil
 }
 
-func (db *Db)DropTablePrimaryKey(name TableName) error {
-	rawName, err := name.SqlRaw(db)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec(fmt.Sprintf(
-		"alter table %s drop primary key ;",
-		rawName,
-	))
+func (db *Db)DropPrimaryKey(name TableName) error {
+	q := Q().DropPrimaryKey(name)
+	_, _, err := db.Do(q)
 
 	return err
 }
