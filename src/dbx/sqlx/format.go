@@ -66,7 +66,6 @@ func (v Raw)SqlRaw(db *Db) (Raw, error) {
 	return v, nil
 }
 
-
 func (tn TableNames)SqlRaw(db *Db) (Raw, error) {
 	ml := Rawers{}
 	for _, n := range tn {

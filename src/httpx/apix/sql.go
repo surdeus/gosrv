@@ -8,7 +8,6 @@ import (
 	//"database/sql"
 	"encoding/gob"
 	"io"
-	"fmt"
 	"errors"
 	"time"
 )
@@ -59,10 +58,9 @@ func Sql(
 		if err == io.EOF {
 			return
 		} else if err != nil {
-			fmt.Println(err)
 			enc := gob.NewEncoder(a.W)
 			enc.Encode(ErrorSqlResponseType)
-			enc.Encode(err)
+			enc.Encode(err.Error())
 
 			return
 		}
@@ -72,10 +70,9 @@ func Sql(
 			tMap, tcMap, anyMap,
 		)
 		if err != nil {
-			fmt.Println(err)
 			enc := gob.NewEncoder(a.W)
 			enc.Encode(ErrorSqlResponseType)
-			enc.Encode(err)
+			enc.Encode(err.Error())
 
 			return
 		}
@@ -109,9 +106,14 @@ func SqlHandleQuery(
 
 	switch q.Type {
 	case sqlx.SelectQueryType :
+
 		tname := q.GetTableName()
 
-		cMap := tcMap[tname]
+		cMap, ok := tcMap[tname]
+		if !ok {
+			return sqlx.
+				TableDoesNotExistErr
+		}
 
 		an, ok := anyMap[tname]
 		if !ok {
@@ -120,6 +122,11 @@ func SqlHandleQuery(
 		}
 
 		cnames := q.GetColumnNames()
+		if len(cnames) == 1 &&
+				cnames[0] == "*" {
+			cnames = tMap[tname].Columns.Names()
+			q.ColumnNames = cnames
+		}
 
 		_, rs, err := db.Do(q)
 		if err != nil {

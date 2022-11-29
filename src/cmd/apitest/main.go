@@ -9,13 +9,13 @@ import (
 	"github.com/surdeus/gosrv/src/httpx/apix"
 	"bytes"
 	"io"
-	//"errors"
+	"errors"
 )
 
 func main() {
 	apix.SqlGobRegister()
 	q := sqlx.Q().
-		Select("DickValue", "StringValue").
+		Select("DickValue").
 		From("Tests").
 		Where("DickValue", sqlx.Eq, sqlx.Int(5))
 
@@ -36,7 +36,7 @@ func main() {
 
 	dec := gob.NewDecoder(resp.Body)
 
-	typ := apix.ErrorSqlResponseType
+	typ := apix.NoSqlResponseType
 	err = dec.Decode(&typ)
 	if err != nil {
 		panic(err)
@@ -44,12 +44,13 @@ func main() {
 
 	switch typ {
 	case apix.ErrorSqlResponseType :
-		var errbuf error
+		var errbuf string
 		err = dec.Decode(&errbuf)
 		if err != nil {
 			panic(err)
 		}
-		panic(errbuf)
+		err = errors.New(errbuf)
+		panic(err)
 	case apix.RowsSqlResponseType :
 		var buf structs.Test
 		for {
