@@ -7,7 +7,7 @@ import (
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	//"database/sql"
 	"encoding/gob"
-	"fmt"
+	"io"
 )
 
 type SqlConfig struct {
@@ -19,6 +19,7 @@ func Sql(
 	pref string,
 	cfg SqlConfig,
 ) muxx.HndlDef {
+	gob.Register(sqlx.Int(0))
 	db := cfg.Db
 
 	tMap := cfg.Sqlers.TableMap()
@@ -30,7 +31,9 @@ func Sql(
 		q := sqlx.Query{}
 		for {
 			err := dec.Decode(&q)
-			if err != nil {
+			if err == io.EOF {
+				break
+			} else if err != nil {
 				a.ServerError(err)
 				return
 			}
@@ -98,11 +101,15 @@ func SqlHandleQuery(
 			return err
 		}
 
+		enc := gob.NewEncoder(a.W)
 		for v := range values {
-			fmt.Println(v)
+			err = enc.Encode(v)
+			if err != nil {
+				return err
+			}
 		}
 	default :
-		a.NotFound()
+		return sqlx.UnknownQueryTypeErr
 	}
 
 	return nil
