@@ -86,4 +86,7 @@ type Condition struct {
 }
 type Conditions []Condition
 
-
+type Result struct {
+	LastInsertId,
+	RowsAffected int64
+}

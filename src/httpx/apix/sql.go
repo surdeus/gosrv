@@ -8,43 +8,76 @@ import (
 	//"database/sql"
 	"encoding/gob"
 	"io"
+	"fmt"
+	"errors"
+	"time"
 )
 
+type SqlResponseType int
 type SqlConfig struct {
 	Db *sqlx.Db
 	Sqlers sqlx.Sqlers
+}
+
+const (
+	NoSqlResponseType SqlResponseType = iota
+	ErrorSqlResponseType
+	RowsSqlResponseType
+	ResultSqlResponseType
+)
+
+func SqlGobRegister() {
+	gob.Register(sqlx.Byte(0))
+	gob.Register(sqlx.Int16(0))
+	gob.Register(sqlx.Int32(0))
+	gob.Register(sqlx.Int64(0))
+	gob.Register(sqlx.Float64(0))
+	gob.Register(sqlx.String(""))
+	gob.Register(sqlx.Time(time.Now()))
+	gob.Register(errors.New(""))
+	gob.Register(ErrorSqlResponseType)
 }
 
 func Sql(
 	pref string,
 	cfg SqlConfig,
 ) muxx.HndlDef {
-	gob.Register(sqlx.Int(0))
 	db := cfg.Db
 
 	tMap := cfg.Sqlers.TableMap()
 	tcMap := cfg.Sqlers.TableColumnMap()
 	anyMap := cfg.Sqlers.AnyMap()
 
+	for _, an := range anyMap {
+		gob.Register(an)
+	}
+
 	postHndl := func(a muxx.HndlArg){
 		dec := gob.NewDecoder(a.R.Body)
 		q := sqlx.Query{}
-		for {
-			err := dec.Decode(&q)
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				a.ServerError(err)
-				return
-			}
-			err = SqlHandleQuery(
-				db, q, a,
-				tMap, tcMap, anyMap,
-			)
-			if err != nil {
-				a.ServerError(err)
-				return
-			}
+		err := dec.Decode(&q)
+		if err == io.EOF {
+			return
+		} else if err != nil {
+			fmt.Println(err)
+			enc := gob.NewEncoder(a.W)
+			enc.Encode(ErrorSqlResponseType)
+			enc.Encode(err)
+
+			return
+		}
+
+		err = SqlHandleQuery(
+			db, q, a,
+			tMap, tcMap, anyMap,
+		)
+		if err != nil {
+			fmt.Println(err)
+			enc := gob.NewEncoder(a.W)
+			enc.Encode(ErrorSqlResponseType)
+			enc.Encode(err)
+
+			return
 		}
 	}
 
@@ -55,6 +88,8 @@ func Sql(
 			"POST" : postHndl,
 		},
 	}
+
+	SqlGobRegister()
 
 	return def
 }
@@ -102,6 +137,7 @@ func SqlHandleQuery(
 		}
 
 		enc := gob.NewEncoder(a.W)
+		enc.Encode(RowsSqlResponseType)
 		for v := range values {
 			err = enc.Encode(v)
 			if err != nil {
@@ -109,7 +145,23 @@ func SqlHandleQuery(
 			}
 		}
 	default :
-		return sqlx.UnknownQueryTypeErr
+
+		result, _, err := db.Do(q)
+		if err != nil {
+			return err
+		}
+
+		r := sqlx.Result{}
+		r.LastInsertId, _ = result.LastInsertId()
+		r.RowsAffected, _ = result.RowsAffected()
+
+		enc := gob.NewEncoder(a.W)
+		enc.Encode(ResultSqlResponseType)
+
+		err = enc.Encode(r)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
