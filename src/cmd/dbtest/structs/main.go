@@ -12,7 +12,6 @@ type Test struct {
 	StringValue sql.NullString
 	NewValue sql.NullInt32
 	AnotherValue sql.NullInt32
-	Shit int
 }
 
 func (t Test)Sql() *sqlx.TableSchema {

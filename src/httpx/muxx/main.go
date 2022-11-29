@@ -49,6 +49,10 @@ func (a HndlArg)Values() url.Values {
 	return a.R.URL.Query()
 }
 
+func (a HndlArg)ServerError(err error) {
+	http.Error(a.W, err.Error(), http.StatusInternalServerError)
+}
+
 // Create final function handler.
 func MakeHttpHandleFunc(
 	pref string,

@@ -31,14 +31,16 @@ func Sql(
 		for {
 			err := dec.Decode(&q)
 			if err != nil {
-				break;
+				a.ServerError(err)
+				return
 			}
 			err = SqlHandleQuery(
 				db, q, a,
 				tMap, tcMap, anyMap,
 			)
 			if err != nil {
-				break
+				a.ServerError(err)
+				return
 			}
 		}
 	}

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"regexp"
 	"fmt"
-	"log"
 	"encoding/json"
 	//"reflect"
 )
@@ -112,21 +111,19 @@ return func(a muxx.HndlArg) {
 	
 	q, err := args.SqlGetQuery(ts, cMap)
 	if err != nil {
-		log.Println(err)
-		a.NotFound()
+		a.ServerError(err)
 		return
 	}
 
 	_, rows, err := db.Do(q)
 	if err != nil {
-		log.Println(err)
-		a.NotFound()
+		a.ServerError(err)
 		return
 	}
 	defer rows.Close()
 
 	if err != nil {
-		a.NotFound()
+		a.ServerError(err)
 		return
 	}
 
@@ -137,7 +134,7 @@ return func(a muxx.HndlArg) {
 		rc,
 	)
 	if err != nil {
-		a.NotFound()
+		a.ServerError(err)
 		return
 	}
 
