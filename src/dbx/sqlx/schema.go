@@ -20,6 +20,8 @@ type TableSchema struct {
 }
 
 type TableSchemas []*TableSchema
+// Useful type.
+type TableSchemaMap map[ColumnName] *Column
 
 type KeyType int
 type Key struct {

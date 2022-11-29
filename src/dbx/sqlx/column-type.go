@@ -12,16 +12,16 @@ type ColumnType struct {
 	Args []int
 }
 
+
 const (
 	NoColumnVarType = iota
-	BoolColumnVaryType
-	IntColumnVarType
-	SmallintColumnVarType
-
-	BigintColumnVarType
-
+	BoolColumnVarType
 	BitColumnVarType
+
 	TinyintColumnVarType
+	SmallintColumnVarType
+	IntColumnVarType
+	BigintColumnVarType
 
 	DoubleColumnVarType
 	FloatColumnVarType
@@ -50,6 +50,19 @@ const (
 	BlobColumnVarType
 	XmlColumnVarType
 	JsonColumnVarType
+)
+
+const (
+	NoSqlType SqlType = iota
+	BoolSqlType
+	ByteSqlType
+	Int16SqlType
+	Int32SqlType
+	Int64SqlType
+	Float64SqlType
+	StringSqlType
+	TimeSqlType
+	RawBytesSqlType
 )
 
 var (
@@ -109,4 +122,3 @@ func (ct ColumnType)Double() ColumnType {
 	ct.Args = []int{16, 2}
 	return ct
 }
-

@@ -10,8 +10,7 @@ import (
 	"regexp"
 	"fmt"
 	"log"
-	//"encoding/json"
-	"encoding/gob"
+	"encoding/json"
 	//"reflect"
 )
 
@@ -138,17 +137,28 @@ return func(a muxx.HndlArg) {
 		tsMap,
 		rc,
 	)
+	if err != nil {
+		a.NotFound()
+		return
+	}
+
+
+	ret := []any{}
+	for v := range values {
+		ret = append(ret, v)
+	}
+
+	bts, err := json.Marshal(ret)
+	if err != nil {
+		a.NotFound()
+		return
+	}
 
 	a.W.Header().Set(
 		"Content-Type",
-		"application/gob",
+		"application/json",
 	)
-
-	
-	enc := gob.NewEncoder(a.W)
-	for v := range values {
-		enc.Encode(v)
-	}
+	a.W.Write(bts)
 }}
 
 func SqlMakePostHandler(

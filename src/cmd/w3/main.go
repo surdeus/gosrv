@@ -294,7 +294,6 @@ func main(){
 	for _, v := range sqlers {
 		anys = append(anys, any(v))
 	}
-	db.Migrate(sqlers)
 
 	defs := []muxx.HndlDef {
 		{
@@ -349,54 +348,7 @@ func main(){
 	}
 
 	sessions = authx.New()
-
 	fmt.Printf("%v\n", users)
-
-	q := sqlx.Query{
-		DB: db,
-		Type: sqlx.SelectQueryType,
-		From: sqlx.TableName("Tests"),
-		ColumnNames: sqlx.ColumnNames {
-			"DickValue",
-			"StringValue",
-		},
-		Where: []sqlx.Condition {
-			{
-				Op: sqlx.GtConditionOp,
-				Values: [2]sqlx.RawValuer{
-					sqlx.RawValue("DickValue"),
-					sqlx.Int(5),
-				},
-			},
-			{
-				Op: sqlx.EqConditionOp,
-				Values: [2]sqlx.RawValuer{
-					sqlx.RawValue("StringValue"),
-					sqlx.String("value"),
-				},
-			},
-		},
-	}
-	qs, err := q.SqlCode(db)
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Printf("%q\n", qs)
-	}
-	rows, err := q.Do()
-	if err != nil {
-		log.Println(err)
-	} else {
-		var (
-			i int
-			s string
-		)
-		fmt.Println("in")
-		for rows.Next() {
-			rows.Scan(&i, &s)
-			fmt.Printf("%d %q\n", i, s)
-		}
-	}
 
 	log.Printf("%s: Trying to run on '%s'...\n",
 		os.Args[0],

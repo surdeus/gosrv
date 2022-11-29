@@ -102,7 +102,7 @@ func (args Args)SqlColumns(
 }
 
 func (args Args)SqlConditions(
-	tsMap map[ColumnName] *Column,
+	tsMap map[sqlx.ColumnName] *sqlx.Column,
 ) (sqlx.Conditions, error) {
 	cs := sqlx.Conditions{}
 	for k, arg := range args {
@@ -114,17 +114,31 @@ func (args Args)SqlConditions(
 			return sqlx.Conditions{},
 				WrongSplitOperatorFormatErr
 		}
-		name := arg.Splits[0]
+		name := sqlx.ColumnName(arg.Splits[0])
 		opStr := arg.Splits[1]
 
 		op, _ := sqlx.
 			ConditionOpStringMap[opStr]
 
+		column, ok := tsMap[name]
+		if !ok {
+			return sqlx.Conditions{},
+				sqlx.ColumnDoesNotExistErr
+		}
+
+		vartype := column.Type.VarType
+		values := sqlx.Valuers{}
+		for _, val := range arg.Values {
+			v, err := sqlx.StringToValuer(val, vartype)
+			if err != nil {
+				return sqlx.Conditions{}, err
+			}
+			values = append(values, v)
+		}
 		c := sqlx.Condition {
 			Column: sqlx.ColumnName(name),
 			Op: op,
-			Values: sqlx.Valuer{ sqlx.Raw(name),
-			},
+			Values: values,
 		}
 
 		cs = append(cs, c)
