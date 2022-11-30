@@ -2,7 +2,5 @@ github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfC
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
 github.com/golang-jwt/jwt v3.2.2+incompatible/go.mod h1:8pz2t5EyA70fFQQSrl6XZXzqecmYZeUEB8OUGHkxJ+I=
-github.com/surdeus/godat v0.0.0-20221125141225-0a23c4a5a4bc h1:Y71TCBlwT4ny6ZcWYX/sxkPnahehMKx6XlFhwMEPYak=
-github.com/surdeus/godat v0.0.0-20221125141225-0a23c4a5a4bc/go.mod h1:M9REw9CRE1uXz2m2sBTog1Ze85/KY5W7ymn+q+d2jRI=
 github.com/surdeus/godat v0.0.0-20221127191620-28536eb2e051 h1:03FZ9aiJoo6V3KP3l87RqU3TuAhgTQ5b7B1+joRVs8M=
 github.com/surdeus/godat v0.0.0-20221127191620-28536eb2e051/go.mod h1:M9REw9CRE1uXz2m2sBTog1Ze85/KY5W7ymn+q+d2jRI=
