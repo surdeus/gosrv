@@ -204,7 +204,7 @@ func SqlQuery(
 					Indirect(
 						reflect.
 						ValueOf(rc),
-					)
+					).Interface()
 			}
 			close(chn)
 		}()

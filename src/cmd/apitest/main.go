@@ -25,8 +25,10 @@ func main() {
 		panic(err)
 	}
 
+	var buf structs.Test
 	for v := range rs {
-		fmt.Println(v)
+		buf = v.(structs.Test)
+		fmt.Println(buf)
 	}
 
 	q = sqlx.Q().
