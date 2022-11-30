@@ -10,10 +10,8 @@ import (
 )
 
 func main() {
-	apix.SqlGobRegister(
-		structs.Structs,
-	)
-	/*q := sqlx.Q().
+	apix.SqlGobRegister()
+	q := sqlx.Q().
 		Select("DickValue", "StringValue").
 		From("Tests")
 		//Where("DickValue", sqlx.Eq, sqlx.Int(5))
@@ -29,9 +27,9 @@ func main() {
 
 	for v := range rs {
 		fmt.Println(v)
-	}*/
+	}
 
-	q := sqlx.Q().
+	q = sqlx.Q().
 		Insert("DickValue").
 		Into("Tests").
 		Values(sqlx.Int(1377))

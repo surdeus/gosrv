@@ -12,7 +12,7 @@ type Test struct {
 	DickValue sql.NullInt32
 	StringValue sql.NullString
 	NewValue sql.NullInt32
-	AnotherValue sql.NullInt32
+	AnotherValue sql.NullFloat64
 }
 
 func (t Test)Sql() *sqlx.TableSchema {
@@ -45,7 +45,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Name: "AnotherValue",
 				Type: sqlx.CT().Double(),
 				Nullable: true,
-				Default: sqlx.Int(50),
+				Default: sqlx.Float(50),
 			},
 		},
 	}

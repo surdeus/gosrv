@@ -8,6 +8,10 @@ import (
 type Db struct {
 	*sql.DB
 	ConnConfig ConnConfig
+	Tables TableSchemas
+	TMap TableMap
+	TCMap TableColumnMap
+	AMap AnyMap
 }
 
 type ConnConfig struct {
@@ -27,13 +31,26 @@ func (c ConnConfig)String() string {
 	)
 }
 
-func Open(cfg ConnConfig) (*Db, error) {
+func Open(cfg ConnConfig, sqlers Sqlers) (*Db, error) {
 	db, err := sql.Open(cfg.Driver, cfg.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Db{db, cfg}, nil
+	if len(sqlers) < 1 {
+		return nil, NoTablesSpecifiedErr
+	}
+
+	tables := sqlers.Tables()
+	tMap := tables.TableMap()
+	tcMap := tables.TableColumnMap()
+	aMap := tables.AnyMap()
+
+	return &Db{
+		db, cfg,
+		tables, tMap, tcMap,
+		aMap,
+	}, nil
 }
 
 func (db *Db)Do(q Query) (sql.Result, *sql.Rows, error) {

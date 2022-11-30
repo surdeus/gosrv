@@ -18,10 +18,6 @@ import (
 )
 
 type SqlResponseType int
-type SqlConfig struct {
-	Db *sqlx.Db
-	Sqlers sqlx.Sqlers
-}
 
 const (
 	NoSqlResponseType SqlResponseType = iota
@@ -30,7 +26,7 @@ const (
 	ResultSqlResponseType
 )
 
-func SqlGobRegister(sqlers []any) {
+func SqlGobRegister() {
 	gob.Register(sqlx.Byte(0))
 	gob.Register(sqlx.Int16(0))
 	gob.Register(sqlx.Int32(0))
@@ -40,26 +36,15 @@ func SqlGobRegister(sqlers []any) {
 	gob.Register(sqlx.Time(time.Now()))
 	gob.Register(errors.New(""))
 	gob.Register(ErrorSqlResponseType)
-	for _, v := range sqlers {
+	/*for _, v := range db.AMap {
 		gob.Register(v)
-	}
+	}*/
 }
 
 func Sql(
 	pref string,
-	cfg SqlConfig,
+	db *sqlx.Db,
 ) muxx.HndlDef {
-	db := cfg.Db
-
-	tMap := cfg.Sqlers.TableMap()
-	tcMap := cfg.Sqlers.TableColumnMap()
-	anyMap := cfg.Sqlers.AnyMap()
-
-	anSlice := []any{}
-	for _, an := range anyMap {
-		anSlice = append(anSlice, an)
-	}
-
 	postHndl := func(a muxx.HndlArg){
 		dec := gob.NewDecoder(a.R.Body)
 		q := sqlx.Query{}
@@ -74,10 +59,7 @@ func Sql(
 			return
 		}
 
-		err = SqlHandleQuery(
-			db, q, a,
-			tMap, tcMap, anyMap,
-		)
+		err = SqlHandleQuery(db, q, a)
 		if err != nil {
 			enc := gob.NewEncoder(a.W)
 			enc.Encode(ErrorSqlResponseType)
@@ -95,7 +77,7 @@ func Sql(
 		},
 	}
 
-	SqlGobRegister(anSlice)
+	SqlGobRegister()
 
 	return def
 }
@@ -104,9 +86,6 @@ func SqlHandleQuery(
 	db *sqlx.Db,
 	q sqlx.Query,
 	a muxx.HndlArg,
-	tMap sqlx.TableMap,
-	tcMap sqlx.TableColumnMap,
-	anyMap sqlx.AnyMap,
 ) error {
 	_, err := q.SqlRaw(db)
 	if err != nil {
@@ -118,22 +97,10 @@ func SqlHandleQuery(
 
 		tname := q.GetTableName()
 
-		cMap, ok := tcMap[tname]
-		if !ok {
-			return sqlx.
-				TableDoesNotExistErr
-		}
-
-		an, ok := anyMap[tname]
-		if !ok {
-			return sqlx.
-				TableDoesNotExistErr
-		}
-
 		cnames := q.GetColumnNames()
 		if len(cnames) == 1 &&
 				cnames[0] == "*" {
-			cnames = tMap[tname].Columns.Names()
+			cnames = db.TMap[tname].Columns.Names()
 			q.ColumnNames = cnames
 		}
 
@@ -144,9 +111,8 @@ func SqlHandleQuery(
 
 		values, err := db.ReadRowValues(
 			rs,
+			tname,
 			cnames,
-			cMap,
-			an,
 		)
 		if err != nil {
 			return err

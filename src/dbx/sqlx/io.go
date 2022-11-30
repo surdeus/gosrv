@@ -8,10 +8,16 @@ import (
 
 func (db *Db)ReadRowValues(
 	rs *sql.Rows,
+	tname TableName,
 	cnames ColumnNames,
-	cMap map[ColumnName] *Column,
-	rc any,
 ) (chan any, error) {
+	cMap, ok := db.TCMap[tname]
+	if !ok {
+		return nil, TableDoesNotExistErr
+	}
+
+	rc := db.AMap[tname]
+
 	row := make([]any, len(cnames))
 	t := reflect.TypeOf(rc)
 	val := reflect.New(t)

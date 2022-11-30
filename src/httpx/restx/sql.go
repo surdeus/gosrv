@@ -129,9 +129,8 @@ return func(a muxx.HndlArg) {
 
 	values, err := db.ReadRowValues(
 		rows,
+		q.GetTableName(),
 		q.GetColumnNames(),
-		cMap,
-		rc,
 	)
 	if err != nil {
 		a.ServerError(err)

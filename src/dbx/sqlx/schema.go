@@ -14,30 +14,40 @@ const (
 	ForeignKeyType
 )
 
-func (sqlers Sqlers)TableMap() TableMap {
-	ret := make(TableMap)
+func (sqlers Sqlers)Tables() TableSchemas {
+	ret := TableSchemas{}
 	for _, sqler := range sqlers {
-		ts := sqler.Sql()
-		ret[ts.Name] = ts
+		t := sqler.Sql()
+		t.Value = any(sqler)
+		ret = append(ret, t)
 	}
 
 	return ret
 }
 
-func (sqlers Sqlers)AnyMap() AnyMap {
+func (tables TableSchemas)AnyMap() AnyMap {
 	ret := make(AnyMap)
-	for _, sqler := range sqlers {
-		ts := sqler.Sql()
-		ret[ts.Name] = any(sqler)
+	for _, table := range tables {
+		ret[table.Name] = table.Value
 	}
+
 	return ret
 }
 
-func (sqlers Sqlers)TableColumnMap() TableColumnMap {
+func (tables TableSchemas)TableMap() TableMap {
+	ret := make(TableMap)
+	for _, table := range tables {
+		ret[table.Name] = table
+	}
+
+	return ret
+}
+
+func (tables TableSchemas)TableColumnMap() TableColumnMap {
 	ret := make(TableColumnMap)
-	for _, sqler := range sqlers {
-		ts := sqler.Sql()
-		ret[ts.Name] = ts.Columns.ColumnMap()
+	for _, table := range tables {
+		ret[table.Name] =
+			table.Columns.ColumnMap()
 	}
 
 	return ret
@@ -51,7 +61,6 @@ func (cols Columns)ColumnMap() ColumnMap {
 
 	return ret
 }
-
 
 func (cs Columns)Names() ColumnNames {
 	ret := ColumnNames{}

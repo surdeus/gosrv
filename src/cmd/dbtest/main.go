@@ -5,10 +5,14 @@ import(
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	//"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
+	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 )
 
 func main(){
+	sqlers := []sqlx.Sqler{
+		structs.Test{},
+		structs.AnotherTest{},
+	}
 	db, err := sqlx.Open(
 		sqlx.ConnConfig{
 			Driver: "mysql",
@@ -18,16 +22,13 @@ func main(){
 			Port: 3306,
 			Name: "test",
 		},
+		sqlers,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	/*sqlers := []sqlx.Sqler{
-		structs.Test{},
-		structs.AnotherTest{},
-	}*/
 
 	/*err = db.Migrate(sqlers)
 	if err != nil{

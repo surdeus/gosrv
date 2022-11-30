@@ -19,71 +19,6 @@ import(
 	_ "github.com/go-sql-driver/mysql"
 )
 
-/*
-type Test struct {
-	Id int
-	Value int
-	StringValue string
-}
-func (t Test)Sql() sqlx.TableSchema {
-	return sqlx.TableSchema {
-		OldName: "NewTests",
-		Name: "Tests",
-		Columns: sqlx.Columns {
-			{
-				Name: "Id",
-				Type: "int(11)",
-				Nullable: false,
-				Key: sqlx.PrimaryKey(),
-				Extra: "auto_increment",
-			},{
-				OldName: "SuckValue",
-				Name: "DickValue",
-				Type: "int(11)",
-				Nullable: true,
-				Default: "25",
-			},{
-				Name: "StringValue",
-				Type: "varchar(64)",
-				Nullable: true,
-				Default: "'some русская string'",
-			},{
-				Name: "NewValue",
-				Type: "bigint(11)",
-				Nullable: true,
-				Default: "0",
-			},
-		},
-	}
-}
-
-type AnotherTest struct {
-	Id int
-	Value int
-	StringValue string
-}
-
-func (t AnotherTest)Sql() sqlx.TableSchema {
-	return sqlx.TableSchema {
-		OldName: "BetterTests",
-		Name: "AnotherTests",
-		Columns: sqlx.Columns {
-			{
-				Name: "Id",
-				Type: "int(11)",
-				Nullable: false,
-				Key: sqlx.PrimaryKey(),
-				//Extra: "auto_increment",
-			},{
-				Name: "AnotherValue",
-				Type: "int(11)",
-				Nullable: true,
-				Default: "25",
-			},
-		},
-	}
-}
-*/
 type Token string
 type Session struct {
 	Reloaded int
@@ -273,6 +208,10 @@ func main(){
 	authorize := muxx.Chain{Authorize}
 	unauthorize := muxx.Chain{Unauthorize}
 
+	sqlers := []sqlx.Sqler{
+		dbtest.Test{},
+		dbtest.AnotherTest{},
+	}
 	db, err := sqlx.Open(
 		sqlx.ConnConfig{
 			Driver: "mysql",
@@ -282,15 +221,12 @@ func main(){
 			Port: 3306,
 			Name: "test",
 		},
+		sqlers,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	sqlers := []sqlx.Sqler{
-		dbtest.Test{},
-		dbtest.AnotherTest{},
-	}
 	anys := []any{}
 	for _, v := range sqlers {
 		anys = append(anys, any(v))
@@ -310,7 +246,7 @@ func main(){
 			},
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
-		apix.Sql("/api/sql/", apix.SqlConfig{db, sqlers}),
+		apix.Sql("/api/sql/", db),
 		restx.Sql(db, "/api/", anys),
 	}
 

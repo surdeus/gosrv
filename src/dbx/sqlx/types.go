@@ -17,6 +17,7 @@ type TableSchema struct {
 	OldName TableName
 	Name TableName
 	Columns Columns
+	Value any
 }
 
 type Column struct {
