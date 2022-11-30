@@ -108,6 +108,7 @@ func SqlHandleQuery(
 		if err != nil {
 			return err
 		}
+		defer rs.Close()
 
 		values, err := db.ReadRowValues(
 			rs,
@@ -126,6 +127,7 @@ func SqlHandleQuery(
 				return err
 			}
 		}
+
 	default :
 
 		result, _, err := db.Do(q)
