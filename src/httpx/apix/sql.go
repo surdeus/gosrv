@@ -42,8 +42,8 @@ func SqlGobRegister() {
 }
 
 func Sql(
-	pref string,
 	db *sqlx.Db,
+	pref string,
 ) muxx.HndlDef {
 	postHndl := func(a muxx.HndlArg){
 		dec := gob.NewDecoder(a.R.Body)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"database/sql"
+	"strconv"
 )
 
 const (
@@ -211,7 +212,12 @@ func (db *Db)ColumnFromRaws(
 	if !def.Valid {
 		column.Default = nil
 	} else {
-		//column.Default = Raw(def.String)
+		valuer, err := StringToValuer(
+			def.String, column.Type.VarType)
+		if err != nil {
+			return nil, err
+		}
+		column.Default = valuer
 	}
 	column.Extra = Raw(extra)
 
@@ -379,17 +385,21 @@ func (db *Db)ParseColumnType(
 	if f {
 		argStr = argStr[:len(argStr)-1]
 	}
-	args := Rawers{}
+	args := []int{}
 	argStrs := strings.Split(
 		argStr,
 		",",
 	)
 	for _, v := range argStrs {
-		args = append(args, Raw(v))
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return ColumnType{}, err
+		}
+		args = append(args, i)
 	}
 
 	ret.VarType = varType
-	//ret.Args = args
+	ret.Args = args
 
 	return ret, nil
 }

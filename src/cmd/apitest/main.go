@@ -13,8 +13,8 @@ func main() {
 	apix.SqlGobRegister()
 	q := sqlx.Q().
 		Select("DickValue", "StringValue").
-		From("Tests")
-		//Where("DickValue", sqlx.Eq, sqlx.Int(5))
+		From("Tests").
+		Where("DickValue", sqlx.Eq, sqlx.Int(5))
 
 	_, rs, err := apix.SqlQuery(
 		"http://localhost:8080/api/sql/",

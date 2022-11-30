@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"github.com/surdeus/gosrv/src/httpx/muxx"
-	"github.com/surdeus/godat/src/slicex"
+	//"github.com/surdeus/godat/src/slicex"
 	//"github.com/surdeus/gosrv/src/urlx"
 	"strings"
 	"regexp"
@@ -16,13 +16,12 @@ import (
 func Sql(
 	db *sqlx.Db,
 	pref string,
-	sqlers []any,
 ) muxx.HndlDef {
 	ret := muxx.HndlDef{}
 	ret.Pref = pref
 	ret.Re = ""
 	ret.Handlers = muxx.Handlers {
-		"" : SqlHandler(db, pref, sqlers),
+		"" : SqlHandler(db, pref),
 	}
 
 	return ret
@@ -33,21 +32,15 @@ func Sql(
 func SqlHandler(
 	db *sqlx.Db,
 	pref string,
-	rcs []any,
 ) muxx.Handler {
-	schemas := sqlx.TableSchemas{}
-	for _, sqler := range rcs {
-		ts := sqler.(sqlx.Sqler).Sql()
-		schemas = append(schemas, ts)
-	}
+	schemas := db.Tables
 
 	mp := make(map[sqlx.TableName] http.HandlerFunc)
-	for i, schema := range schemas {
+	for _, schema := range schemas {
 		mp[schema.Name] = MakeSqlTableHandler(
 			db,
 			pref + string(schema.Name) + "/",
 			schema,
-			rcs[i],
 		)
 	}
 	return func(
@@ -68,26 +61,19 @@ func MakeSqlTableHandler(
 	db *sqlx.Db,
 	pref string,
 	ts *sqlx.TableSchema,
-	rc any,
 ) http.HandlerFunc {
 	_, _, err := ts.PrimaryKeyColumn()
 	if err != nil {
 		panic(err)
 	}
 
-	tsMap := slicex.MakeMap(
-		ts.Columns,
-		func(cols []*sqlx.Column, i int) sqlx.ColumnName {
-			return cols[i].Name
-		},
-	)
 	cfg := StdArgCfg()
 	handlers := muxx.Handlers {
-		"GET" : SqlMakeGetHandler(db, ts, cfg, tsMap, rc),
-		"POST" : SqlMakePostHandler(db, ts, cfg, rc),
-		"PUT" : SqlMakePutHandler(db, ts, cfg, rc),
-		"PATCH" : SqlMakePatchHandler(db, ts, cfg, rc),
-		"DELETE" : SqlMakeDeleteHandler(db, ts, cfg, rc),
+		"GET" : SqlMakeGetHandler(db, ts, cfg),
+		"POST" : SqlMakePostHandler(db, ts, cfg),
+		"PUT" : SqlMakePutHandler(db, ts, cfg),
+		"PATCH" : SqlMakePatchHandler(db, ts, cfg),
+		"DELETE" : SqlMakeDeleteHandler(db, ts, cfg),
 	}
 
 	fin := muxx.MakeHttpHandleFunc(
@@ -103,10 +89,9 @@ func SqlMakeGetHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	cMap map[sqlx.ColumnName] *sqlx.Column,
-	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
+	cMap := db.TCMap[ts.Name]
 	args := cfg.ParseValues(a.Values())
 	
 	q, err := args.SqlGetQuery(ts, cMap)
@@ -160,7 +145,6 @@ func SqlMakePostHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in posting handler")
@@ -170,7 +154,6 @@ func SqlMakePutHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in putting handler")
@@ -180,7 +163,6 @@ func SqlMakePatchHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in patching handler")
@@ -190,7 +172,6 @@ func SqlMakeDeleteHandler(
 	db *sqlx.Db,
 	ts *sqlx.TableSchema,
 	cfg *ArgCfg,
-	rc any,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
 	fmt.Println("in deleting handler")

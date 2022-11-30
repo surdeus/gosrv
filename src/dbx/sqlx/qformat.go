@@ -132,6 +132,7 @@ func alterColumnType(
 		q.TableNames[0],
 		rcode,
 	)
+	fmt.Printf("%q\n", buf)
 
 	return Raw(buf), nil
 }

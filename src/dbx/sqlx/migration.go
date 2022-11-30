@@ -1,10 +1,9 @@
 package sqlx
 
 import (
-	//"fmt"
-	//"errors"
+	"errors"
 )
-/*
+
 type ColumnDiff int
 
 const (
@@ -21,7 +20,7 @@ var (
 	OldAndNewTablesExistErr = errors.New("old and new tables exist")
 )
 
-func (db *Db)CompareColumns(
+/*func (db *Db)CompareColumns(
 	c1, c2 *Column,
 ) (ColumnDiff, error) {
 
@@ -65,19 +64,17 @@ func (db *Db)CompareColumns(
 	return NoColumnDiff, nil
 }
 
+*/
+
 // Simple migration. Fuck writing much of shit in SQL directly.
 
-func (db *Db)Migrate(sqlers []Sqler) error {
+func (db *Db)Migrate() error {
 	var err error
 
-	//curSchemas, err := db.GetTableSchemas()
 	if err != nil {
 		return err
 	}
-	schemas := TableSchemas{}
-	for _, sqler := range sqlers {
-		schemas = append(schemas, sqler.Sql())
-	}
+	schemas := db.Tables
 
 	for _, schema := range schemas {
 		err = db.MigrateSchema(schema)
@@ -103,6 +100,7 @@ func (db *Db)MigrateSchema(
 
 		return err
 	}
+
 
 
 	for _, c := range schema.Columns {
@@ -237,4 +235,4 @@ func (db *Db)MigrateRenameTable(
 
 	return nil
 }
-*/
+

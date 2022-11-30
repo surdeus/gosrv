@@ -227,9 +227,9 @@ func main(){
 		log.Fatal(err)
 	}
 	defer db.Close()
-	anys := []any{}
-	for _, v := range sqlers {
-		anys = append(anys, any(v))
+	err = db.Migrate()
+	if err != nil {
+		panic(err)
 	}
 
 	defs := []muxx.HndlDef {
@@ -246,8 +246,8 @@ func main(){
 			},
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
-		apix.Sql("/api/sql/", db),
-		restx.Sql(db, "/api/", anys),
+		apix.Sql(db, "/api/sql/"),
+		restx.Sql(db, "/api/"),
 	}
 
 	mux := muxx.Define(nil, defs)

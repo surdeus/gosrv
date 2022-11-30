@@ -31,7 +31,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Default: sqlx.Int(5),
 			},{
 				Name: "StringValue",
-				Type: sqlx.CT().Varchar(32),
+				Type: sqlx.CT().Varchar(64),
 				Nullable: false,
 				Default: sqlx.String(
 					"some русская' string",
