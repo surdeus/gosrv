@@ -10,6 +10,11 @@ import (
 	"io"
 	"errors"
 	"time"
+	"log"
+	"bytes"
+	"net/http"
+	"reflect"
+	//"fmt"
 )
 
 type SqlResponseType int
@@ -25,7 +30,7 @@ const (
 	ResultSqlResponseType
 )
 
-func SqlGobRegister() {
+func SqlGobRegister(sqlers []any) {
 	gob.Register(sqlx.Byte(0))
 	gob.Register(sqlx.Int16(0))
 	gob.Register(sqlx.Int32(0))
@@ -35,6 +40,9 @@ func SqlGobRegister() {
 	gob.Register(sqlx.Time(time.Now()))
 	gob.Register(errors.New(""))
 	gob.Register(ErrorSqlResponseType)
+	for _, v := range sqlers {
+		gob.Register(v)
+	}
 }
 
 func Sql(
@@ -47,8 +55,9 @@ func Sql(
 	tcMap := cfg.Sqlers.TableColumnMap()
 	anyMap := cfg.Sqlers.AnyMap()
 
+	anSlice := []any{}
 	for _, an := range anyMap {
-		gob.Register(an)
+		anSlice = append(anSlice, an)
 	}
 
 	postHndl := func(a muxx.HndlArg){
@@ -86,7 +95,7 @@ func Sql(
 		},
 	}
 
-	SqlGobRegister()
+	SqlGobRegister(anSlice)
 
 	return def
 }
@@ -174,3 +183,71 @@ func SqlHandleQuery(
 	return nil
 }
 
+func SqlQuery(
+	u string,
+	q sqlx.Query,
+	rc any,
+) (sqlx.Result, chan any, error) {
+	nilRes := sqlx.Result{}
+	bts := bytes.NewBuffer([]byte{})
+	enc := gob.NewEncoder(bts)
+
+	err := enc.Encode(q)
+	if err != nil {
+		return nilRes, nil, err
+	}
+	resp, err := http.Post(
+		u,
+		"application/gob",
+		bts)
+	if err != nil {
+		return nilRes, nil, err
+	}
+
+	dec := gob.NewDecoder(resp.Body)
+
+	typ := NoSqlResponseType
+	err = dec.Decode(&typ)
+	if err != nil {
+		println(err.Error())
+		return nilRes, nil, err
+	}
+
+	switch typ {
+	case ErrorSqlResponseType :
+		var errbuf string
+		err = dec.Decode(&errbuf)
+		if err != nil {
+			return nilRes, nil, err
+		}
+		err = errors.New(errbuf)
+		return nilRes, nil, err
+	case RowsSqlResponseType :
+		chn := make(chan any)
+		go func() {
+			for {
+				err = dec.Decode(rc)
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					log.Println(err)
+				}
+				chn <- reflect.
+					Indirect(
+						reflect.
+						ValueOf(rc),
+					)
+			}
+			close(chn)
+		}()
+		return nilRes, chn, nil
+	case ResultSqlResponseType :
+		var buf sqlx.Result
+		err = dec.Decode(&buf)
+		if err != nil {
+			return nilRes, nil, err
+		}
+		return buf, nil, nil
+	}
+	return nilRes, nil, nil
+}

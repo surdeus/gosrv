@@ -3,6 +3,7 @@ package structs
 import (
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"database/sql"
+	//"reflect"
 )
 
 
@@ -75,3 +76,7 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 		},
 	}
 }
+
+var (
+	Structs = []any{Test{}, AnotherTest{}}
+)
