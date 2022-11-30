@@ -101,8 +101,6 @@ func (db *Db)MigrateSchema(
 		return err
 	}
 
-
-
 	for _, c := range schema.Columns {
 		var err error
 		exists, err := db.ColumnExists(schema.Name, c.Name)
@@ -134,27 +132,30 @@ func (db *Db)MigrateSchema(
 
 func (db *Db)MigrateAlterColumnType(
 	tableName TableName,
-	column *Column,
+	newCol *Column,
 ) (error) {
-	curSchema, err := db.GetColumnSchema(
-		tableName, column.Name,
+	curCol, err := db.GetColumnSchema(
+		tableName, newCol.Name,
 	)
 	if err != nil {
 		return err
 	}
 
-	curSql, err := db.ColumnToAlterSql(curSchema)
+	curSql, err := db.ColumnToAlterSql(curCol)
 	if err != nil {
 		return err
 	}
 
-	newSql, err := db.ColumnToAlterSql(column)
+	newSql, err := db.ColumnToAlterSql(newCol)
 	if err != nil {
 		return err
 	}
 
-	if curSql != newSql {
-		err = db.AlterColumnType(tableName, column)
+	if curSql != newSql ||
+			curCol.Default != newCol.Default {
+		err = db.AlterColumnType(
+			tableName, newCol,
+		)
 		if err != nil {
 			return err
 		}

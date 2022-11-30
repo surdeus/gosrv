@@ -1,7 +1,7 @@
 package sqlx
 
 import (
-	"fmt"
+	//"fmt"
 )
 
 func Q() Query {
@@ -129,7 +129,6 @@ func (q Query)GetValues() []any {
 		return vals
 	case AlterColumnTypeQueryType :
 		vals := []any{q.Columns[0].Default}
-		fmt.Printf("%q\n", q.Columns[0].Default)
 		return vals
 	default:
 		return []any{}

@@ -448,7 +448,6 @@ func (db *Db)GetColumnsByTableName(name TableName) (Columns, error) {
 	}
 
 
-	fmt.Println("returning")
 	return ret, nil
 }
 
