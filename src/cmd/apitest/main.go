@@ -44,4 +44,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(res)
+
+	fmt.Println(
+	sqlx.ValuerToString(sqlx.Null()),
+	sqlx.ValuerToString(sqlx.Int(53)))
 }

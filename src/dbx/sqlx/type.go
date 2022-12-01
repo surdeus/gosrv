@@ -94,11 +94,12 @@ func StringToValuer(
 func ValuerIsValid(v Valuer) bool {
 	val := reflect.ValueOf(v)
 	return val.FieldByName("Valid").
-		Interface()
+		Interface().(bool)
 }
 
 func ValuerToString(
 	v Valuer,
+	format ...any,
 ) string {
 	if !ValuerIsValid(v) {
 		return "null"
@@ -110,22 +111,24 @@ func ValuerToString(
 		return strconv.FormatBool(vs.Bool)
 	case sql.NullByte :
 		vs := v.(sql.NullByte)
-		return strconv.FormatInt(vs.Byte, 10)
+		return strconv.FormatInt(int64(vs.Byte), 10)
 	case sql.NullInt16 :
 		vs := v.(sql.NullInt16)
-		return strconv.FormatInt(vs.Int16, 10)
+		return strconv.FormatInt(int64(vs.Int16), 10)
 	case sql.NullInt32 :
 		vs := v.(sql.NullInt32)
-		return strconv.FormatInt(vs.Int32, 10)
+		return strconv.FormatInt(int64(vs.Int32), 10)
 	case sql.NullInt64 :
 		vs := v.(sql.NullInt64)
 		return strconv.FormatInt(vs.Int64, 10)
 	case sql.NullFloat64 :
-		vs := v.(sql.NullBool)
-		return strconv.FormatFloat(vs.Bool)
+		vs := v.(sql.NullFloat64)
+		return strconv.FormatFloat(
+			vs.Float64,
+			'f', 5, 64 )
 	case sql.NullString :
-		vs := v.(sql.NullBool)
-		return strconv.FormatBool(vs.Bool)
+		vs := v.(sql.NullString)
+		return vs.String
 	case sql.NullTime :
 		vs := v.(sql.NullBool)
 		return strconv.FormatBool(vs.Bool)
