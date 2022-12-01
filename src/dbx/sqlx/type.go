@@ -8,6 +8,7 @@ import (
 	"time"
 	"strconv"
 	"errors"
+	"reflect"
 )
 
 func Bool(b bool) sql.NullBool {
@@ -89,4 +90,48 @@ func StringToValuer(
 	}
 
 }
+
+func ValuerIsValid(v Valuer) bool {
+	val := reflect.ValueOf(v)
+	return val.FieldByName("Valid").
+		Interface()
+}
+
+func ValuerToString(
+	v Valuer,
+) string {
+	if !ValuerIsValid(v) {
+		return "null"
+	}
+ 
+	switch v.(type) {
+	case sql.NullBool :
+		vs := v.(sql.NullBool)
+		return strconv.FormatBool(vs.Bool)
+	case sql.NullByte :
+		vs := v.(sql.NullByte)
+		return strconv.FormatInt(vs.Byte, 10)
+	case sql.NullInt16 :
+		vs := v.(sql.NullInt16)
+		return strconv.FormatInt(vs.Int16, 10)
+	case sql.NullInt32 :
+		vs := v.(sql.NullInt32)
+		return strconv.FormatInt(vs.Int32, 10)
+	case sql.NullInt64 :
+		vs := v.(sql.NullInt64)
+		return strconv.FormatInt(vs.Int64, 10)
+	case sql.NullFloat64 :
+		vs := v.(sql.NullBool)
+		return strconv.FormatFloat(vs.Bool)
+	case sql.NullString :
+		vs := v.(sql.NullBool)
+		return strconv.FormatBool(vs.Bool)
+	case sql.NullTime :
+		vs := v.(sql.NullBool)
+		return strconv.FormatBool(vs.Bool)
+	default :
+		return ""
+	}
+}
+
 
