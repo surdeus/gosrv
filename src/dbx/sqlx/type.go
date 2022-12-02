@@ -97,6 +97,41 @@ func ValuerIsValid(v Valuer) bool {
 		Interface().(bool)
 }
 
+func ValueOf(v Valuer) any {
+	if !ValuerIsValid(v) {
+		return nil
+	}
+ 
+	switch v.(type) {
+	case sql.NullBool :
+		vs := v.(sql.NullBool)
+		return vs.Bool
+	case sql.NullByte :
+		vs := v.(sql.NullByte)
+		return vs.Byte
+	case sql.NullInt16 :
+		vs := v.(sql.NullInt16)
+		return vs.Int16
+	case sql.NullInt32 :
+		vs := v.(sql.NullInt32)
+		return vs.Int32
+	case sql.NullInt64 :
+		vs := v.(sql.NullInt64)
+		return vs.Int64
+	case sql.NullFloat64 :
+		vs := v.(sql.NullFloat64)
+		return vs.Float64
+	case sql.NullString :
+		vs := v.(sql.NullString)
+		return vs.String
+	case sql.NullTime :
+		vs := v.(sql.NullTime)
+		return vs.Time
+	}
+
+	return nil
+}
+
 func ValuerToString(
 	v Valuer,
 	format ...any,
