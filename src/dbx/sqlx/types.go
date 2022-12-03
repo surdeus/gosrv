@@ -18,6 +18,7 @@ type TableSchema struct {
 	Name TableName
 	Columns Columns
 	Value any
+	Reciever any
 }
 
 type Column struct {
