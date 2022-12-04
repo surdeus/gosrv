@@ -16,12 +16,11 @@ func (db *Db)ReadRowValues(
 		return nil, TableDoesNotExistErr
 	}
 
-	rc := db.AMap[tname]
+	rcType := db.TypeMap[tname]
 
 	row := make([]any, len(cnames))
-	t := reflect.TypeOf(rc)
-	val := reflect.New(t)
-	val = val.Elem()
+	val := reflect.New(rcType).Elem()
+	//val = val.Elem()
 	for i, v := range cnames {
 		f := val.FieldByName(string(v)).Addr()
 		_, ok := cMap[v]

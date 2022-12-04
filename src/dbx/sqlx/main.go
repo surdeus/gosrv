@@ -11,7 +11,7 @@ type Db struct {
 	Tables TableSchemas
 	TMap TableMap
 	TCMap TableColumnMap
-	AMap AnyMap
+	TypeMap TypeMap
 }
 
 type ConnConfig struct {
@@ -44,12 +44,12 @@ func Open(cfg ConnConfig, sqlers Sqlers) (*Db, error) {
 	tables := sqlers.Tables()
 	tMap := tables.TableMap()
 	tcMap := tables.TableColumnMap()
-	aMap := tables.AnyMap()
+	typeMap := tables.TypeMap()
 
 	return &Db{
 		db, cfg,
 		tables, tMap, tcMap,
-		aMap,
+		typeMap,
 	}, nil
 }
 

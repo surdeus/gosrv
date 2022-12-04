@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"database/sql/driver"
+	"reflect"
 )
 
 type Valuer = driver.Valuer
@@ -17,8 +18,7 @@ type TableSchema struct {
 	OldName TableName
 	Name TableName
 	Columns Columns
-	Value any
-	Reciever any
+	Type reflect.Type
 }
 
 type Column struct {
@@ -37,7 +37,7 @@ type TableSchemas []*TableSchema
 type ColumnMap map[ColumnName] *Column
 type TableMap map[TableName] *TableSchema
 type TableColumnMap map[TableName] ColumnMap
-type AnyMap map[TableName] any
+type TypeMap map[TableName] reflect.Type
 
 type KeyType int
 type Key struct {

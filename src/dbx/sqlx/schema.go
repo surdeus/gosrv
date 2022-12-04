@@ -6,6 +6,7 @@ import (
 	"log"
 	"database/sql"
 	"strconv"
+	"reflect"
 )
 
 const (
@@ -15,21 +16,30 @@ const (
 	ForeignKeyType
 )
 
+func TableBySqler(sqler Sqler) *TableSchema {
+	ret := sqler.Sql()
+
+	if ret.Type == nil {
+		ret.Type = reflect.TypeOf(sqler)
+	}
+
+	return ret
+}
+
 func (sqlers Sqlers)Tables() TableSchemas {
 	ret := TableSchemas{}
 	for _, sqler := range sqlers {
-		t := sqler.Sql()
-		t.Value = any(sqler)
+		t := TableBySqler(sqler)
 		ret = append(ret, t)
 	}
 
 	return ret
 }
 
-func (tables TableSchemas)AnyMap() AnyMap {
-	ret := make(AnyMap)
+func (tables TableSchemas)TypeMap() TypeMap {
+	ret := make(TypeMap)
 	for _, table := range tables {
-		ret[table.Name] = table.Value
+		ret[table.Name] = table.Type
 	}
 
 	return ret

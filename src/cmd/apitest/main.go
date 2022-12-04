@@ -7,19 +7,19 @@ import (
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 	"github.com/surdeus/gosrv/src/httpx/apix"
+	"reflect"
 )
 
 func main() {
 	apix.SqlGobRegister()
 	q := sqlx.Q().
 		Select("DickValue", "StringValue").
-		From("Tests").
-		Where("DickValue", sqlx.Eq, sqlx.Int(5))
+		From("Tests")
 
 	_, rs, err := apix.SqlQuery(
 		"http://localhost:8080/api/sql/",
 		q,
-		&structs.Test{},
+		reflect.TypeOf(structs.Test{}),
 	)
 	if err != nil {
 		panic(err)
@@ -38,7 +38,7 @@ func main() {
 	res, _, err := apix.SqlQuery(
 		"http://localhost:8080/api/sql/",
 		q,
-		&structs.Test{},
+		reflect.TypeOf(structs.Test{}),
 	)
 	if err != nil {
 		panic(err)

@@ -36,9 +36,6 @@ func SqlGobRegister() {
 	gob.Register(sqlx.Time(time.Now()))
 	gob.Register(errors.New(""))
 	gob.Register(ErrorSqlResponseType)
-	/*for _, v := range db.AMap {
-		gob.Register(v)
-	}*/
 }
 
 func Sql(
@@ -154,7 +151,7 @@ func SqlHandleQuery(
 func SqlQuery(
 	u string,
 	q sqlx.Query,
-	rc any,
+	rcType reflect.Type,
 ) (sqlx.Result, chan any, error) {
 	nilRes := sqlx.Result{}
 	bts := bytes.NewBuffer([]byte{})
@@ -166,7 +163,7 @@ func SqlQuery(
 	}
 	resp, err := http.Post(
 		u,
-		"application/gob",
+		"application/vaas",
 		bts)
 	if err != nil {
 		return nilRes, nil, err
@@ -193,18 +190,18 @@ func SqlQuery(
 	case RowsSqlResponseType :
 		chn := make(chan any)
 		go func() {
+			rc := reflect.
+				New(rcType)
 			for {
-				err = dec.Decode(rc)
+				err = dec.DecodeValue(rc)
 				if err == io.EOF {
 					break
 				} else if err != nil {
 					log.Println(err)
 				}
 				chn <- reflect.
-					Indirect(
-						reflect.
-						ValueOf(rc),
-					).Interface()
+					Indirect(rc).
+					Interface()
 			}
 			close(chn)
 		}()
