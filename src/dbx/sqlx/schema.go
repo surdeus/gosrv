@@ -23,6 +23,8 @@ func TableBySqler(sqler Sqler) *TableSchema {
 		ret.Type = reflect.TypeOf(sqler)
 	}
 
+	ret.ColMap = ret.Columns.ColumnMap()
+
 	return ret
 }
 

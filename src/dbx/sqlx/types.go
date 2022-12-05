@@ -18,6 +18,7 @@ type TableSchema struct {
 	OldName TableName
 	Name TableName
 	Columns Columns
+	ColMap ColumnMap
 	Type reflect.Type
 }
 
