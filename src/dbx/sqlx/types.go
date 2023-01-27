@@ -2,10 +2,23 @@ package sqlx
 
 import (
 	"database/sql/driver"
+	"database/sql"
 	"reflect"
 )
 
 type Valuer = driver.Valuer
+
+
+type NullByte = sql.NullByte
+type NullInt16 = sql.NullInt16
+type NullInt32 = sql.NullInt32
+type NullInt = NullInt32
+type NullInt64 = sql.NullInt64
+type NullString = sql.NullString
+type NullTime = sql.NullTime
+type NullFloat64 = sql.NullFloat64
+type NullFloat = NullFloat64
+
 type Valuers []Valuer
 type SqlType int
 

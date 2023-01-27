@@ -59,7 +59,7 @@ func main(){
 	q = sqlx.Q().
 		Insert("AnotherValue").
 		Into("AnotherTests").
-		Values(sqlx.Int(1))
+		Values(sqlx.Int(6))
 	_, _, err = db.Do(q)
 	if err != nil {
 		fmt.Println("err:", err)

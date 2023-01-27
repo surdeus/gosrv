@@ -67,10 +67,14 @@ func (db *Db)Do(
 		return nil, rs, err
 	case InsertQueryType :
 		v, err := db.ConstructInsertValue(q)
-		bef, ok := v.(interface{
+		if err != nil {
+			return nil, nil, err
+		}
+		bef, ok := any(v).(interface{
 			BeforeInsert(*Db) error
 		})
 
+		fmt.Println("do: in", ok)
 		if ok {
 			err := bef.BeforeInsert(db)
 			if err != nil {
@@ -83,7 +87,7 @@ func (db *Db)Do(
 			return nil, nil, err
 		}
 
-		aft, ok := v.(interface{
+		aft, ok := any(v).(interface{
 			AfterInsert(*Db)
 		})
 		if ok {

@@ -2,18 +2,18 @@ package structs
 
 import (
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"database/sql"
 	//"reflect"
 	"fmt"
+	"errors"
 )
 
 
 type Test struct {
-	Id sql.NullInt32
-	DickValue sql.NullInt32
-	StringValue sql.NullString
-	NewValue sql.NullInt32
-	AnotherValue sql.NullFloat64
+	Id sqlx.NullInt32
+	DickValue sqlx.NullInt32
+	StringValue sqlx.NullString
+	NewValue sqlx.NullInt32
+	AnotherValue sqlx.NullFloat64
 }
 
 func (t Test)Sql() *sqlx.TableSchema {
@@ -52,14 +52,10 @@ func (t Test)Sql() *sqlx.TableSchema {
 	}
 }
 
-func (t Test)AfterInsert(db *sqlx.Db) {
-	fmt.Println("inserted test")
-	fmt.Println(t)
-}
 
 type AnotherTest struct {
-	Id int
-	AnotherValue int
+	Id sqlx.NullInt
+	AnotherValue sqlx.NullInt
 }
 
 func (t AnotherTest)Sql() *sqlx.TableSchema {
@@ -83,6 +79,25 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 	}
 }
 
+func (t AnotherTest) BeforeInsert(
+	db *sqlx.Db,
+) error {
+	fmt.Println("in this shit")
+	if t.AnotherValue.Int32 > 5 {
+		return errors.New("suck it")
+	}
+
+	return nil
+}
+
+func (t AnotherTest) AfterInsert(db *sqlx.Db) {
+	fmt.Println("it must work")
+}
+
+func (t Test)AfterInsert(db *sqlx.Db) {
+	fmt.Println("inserted test")
+	fmt.Println(t)
+}
 
 var (
 	Structs = []any{Test{}, AnotherTest{}}
