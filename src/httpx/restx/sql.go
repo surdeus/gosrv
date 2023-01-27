@@ -91,7 +91,7 @@ func SqlMakeGetHandler(
 	cfg *ArgCfg,
 ) muxx.Handler {
 return func(a muxx.HndlArg) {
-	cMap := db.TCMap[ts.Name]
+	cMap := ts.ColMap
 	args := cfg.ParseValues(a.Values())
 	
 	q, err := args.SqlGetQuery(ts, cMap)

@@ -12,6 +12,9 @@ var (
 	WrongQueryInputFormatErr = errors.New(
 		"wrong query input format",
 	)
+	WrongTableOrColumnNameErr = errors.New(
+		"wrong table or column name",
+	)
 	WrongValuerFormatErr = errors.New("wrong valuer format")
 	UnknownQueryTypeErr = errors.New("unknown query type")
 	UnknownConditionOpErr = errors.New("unknown condition operator")
@@ -44,5 +47,6 @@ var (
 		"specified column already exists",
 	)
 	UnknownColumnType = errors.New("unknown column type")
+	NotAssignableErr = errors.New("types are not assignable")
 )
 

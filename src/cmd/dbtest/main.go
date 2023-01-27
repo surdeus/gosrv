@@ -54,10 +54,15 @@ func main(){
 		fmt.Println(id, dick, s)
 	}
 
-	q = sqlx.Q().DropPrimaryKey("Tests")
-	_, _, err = db.Do(q)
+	q = sqlx.Q().
+		Insert("DickValue").
+		Into("Tests").
+		Values(sqlx.Int64(1))
+	v, err := db.ConstructInsertValue(q)
 	if err != nil {
-		panic(err)
+		fmt.Println("err:", err)
+	} else {
+		fmt.Println("v:", v)
 	}
 }
 

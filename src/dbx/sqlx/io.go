@@ -11,10 +11,12 @@ func (db *Db)ReadRowValues(
 	tname TableName,
 	cnames ColumnNames,
 ) (chan any, error) {
-	cMap, ok := db.TCMap[tname]
+	t, ok := db.TMap[tname]
 	if !ok {
 		return nil, TableDoesNotExistErr
 	}
+
+	cMap := t.ColMap
 
 	rcType := db.TypeMap[tname]
 

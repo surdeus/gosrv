@@ -10,7 +10,7 @@ type Db struct {
 	ConnConfig ConnConfig
 	Tables TableSchemas
 	TMap TableMap
-	TCMap TableColumnMap
+	//TCMap TableColumnMap
 	TypeMap TypeMap
 }
 
@@ -43,17 +43,19 @@ func Open(cfg ConnConfig, sqlers Sqlers) (*Db, error) {
 
 	tables := sqlers.Tables()
 	tMap := tables.TableMap()
-	tcMap := tables.TableColumnMap()
 	typeMap := tables.TypeMap()
 
 	return &Db{
 		db, cfg,
-		tables, tMap, tcMap,
+		tables, tMap,
 		typeMap,
 	}, nil
 }
 
-func (db *Db)Do(q Query) (sql.Result, *sql.Rows, error) {
+func (db *Db)Do(
+	q Query,
+) (sql.Result, *sql.Rows, error) {
+	//var val Sqler
 	qs, err := q.SqlRaw(db)
 	if err != nil {
 		return nil, nil, err
@@ -63,9 +65,18 @@ func (db *Db)Do(q Query) (sql.Result, *sql.Rows, error) {
 	case SelectQueryType :
 		rs, err := db.DB.Query(string(qs), q.GetValues()...)
 		return nil, rs, err
+	case InsertQueryType :
 	}
 
 	res, err := db.DB.Exec(string(qs), q.GetValues()...)
-	return res, nil, err
+	if err != nil {
+		return nil, nil, err
+	}
+
+	switch q.Type {
+	case InsertQueryType :
+	}
+
+	return res, nil, nil
 }
 

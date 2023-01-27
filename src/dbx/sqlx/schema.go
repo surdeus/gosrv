@@ -16,6 +16,44 @@ const (
 	ForeignKeyType
 )
 
+func (db *Db) ConstructInsertValue(
+	q Query,
+) (Sqler, error) {
+	if q.Type != InsertQueryType {
+		return nil, nil
+	}
+
+	_, err := q.SqlRaw(db)
+	if err != nil {
+		return nil, err
+	}
+
+	tableName := q.TableNames[0]
+	columnNames := q.ColumnNames
+	valuers := q.Valuers
+	table, ok := db.TMap[tableName]
+	if !ok {
+		return nil, TableDoesNotExistErr
+	}
+
+	ret := reflect.New(table.Type).Elem()
+	for i, name := range columnNames {
+		f := ret.FieldByName(string(name))
+		v := valuers[i]
+
+		t1 := reflect.TypeOf(f.Interface())
+		t2 := reflect.TypeOf(v)
+
+		if !t1.AssignableTo(t2) {
+			return nil, NotAssignableErr
+		}
+
+		f.Set(reflect.ValueOf(valuers[i]))
+	}
+
+	return ret.Interface().(Sqler), nil
+}
+
 func TableBySqler(sqler Sqler) *TableSchema {
 	ret := sqler.Sql()
 
