@@ -54,15 +54,15 @@ func main(){
 		fmt.Println(id, dick, s)
 	}
 
+	err = db.Migrate()
+	fmt.Println("migrate:", err)
 	q = sqlx.Q().
-		Insert("DickValue").
-		Into("Tests").
-		Values(sqlx.Int64(1))
-	v, err := db.ConstructInsertValue(q)
+		Insert("AnotherValue").
+		Into("AnotherTests").
+		Values(sqlx.Int(1))
+	_, _, err = db.Do(q)
 	if err != nil {
 		fmt.Println("err:", err)
-	} else {
-		fmt.Println("v:", v)
-	}
+	} 
 }
 

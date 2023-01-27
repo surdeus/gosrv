@@ -269,7 +269,10 @@ func (db *Db)ColumnFromRaws(
 		}
 		column.Default = valuer
 	}
-	column.Extra = Raw(extra)
+
+	if extra == "auto_increment" {
+		column.Extra.AutoIncrement = true
+	}
 
 	return column, nil
 }
@@ -321,6 +324,8 @@ func (db *Db)GetColumnSchema(
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("extra: %q %q\n", cname, extra)
 
 	return db.ColumnFromRaws(
 		cname, t, nullable,
@@ -485,6 +490,7 @@ func (db *Db)GetColumnsByTableName(name TableName) (Columns, error) {
 			&extra,
 		)
 
+		log.Printf("extra2: %q %q\n", cname, extra)
 		column, err := db.ColumnFromRaws(
 			cname, t, nullable,
 			key, extra,
@@ -556,8 +562,8 @@ func (db *Db)ColumnToSql(f *Column) (Raw, error) {
 	default:
 	}
 
-	if f.Extra != "" {
-		ret += " " + f.Extra
+	if f.Extra.AutoIncrement {
+		ret += " auto_increment"
 	}
 	
 	if f.Default != nil {

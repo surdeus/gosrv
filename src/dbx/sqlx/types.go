@@ -29,7 +29,7 @@ type Column struct {
 	Nullable bool
 	Key Key
 	Default Valuer
-	Extra Raw
+	Extra ExtraColInfo
 }
 type Columns []*Column
 
@@ -43,6 +43,10 @@ type TypeMap map[TableName] reflect.Type
 type KeyType int
 type Key struct {
 	Type KeyType
+}
+
+type ExtraColInfo struct {
+	AutoIncrement bool
 }
 
 // The interface type must implement to be converted to

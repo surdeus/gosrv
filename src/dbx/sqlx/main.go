@@ -66,15 +66,36 @@ func (db *Db)Do(
 		rs, err := db.DB.Query(string(qs), q.GetValues()...)
 		return nil, rs, err
 	case InsertQueryType :
+		v, err := db.ConstructInsertValue(q)
+		bef, ok := v.(interface{
+			BeforeInsert(*Db) error
+		})
+
+		if ok {
+			err := bef.BeforeInsert(db)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+
+		res, err := db.DB.Exec(string(qs), q.GetValues()...)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		aft, ok := v.(interface{
+			AfterInsert(*Db)
+		})
+		if ok {
+			aft.AfterInsert(db)
+		}
+
+		return res, nil, nil
 	}
 
 	res, err := db.DB.Exec(string(qs), q.GetValues()...)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	switch q.Type {
-	case InsertQueryType :
 	}
 
 	return res, nil, nil

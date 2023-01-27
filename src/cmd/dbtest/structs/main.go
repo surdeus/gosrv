@@ -4,6 +4,7 @@ import (
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"database/sql"
 	//"reflect"
+	"fmt"
 )
 
 
@@ -23,7 +24,7 @@ func (t Test)Sql() *sqlx.TableSchema {
 				Name: "Id",
 				Type: sqlx.CT().Int(),
 				Key: sqlx.K().Primary(),
-				Extra: "auto_increment",
+				Extra: sqlx.E().AutoInc(true),
 			},{
 				Name: "DickValue",
 				Type: sqlx.CT().Int(),
@@ -51,6 +52,11 @@ func (t Test)Sql() *sqlx.TableSchema {
 	}
 }
 
+func (t Test)AfterInsert(db *sqlx.Db) {
+	fmt.Println("inserted test")
+	fmt.Println(t)
+}
+
 type AnotherTest struct {
 	Id int
 	AnotherValue int
@@ -66,7 +72,7 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 				Type: sqlx.CT().Int(),
 				Nullable: false,
 				Key: sqlx.K().Primary(),
-				//Extra: "auto_increment",
+				Extra: sqlx.E().AutoInc(true),
 			},{
 				Name: "AnotherValue",
 				Type: sqlx.CT().Int(),
@@ -76,6 +82,7 @@ func (t AnotherTest)Sql() *sqlx.TableSchema {
 		},
 	}
 }
+
 
 var (
 	Structs = []any{Test{}, AnotherTest{}}
