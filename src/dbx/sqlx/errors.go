@@ -34,6 +34,9 @@ var (
 	WrongColumnTypeFormatErr = errors.New(
 		"wrong column type format",
 	)
+	WrongConditionPairFormatErr = errors.New(
+		"wrong condition pair format",
+	)
 	TableDoesNotExistErr = errors.New(
 		"specified table does not exist",
 	)

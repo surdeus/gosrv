@@ -48,7 +48,7 @@ func (c ConditionOp)SqlRaw(db *Db) (Raw, error) {
 }
 
 func C() Condition {
-	return Condition{}
+	return Condition{Pair: make([]Condition, 2)}
 }
 
 
@@ -72,18 +72,17 @@ func (c Condition) opMul(
 
 	if len(cs) == 2 {
 		c.Op = op
-		c.Pair[0] = &cs[0]
-		c.Pair[1] = &cs[1]
+		c.Pair = []Condition{cs[0], cs[1]}
 		return c
 	}
 
 	c.Op = op
 
-	c.Pair[0] = &cs[0]
+	c.Pair[0] = cs[0]
 	cs = cs[1:]
 
 	cn := C().opMul(op, cs...)
-	c.Pair[1] = &cn
+	c.Pair[1] = cn
 
 	return c
 }
@@ -129,38 +128,35 @@ func (c Condition) C1(
 	name ColumnName,
 ) Condition {
 	c0 := C().C(name)
-	c.Pair[0] = &c0
+	c.Pair[0] = c0
 	return c
 }
 
 func (c Condition) C2(
 	name ColumnName,
 ) Condition {
-	c1 := C().C(name)
-	c.Pair[1] = &c1
+	c.Pair[1] = C().C(name)
 	return c
 }
 
 func (c Condition) V1(
 	v ...Valuer,
 ) Condition {
-	v0 := C().V(v...)
-	c.Pair[0] = &v0
+	c.Pair[0] = C().V(v...)
 	return c
 }
 
 func (c Condition) V2 (
 	v ...Valuer,
 ) Condition {
-	v1 := C().V(v...)
-	c.Pair[1] = &v1
+	c.Pair[1] = C().V(v...)
 	return c
 }
 
 func (c Condition) S (
 	c1, c2 Condition,
 ) Condition {
-	c.Pair = [2]*Condition{&c1, &c2}
+	c.Pair = []Condition{c1, c2}
 
 	return c
 }
@@ -170,6 +166,7 @@ func (c Condition) C(
 ) Condition {
 	c.Op = colOp
 	c.Column = name
+	c.Pair = []Condition{}
 	return c
 }
 
@@ -177,6 +174,7 @@ func (c Condition) V(
 	v ...Valuer,
 ) Condition {
 	c.Op = valOp
+	c.Pair = []Condition{}
 	c.Values = v
 	return c
 }
@@ -190,8 +188,11 @@ func (c Condition) values() Valuers {
 		return Valuers{}
 	}
 
-	ret := c.Pair[0].values()
-	ret = append(ret, c.Pair[1].values()...)
+	var ret Valuers
+	if len(c.Pair) == 2 {
+		ret = append(ret, c.Pair[0].values()...)
+		ret = append(ret, c.Pair[1].values()...)
+	}
 
 	return ret
 }
@@ -205,10 +206,14 @@ func (c Condition)SqlRaw(db *Db) (Raw, error) {
 		return c.Column.SqlRaw(db)
 	}
 
+	if len(c.Pair) != 2 {
+		return "", WrongConditionPairFormatErr
+	}
+
 	return db.Rprintf(
 		"(%s %s %s)",
-		*c.Pair[0],
+		c.Pair[0],
 		c.Op,
-		*c.Pair[1],
+		c.Pair[1],
 	)
 }

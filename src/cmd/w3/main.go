@@ -11,7 +11,7 @@ import(
 	"github.com/surdeus/gosrv/src/httpx/muxx"
 	"github.com/surdeus/gosrv/src/httpx/cookiex"
 	"github.com/surdeus/gosrv/src/authx"
-	"github.com/surdeus/gosrv/src/httpx/restx"
+	//"github.com/surdeus/gosrv/src/httpx/restx"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
 	"github.com/surdeus/gosrv/src/httpx/apix"
 	dbtest "github.com/surdeus/gosrv/src/cmd/dbtest/structs"
@@ -247,7 +247,7 @@ func main(){
 		},
 		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
 		apix.Sql(db, "/api/sql/"),
-		restx.Sql(db, "/api/"),
+		//restx.Sql(db, "/api/"),
 	}
 
 	mux := muxx.Define(nil, defs)

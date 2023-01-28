@@ -8,13 +8,26 @@ import (
 	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 	"github.com/surdeus/gosrv/src/httpx/apix"
 	"reflect"
+	"log"
 )
 
 func main() {
 	apix.SqlGobRegister()
 	q := sqlx.Q().
 		Select("DickValue", "StringValue").
-		From("Tests")
+		From("Tests").
+		Where(
+			sqlx.C().Eq().
+				C1("DickValue").
+				V2(sqlx.Int(1377)),
+		)
+
+	v, err := q.SqlRaw(nil)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println(v)
+	}
 
 	_, rs, err := apix.SqlQuery(
 		"http://localhost:8080/api/sql/",

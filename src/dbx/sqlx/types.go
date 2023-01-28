@@ -102,7 +102,7 @@ type Condition struct {
 	Op ConditionOp
 	Column ColumnName
 	Values Valuers
-	Pair [2]*Condition
+	Pair []Condition
 }
 type Conditions []Condition
 
