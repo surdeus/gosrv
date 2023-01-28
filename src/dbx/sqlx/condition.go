@@ -53,16 +53,45 @@ func C() Condition {
 
 
 func (c Condition)And(
-	c0, c1 Condition,
+	cs ...Condition,
 ) Condition {
-	c.Op = andOp
-		c.Pair = [2]*Condition{&c0, &c1}
+	return c.opMul(andOp, cs...)
+}
+
+func (c Condition) opMul(
+	op ConditionOp,
+	cs ...Condition,
+) Condition {
+	if len(cs) < 2 {
+		if len(cs) == 1 {
+			return cs[0]
+		} else {
+			C()
+		}
+	}
+
+	if len(cs) == 2 {
+		c.Op = op
+		c.Pair[0] = &cs[0]
+		c.Pair[1] = &cs[1]
+		return c
+	}
+
+	c.Op = op
+
+	c.Pair[0] = &cs[0]
+	cs = cs[1:]
+
+	cn := C().opMul(op, cs...)
+	c.Pair[1] = &cn
 
 	return c
 }
 
-func (c Condition)Or() Condition {
-	c.Op = orOp
+func (c Condition)Or(
+	cs ...Condition,
+) Condition {
+	c = c.opMul(orOp, cs...)
 	return c
 }
 

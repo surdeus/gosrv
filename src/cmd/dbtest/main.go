@@ -29,10 +29,13 @@ func main(){
 	}
 	defer db.Close()
 
-	c2 := sqlx.C().Eq().
-		V1(sqlx.Int(1377)).
-		C2("DickValue")
+	c2 := sqlx.C().And(
+		sqlx.C().Eq().
+			V1(sqlx.Int(1377)).
+			C2("DickValue"),
+	)
 
+	log.Printf("%v\n", c2)
 	r, err := c2.SqlRaw(db)
 	if err != nil {
 		log.Println(err)
@@ -41,7 +44,7 @@ func main(){
 	}
 
 	q := sqlx.Q().
-		Select("DickValue").
+		Select("DickValue", "Id").
 		From("Tests").
 		Where(c2)
 
@@ -51,9 +54,9 @@ func main(){
 	}
 
 	for rs.Next() {
-		var dick int
-		rs.Scan(&dick)
-		log.Println(dick)
+		var dick, id int
+		rs.Scan(&dick, &id)
+		log.Println(dick, id)
 	}
 	log.Println("done")
 }
