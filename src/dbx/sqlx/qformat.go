@@ -45,12 +45,12 @@ func selectQuery(
 	q Query,
 ) (Raw, error) {
 
-	if len(q.Conditions) >= 1 {
+	if q.Condition.Op != noOp {
 		return db.Rprintf(
 			"select %s from %s where %s ;",
 			q.ColumnNames,
 			q.TableNames[0],
-			q.Conditions,
+			q.Condition,
 		)
 	} else {
 		return db.Rprintf(

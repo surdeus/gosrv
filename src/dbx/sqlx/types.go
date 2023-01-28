@@ -8,7 +8,6 @@ import (
 
 type Valuer = driver.Valuer
 
-
 type NullByte = sql.NullByte
 type NullInt16 = sql.NullInt16
 type NullInt32 = sql.NullInt32
@@ -88,7 +87,7 @@ type Query struct {
 	TableNames TableNames
 	Columns Columns
 	ColumnTypes []ColumnType
-	Conditions Conditions
+	Condition Condition
 	Valuers Valuers
 }
 
@@ -100,9 +99,10 @@ type ColumnType struct {
 
 type ConditionOp int
 type Condition struct {
-	Column ColumnName
 	Op ConditionOp
+	Column ColumnName
 	Values Valuers
+	Pair [2]*Condition
 }
 type Conditions []Condition
 

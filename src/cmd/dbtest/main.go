@@ -1,7 +1,7 @@
 package main
 
 import(
-	"fmt"
+	//"fmt"
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/surdeus/gosrv/src/dbx/sqlx"
@@ -29,40 +29,32 @@ func main(){
 	}
 	defer db.Close()
 
+	c2 := sqlx.C().Eq().
+		V1(sqlx.Int(1377)).
+		C2("DickValue")
 
-	/*err = db.Migrate(sqlers)
-	if err != nil{
+	r, err := c2.SqlRaw(db)
+	if err != nil {
 		log.Println(err)
-	}*/
+	} else {
+		log.Printf("%q\n", r)
+	}
 
-	fmt.Println(err)
 	q := sqlx.Q().
-		Select("Id", "DickValue", "StringValue").
+		Select("DickValue").
 		From("Tests").
-		Where("StringValue", sqlx.Eq, sqlx.String("value"))
+		Where(c2)
+
 	_, rs, err := db.Do(q)
 	if err != nil {
-		panic(err)
-	}
-	defer rs.Close()
-	for rs.Next() {
-		var (
-			id, dick int
-			s string
-		)
-		rs.Scan(&id, &dick, &s)
-		fmt.Println(id, dick, s)
+		log.Fatal(err)
 	}
 
-	err = db.Migrate()
-	fmt.Println("migrate:", err)
-	q = sqlx.Q().
-		Insert("AnotherValue").
-		Into("AnotherTests").
-		Values(sqlx.Int(6))
-	_, _, err = db.Do(q)
-	if err != nil {
-		fmt.Println("err:", err)
-	} 
+	for rs.Next() {
+		var dick int
+		rs.Scan(&dick)
+		log.Println(dick)
+	}
+	log.Println("done")
 }
 

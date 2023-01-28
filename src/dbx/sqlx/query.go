@@ -37,23 +37,9 @@ func (q Query)Insert(cn ...ColumnName) Query {
 }
 
 func (q Query)Where(
-	cn ColumnName,
-	op ConditionOp,
-	vs ...Valuer,
+	c Condition,
 ) Query {
-	q.Conditions = Conditions{{cn, op, vs}}
-	return q
-}
-
-func (q Query)And(
-	cn ColumnName,
-	op ConditionOp,
-	vs ...Valuer,
-) Query {
-	q.Conditions = append(
-		q.Conditions,
-		Condition{cn, op, vs},
-	)
+	q.Condition = c
 	return q
 }
 
@@ -107,11 +93,12 @@ func (q Query)GetValues() []any {
 	switch q.Type {
 	case SelectQueryType :
 		vals := []any{}
-		for _, c := range q.Conditions {
-			for _, v := range c.Values {
-				vals = append(vals, any(v))
-			}
+
+		valuers := q.Condition.values()
+		for _, v := range valuers {
+			vals = append(vals, any(v))
 		}
+
 		return vals
 	case InsertQueryType :
 		vals := []any{}
@@ -145,10 +132,5 @@ func (q Query) GetTableName() TableName {
 	default :
 		return ""
 	}
-}
-
-func (q Query) WConditions(cs Conditions) Query {
-	q.Conditions = cs
-	return q
 }
 
