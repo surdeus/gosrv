@@ -1,9 +1,5 @@
 package sqlx
 
-import (
-	"fmt"
-)
-
 func Q() Query {
 	return Query{}
 }
@@ -98,8 +94,6 @@ func (q Query)GetValues() []any {
 		for _, v := range valuers {
 			vals = append(vals, any(v))
 		}
-
-		fmt.Printf("valuers: %q\n", valuers)
 
 		return vals
 	case InsertQueryType :
