@@ -132,6 +132,28 @@ func ValueOf(v Valuer) any {
 	return nil
 }
 
+func ToValuer(
+	v any,
+) Valuer {
+	switch v.(type) {
+	case string :
+		return String(v.(string))
+	case byte :
+		return Byte(v.(byte))
+	case int16 :
+		return Int16(v.(int16))
+	case int32 :
+		return Int32(v.(int32))
+	case int64 :
+		return Int64(v.(int64))
+	case float64 :
+		return Float(v.(float64))
+	case time.Time :
+		return Time(v.(time.Time))
+	}
+	return nil
+}
+
 func ValuerToString(
 	v Valuer,
 	format ...any,
