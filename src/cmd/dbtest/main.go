@@ -29,10 +29,13 @@ func main(){
 	}
 	defer db.Close()
 
-	c2 := sqlx.T().And(
-		sqlx.T().Eq().
-			V1(sqlx.Int(1377)).
-			C2("DickValue"),
+	c2 := sqlx.T().Sum(
+		sqlx.T().V(sqlx.Int(1377)),
+		sqlx.T().V(sqlx.Int(1377)),
+		sqlx.T().V(sqlx.Int(1377)),
+		sqlx.T().V(sqlx.Int(1377)),
+		sqlx.T().V(sqlx.Int(1377)),
+		sqlx.T().V(sqlx.Int(1377)),
 	)
 
 	log.Printf("%v\n", c2)

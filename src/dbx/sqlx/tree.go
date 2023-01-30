@@ -13,6 +13,14 @@ const (
 	andOp
 	valOp
 	colOp
+	sumOp
+	subOp
+	mulOp
+	divOp
+	modOp
+	bAndOp
+	bOrOp
+	bXorOp
 )
 
 var (
@@ -35,6 +43,14 @@ var (
 		inOp: "in",
 		orOp: "or",
 		andOp: "and",
+		sumOp : "+",
+		subOp : "-",
+		mulOp : "*",
+		divOp : "/",
+		modOp : "%",
+		bAndOp : "&",
+		bOrOp : "|",
+		bXorOp : "^",
 	}
 )
 
@@ -122,6 +138,27 @@ func (c Tree) Ge() Tree {
 func (c Tree) In() Tree {
 	c.Op = inOp
 	return c
+}
+
+func (t Tree) Sum(
+	cs ...Tree,
+) Tree {
+	t = t.opMul(sumOp, cs...)
+	return t
+}
+
+func (t Tree) Mul(
+	cs ...Tree,
+) Tree {
+	t = t.opMul(mulOp, cs...)
+	return t
+}
+
+func (t Tree) Sub(
+	cs ...Tree,
+) Tree {
+	t = t.opMul(subOp, cs...)
+	return t
 }
 
 func (c Tree) C1(
