@@ -33,7 +33,7 @@ func (q Query)Insert(cn ...ColumnName) Query {
 }
 
 func (q Query)Where(
-	c Condition,
+	c Tree,
 ) Query {
 	q.Condition = c
 	return q

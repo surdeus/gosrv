@@ -17,7 +17,7 @@ var (
 	)
 	WrongValuerFormatErr = errors.New("wrong valuer format")
 	UnknownQueryTypeErr = errors.New("unknown query type")
-	UnknownConditionOpErr = errors.New("unknown condition operator")
+	UnknownTreeOpErr = errors.New("unknown tree operator")
 	NoDBSpecifiedErr = errors.New("no database specified")
 	NoSchemaSpecifiedErr = errors.New("no schema specified")
 	WrongRawFormatErr = errors.New(
@@ -34,8 +34,8 @@ var (
 	WrongColumnTypeFormatErr = errors.New(
 		"wrong column type format",
 	)
-	WrongConditionPairFormatErr = errors.New(
-		"wrong condition pair format",
+	WrongTreePairFormatErr = errors.New(
+		"wrong tree pair format",
 	)
 	TableDoesNotExistErr = errors.New(
 		"specified table does not exist",

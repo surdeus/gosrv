@@ -17,7 +17,7 @@ func main() {
 		Select("DickValue", "StringValue").
 		From("Tests").
 		Where(
-			sqlx.C().Eq().
+			sqlx.T().Eq().
 				C1("DickValue").
 				V2(sqlx.Int(1377)),
 		)

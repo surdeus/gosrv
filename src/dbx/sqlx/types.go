@@ -87,7 +87,7 @@ type Query struct {
 	TableNames TableNames
 	Columns Columns
 	ColumnTypes []ColumnType
-	Condition Condition
+	Condition Tree
 	Valuers Valuers
 }
 
@@ -97,14 +97,13 @@ type ColumnType struct {
 	Args []int
 }
 
-type ConditionOp int
-type Condition struct {
-	Op ConditionOp
+type TreeOp int
+type Tree struct {
+	Op TreeOp
 	Column ColumnName
 	Values Valuers
-	Pair []Condition
+	Pair []Tree
 }
-type Conditions []Condition
 
 type Result struct {
 	LastInsertId,

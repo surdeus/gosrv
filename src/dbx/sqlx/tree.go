@@ -1,7 +1,7 @@
 package sqlx
 
 const (
-	noOp ConditionOp = iota
+	noOp TreeOp = iota
 	eqOp
 	gtOp
 	ltOp
@@ -17,7 +17,7 @@ const (
 
 var (
 	// For the restx package.
-	ConditionOpStringMap = map[string] ConditionOp {
+	TreeOpStringMap = map[string] TreeOp {
 		"eq" : eqOp,
 		"ne" : neOp,
 		"gt" : gtOp,
@@ -25,7 +25,7 @@ var (
 		"lt" : ltOp,
 		"le" : leOp,
 	}
-	ConditionOpMap = map[ConditionOp] Raw {
+	TreeOpMap = map[TreeOp] Raw {
 		eqOp: "=",
 		neOp: "<>",
 		gtOp: ">",
@@ -38,41 +38,41 @@ var (
 	}
 )
 
-func (c ConditionOp)SqlRaw(db *Db) (Raw, error) {
-	ret, ok := ConditionOpMap[c]
+func (c TreeOp)SqlRaw(db *Db) (Raw, error) {
+	ret, ok := TreeOpMap[c]
 	if !ok {
-		return "", UnknownConditionOpErr
+		return "", UnknownTreeOpErr
 	}
 
 	return Raw(ret), nil
 }
 
-func C() Condition {
-	return Condition{Pair: make([]Condition, 2)}
+func T() Tree {
+	return Tree{Pair: make([]Tree, 2)}
 }
 
 
-func (c Condition)And(
-	cs ...Condition,
-) Condition {
+func (c Tree)And(
+	cs ...Tree,
+) Tree {
 	return c.opMul(andOp, cs...)
 }
 
-func (c Condition) opMul(
-	op ConditionOp,
-	cs ...Condition,
-) Condition {
+func (c Tree) opMul(
+	op TreeOp,
+	cs ...Tree,
+) Tree {
 	if len(cs) < 2 {
 		if len(cs) == 1 {
 			return cs[0]
 		} else {
-			C()
+			T()
 		}
 	}
 
 	if len(cs) == 2 {
 		c.Op = op
-		c.Pair = []Condition{cs[0], cs[1]}
+		c.Pair = []Tree{cs[0], cs[1]}
 		return c
 	}
 
@@ -81,105 +81,105 @@ func (c Condition) opMul(
 	c.Pair[0] = cs[0]
 	cs = cs[1:]
 
-	cn := C().opMul(op, cs...)
+	cn := T().opMul(op, cs...)
 	c.Pair[1] = cn
 
 	return c
 }
 
-func (c Condition)Or(
-	cs ...Condition,
-) Condition {
+func (c Tree)Or(
+	cs ...Tree,
+) Tree {
 	c = c.opMul(orOp, cs...)
 	return c
 }
 
-func (c Condition) Gt() Condition {
+func (c Tree) Gt() Tree {
 	c.Op = gtOp
 	return c
 }
 
-func (c Condition) Lt() Condition {
+func (c Tree) Lt() Tree {
 	c.Op = ltOp
 	return c
 }
 
-func (c Condition) Eq() Condition {
+func (c Tree) Eq() Tree {
 	c.Op = eqOp
 	return c
 }
 
-func (c Condition) Le() Condition {
+func (c Tree) Le() Tree {
 	c.Op = leOp
 	return c
 }
 
-func (c Condition) Ge() Condition {
+func (c Tree) Ge() Tree {
 	c.Op = geOp
 	return c
 }
 
-func (c Condition) In() Condition {
+func (c Tree) In() Tree {
 	c.Op = inOp
 	return c
 }
 
-func (c Condition) C1(
+func (c Tree) C1(
 	name ColumnName,
-) Condition {
-	c0 := C().C(name)
+) Tree {
+	c0 := T().C(name)
 	c.Pair[0] = c0
 	return c
 }
 
-func (c Condition) C2(
+func (c Tree) C2(
 	name ColumnName,
-) Condition {
-	c.Pair[1] = C().C(name)
+) Tree {
+	c.Pair[1] = T().C(name)
 	return c
 }
 
-func (c Condition) V1(
+func (c Tree) V1(
 	v ...Valuer,
-) Condition {
-	c.Pair[0] = C().V(v...)
+) Tree {
+	c.Pair[0] = T().V(v...)
 	return c
 }
 
-func (c Condition) V2 (
+func (c Tree) V2 (
 	v ...Valuer,
-) Condition {
-	c.Pair[1] = C().V(v...)
+) Tree {
+	c.Pair[1] = T().V(v...)
 	return c
 }
 
-func (c Condition) S (
-	c1, c2 Condition,
-) Condition {
-	c.Pair = []Condition{c1, c2}
+func (c Tree) S (
+	c1, c2 Tree,
+) Tree {
+	c.Pair = []Tree{c1, c2}
 
 	return c
 }
 
-func (c Condition) C(
+func (c Tree) C(
 	name ColumnName,
-) Condition {
+) Tree {
 	c.Op = colOp
 	c.Column = name
-	c.Pair = []Condition{}
+	c.Pair = []Tree{}
 	return c
 }
 
-func (c Condition) V(
+func (c Tree) V(
 	v ...Valuer,
-) Condition {
+) Tree {
 	c.Op = valOp
-	c.Pair = []Condition{}
+	c.Pair = []Tree{}
 	c.Values = v
 	return c
 }
 
-func (c Condition) values() Valuers {
+func (c Tree) values() Valuers {
 	if c.Op == valOp {
 		return c.Values
 	}
@@ -197,7 +197,7 @@ func (c Condition) values() Valuers {
 	return ret
 }
 
-func (c Condition)SqlRaw(db *Db) (Raw, error) {
+func (c Tree)SqlRaw(db *Db) (Raw, error) {
 
 	switch c.Op {
 	case valOp :
@@ -207,7 +207,7 @@ func (c Condition)SqlRaw(db *Db) (Raw, error) {
 	}
 
 	if len(c.Pair) != 2 {
-		return "", WrongConditionPairFormatErr
+		return "", WrongTreePairFormatErr
 	}
 
 	return db.Rprintf(

@@ -29,8 +29,8 @@ func main(){
 	}
 	defer db.Close()
 
-	c2 := sqlx.C().And(
-		sqlx.C().Eq().
+	c2 := sqlx.T().And(
+		sqlx.T().Eq().
 			V1(sqlx.Int(1377)).
 			C2("DickValue"),
 	)
