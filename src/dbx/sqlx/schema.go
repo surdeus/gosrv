@@ -325,8 +325,6 @@ func (db *Db)GetColumnSchema(
 		return nil, err
 	}
 
-	log.Printf("extra: %q %q\n", cname, extra)
-
 	return db.ColumnFromRaws(
 		cname, t, nullable,
 		key, extra,
@@ -490,7 +488,6 @@ func (db *Db)GetColumnsByTableName(name TableName) (Columns, error) {
 			&extra,
 		)
 
-		log.Printf("extra2: %q %q\n", cname, extra)
 		column, err := db.ColumnFromRaws(
 			cname, t, nullable,
 			key, extra,

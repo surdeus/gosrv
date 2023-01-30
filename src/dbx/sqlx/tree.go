@@ -1,5 +1,10 @@
 package sqlx
 
+import (
+	"strings"
+	"fmt"
+)
+
 const (
 	noOp TreeOp = iota
 	eqOp
@@ -74,7 +79,7 @@ func (c Tree)And(
 	return c.opMul(andOp, cs...)
 }
 
-func (c Tree) opMul(
+/*func (c Tree) opMul(
 	op TreeOp,
 	cs ...Tree,
 ) Tree {
@@ -101,6 +106,15 @@ func (c Tree) opMul(
 	c.Pair[1] = cn
 
 	return c
+}*/
+
+func (t Tree) opMul(
+	op TreeOp,
+	cs ...Tree,
+) Tree {
+	t.Op = op
+	t.Pair = cs
+	return t
 }
 
 func (c Tree)Or(
@@ -190,14 +204,6 @@ func (c Tree) V2 (
 	return c
 }
 
-func (c Tree) S (
-	c1, c2 Tree,
-) Tree {
-	c.Pair = []Tree{c1, c2}
-
-	return c
-}
-
 func (c Tree) C(
 	name ColumnName,
 ) Tree {
@@ -234,23 +240,43 @@ func (c Tree) values() Valuers {
 	return ret
 }
 
-func (c Tree)SqlRaw(db *Db) (Raw, error) {
+func (t Tree)SqlRaw(db *Db) (Raw, error) {
 
-	switch c.Op {
+	switch t.Op {
 	case valOp :
-		return db.TupleBuf(c.Values), nil
+		return db.TupleBuf(t.Values), nil
 	case colOp :
-		return c.Column.SqlRaw(db)
+		return t.Column.SqlRaw(db)
 	}
 
-	if len(c.Pair) != 2 {
-		return "", WrongTreePairFormatErr
+	if len(t.Pair) == 0 {
+		return "", nil
 	}
 
-	return db.Rprintf(
-		"(%s %s %s)",
-		c.Pair[0],
-		c.Op,
-		c.Pair[1],
-	)
+	var buf strings.Builder
+	fmt.Fprint(&buf, "(")
+	for i, p := range t.Pair {
+		v, e := db.Rprintf("%s", p)
+		if e != nil {
+			return "", e
+		}
+
+		fmt.Fprint(&buf, v)
+
+
+		if i < len(t.Pair) - 1 {
+			v, e = db.Rprintf("%s", t.Op)
+			if e != nil {
+				return "", e
+			}
+			fmt.Fprint(&buf, " ")
+			fmt.Fprint(&buf, v)
+			fmt.Fprint(&buf, " ")
+		}
+	}
+	fmt.Fprint(&buf, ")")
+
+	ret := Raw(buf.String())
+
+	return ret, nil
 }
