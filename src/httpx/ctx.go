@@ -54,3 +54,10 @@ func (a *Context) Values() url.Values {
 func (a *Context) ServerError(err error) {
 	http.Error(a.W, err.Error(), http.StatusInternalServerError)
 }
+
+func (a *Context) Redirect(p string, code int) {
+	http.Redirect(
+		a.W, a.R, p, code,
+	)
+}
+	

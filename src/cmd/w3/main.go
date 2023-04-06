@@ -9,7 +9,7 @@ import(
 	"encoding/json"
 	"github.com/surdeus/gosrv/src/tmplx"
 	"github.com/surdeus/gosrv/src/httpx"
-	"github.com/surdeus/gosrv/src/authx"
+	"github.com/surdeus/gosrv/src/httpx/authx"
 	//"github.com/surdeus/gosrv/src/httpx/restx"
 	//"github.com/surdeus/gosrv/src/dbx/sqlx"
 	//"github.com/surdeus/gosrv/src/httpx/apix"
@@ -26,7 +26,7 @@ type Session struct {
 type Users map[string] string
 
 var (
-	sessions authx.Sessions
+	sessions authx.Sessions[*Session]
 	tokens = make(map[string] string)
 	tmpls tmplx.Templates
 	users Users
@@ -94,7 +94,7 @@ func LoginPost(a *httpx.Context) {
 
 	password, ok := users[formEmail]
 	if !ok {
-		http.NotFound(a.W, a.R)
+		a.NotFound()
 		return
 	} else if password != formPassword  {
 		a.W.WriteHeader(http.StatusUnauthorized)
@@ -102,7 +102,10 @@ func LoginPost(a *httpx.Context) {
 		return
 	}
 
-	token := sessions.New(formEmail)
+	token := sessions.New(&Session{
+		Email: formEmail,
+		Reloaded: 0,
+	})
 
 	cookie := &http.Cookie{
 		Name: "auth-token",
@@ -121,10 +124,7 @@ return func(a *httpx.Context) {
 	// No needed cookie, make user authorize.
 	authToken, ok := cookies.Get("auth-token")
 	if !ok {
-		http.Redirect(a.W, a.R,
-			"/login/",
-			http.StatusFound,
-		)
+		a.Redirect( "/login/", http.StatusFound)
 		return
 	}
 
@@ -137,12 +137,7 @@ return func(a *httpx.Context) {
 	email, loggedIn := sessions.Get(token)
 	if !loggedIn {
 		a.DeleteCookie("auth-token")
-		http.Redirect(
-			a.W,
-			a.R,
-			"/login/",
-			http.StatusFound,
-		)
+		a.Redirect("/login/", http.StatusFound)
 		return
 	}
 
@@ -156,10 +151,7 @@ return func(a *httpx.Context) {
 
 	_, ok := cookies.Get("auth-token")
 	if ok {
-		http.Redirect(a.W, a.R,
-			"/",
-			http.StatusFound,
-		)
+		a.Redirect("/", http.StatusFound)
 		return
 	}
 
@@ -167,14 +159,9 @@ return func(a *httpx.Context) {
 }}
 
 func Greet(a *httpx.Context) {
-	email, _ := a.V["email"].(string)
-	tmpls.Exec(a.W, "default", "greet",
-		struct{
-			Email string
-		}{
-			email,
-		},
-	)
+	session, _ := a.V["email"].(*Session)
+	tmpls.Exec(a.W, "default", "greet", session)
+	session.Reloaded++
 }
 
 func main(){
@@ -272,7 +259,7 @@ func main(){
 		panic(err)
 	}
 
-	sessions = authx.New()
+	sessions = authx.New[*Session]()
 	fmt.Printf("%v\n", users)
 
 	log.Printf("%s: Trying to run on '%s'...\n",

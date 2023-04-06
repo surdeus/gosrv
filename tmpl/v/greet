@@ -4,6 +4,7 @@
 
 {{define "#content"}}
 	Greetings to {{ .Email }} !
+	Reloaded {{ .Reloaded }} times.
 {{end}}
 
 {{template "@master" .}}
