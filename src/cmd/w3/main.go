@@ -8,15 +8,14 @@ import(
 	"net/http"
 	"encoding/json"
 	"github.com/surdeus/gosrv/src/tmplx"
-	"github.com/surdeus/gosrv/src/httpx/muxx"
-	"github.com/surdeus/gosrv/src/httpx/cookiex"
+	"github.com/surdeus/gosrv/src/httpx"
 	"github.com/surdeus/gosrv/src/authx"
 	//"github.com/surdeus/gosrv/src/httpx/restx"
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"github.com/surdeus/gosrv/src/httpx/apix"
-	dbtest "github.com/surdeus/gosrv/src/cmd/dbtest/structs"
+	//"github.com/surdeus/gosrv/src/dbx/sqlx"
+	//"github.com/surdeus/gosrv/src/httpx/apix"
+	//dbtest "github.com/surdeus/gosrv/src/cmd/dbtest/structs"
 	//"github.com/surdeus/gosrv/src/dbx/sqlx/qx"
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 type Token string
@@ -40,7 +39,7 @@ var (
 type ContextKey string
 const ContextEmailKey ContextKey = "email"
 
-func HelloWorld(a muxx.HndlArg) {
+func HelloWorld(a *httpx.Context) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl := "default"
 	_, ok := a.Q["tmpl"]
@@ -50,7 +49,7 @@ func HelloWorld(a muxx.HndlArg) {
 	tmpls.Exec(a.W, tmpl, "hellos/en", struct{}{})
 }
 
-func SalutonMondo(a muxx.HndlArg) {
+func SalutonMondo(a *httpx.Context) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	name := "Mondo"
 	_, ok := a.Q["name"]
@@ -60,7 +59,7 @@ func SalutonMondo(a muxx.HndlArg) {
 	tmpls.Exec(a.W, "default", "hellos/eo", struct{Name string}{Name: name})
 }
 
-func GetCookies(a muxx.HndlArg) {
+func GetCookies(a *httpx.Context) {
 	_, ok1 := a.Q["name"]
 	_, ok2 := a.Q["value"]
 	if !ok1 || !ok2 {
@@ -79,12 +78,12 @@ func GetCookies(a muxx.HndlArg) {
 	a.W.Write([]byte("success"))
 }
 
-func LoginGet(a muxx.HndlArg) {
+func LoginGet(a *httpx.Context) {
 	a.W.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpls.Exec(a.W, "unauth", "login", nil)
 }
 
-func LoginPost(a muxx.HndlArg) {
+func LoginPost(a *httpx.Context) {
 	formEmail := a.R.Form.Get("email")
 	formPassword := a.R.Form.Get("password")
 	fmt.Printf(
@@ -115,12 +114,12 @@ func LoginPost(a muxx.HndlArg) {
 	http.Redirect(a.W, a.R, "/", http.StatusFound)
 }
 
-func Authorize(hndl muxx.Handler) muxx.Handler {
-return func(a muxx.HndlArg) {
-	cookie := a.R.Cookies()
+func Authorize(hndl httpx.HandlerFunc) httpx.HandlerFunc {
+return func(a *httpx.Context) {
+	cookies := a.Cookies()
 
 	// No needed cookie, make user authorize.
-	authToken, ok := cookiex.ByName(cookie, "auth-token")
+	authToken, ok := cookies.Get("auth-token")
 	if !ok {
 		http.Redirect(a.W, a.R,
 			"/login/",
@@ -137,7 +136,7 @@ return func(a muxx.HndlArg) {
 	// No such token in sessions. Remove cookie and make authorize.
 	email, loggedIn := sessions.Get(token)
 	if !loggedIn {
-		cookiex.Delete(a.W, "auth-token")
+		a.DeleteCookie("auth-token")
 		http.Redirect(
 			a.W,
 			a.R,
@@ -151,11 +150,11 @@ return func(a muxx.HndlArg) {
 	hndl(a)
 }}
 
-func Unauthorize(hndl muxx.Handler) muxx.Handler {
-return func(a muxx.HndlArg) {
-	cookie := a.R.Cookies()
+func Unauthorize(hndl httpx.HandlerFunc) httpx.HandlerFunc {
+return func(a *httpx.Context) {
+	cookies := a.Cookies()
 
-	_, ok := cookiex.ByName(cookie, "auth-token")
+	_, ok := cookies.Get("auth-token")
 	if ok {
 		http.Redirect(a.W, a.R,
 			"/",
@@ -167,7 +166,7 @@ return func(a muxx.HndlArg) {
 	hndl(a)
 }}
 
-func Greet(a muxx.HndlArg) {
+func Greet(a *httpx.Context) {
 	email, _ := a.V["email"].(string)
 	tmpls.Exec(a.W, "default", "greet",
 		struct{
@@ -205,10 +204,10 @@ func main(){
 		panic(err)
 	}
 
-	authorize := muxx.Chain{Authorize}
-	unauthorize := muxx.Chain{Unauthorize}
+	authorize := httpx.Chain{Authorize}
+	unauthorize := httpx.Chain{Unauthorize}
 
-	sqlers := []sqlx.Sqler{
+	/*sqlers := []sqlx.Sqler{
 		dbtest.Test{},
 		dbtest.AnotherTest{},
 	}
@@ -230,29 +229,24 @@ func main(){
 	err = db.Migrate()
 	if err != nil {
 		panic(err)
-	}
+	}*/
 
-	defs := []muxx.HndlDef {
-		{
-			"/", "^$",
-			muxx.Handlers{
-				"GET": muxx.Chained(authorize, Greet),
-			},
-		},
-		{
-			"/login/", "^$", muxx.Handlers {
-				"GET": muxx.Chained(unauthorize, LoginGet),
-				"POST": muxx.Chained(unauthorize, LoginPost),
-			},
-		},
-		{"/get-test/", "", muxx.Handlers{"GET": muxx.GetTest} },
-		apix.Sql(db, "/api/sql/"),
-		//restx.Sql(db, "/api/"),
-	}
-
-	mux := muxx.Define(nil, defs)
-	muxx.DefineStatic(mux, staticPath, "/s/")
-	/*muxx.DefineSimple(
+	mux := httpx.NewMux()
+	mux.Define(
+		httpx.Def("/").Re("$^").
+			Method("GET", httpx.Chained(authorize, Greet)),
+		httpx.Def("/login/").Re("$^").
+			Method("GET", httpx.Chained(unauthorize, LoginGet)).
+			Method("POST", httpx.Chained(unauthorize, LoginPost)),
+		httpx.Def("/get-test/").Re("").
+			Method("GET", httpx.GetTest),
+		httpx.Def("/s/").StaticFiles(staticPath),
+		httpx.Def("/someshit/").SimpleHandlerFunc(
+		func(w http.ResponseWriter, r *http.Request){
+			fmt.Fprintf(w, "%s", "It works!")
+		}),
+	)
+	/*httpx.DefineSimple(
 		mux,
 		"/api/",
 		restx.Sql(
@@ -261,13 +255,6 @@ func main(){
 			sqlers,
 		),
 	)*/
-	muxx.DefineSimple(
-		mux,
-		"/someshit/",
-		func(w http.ResponseWriter, r *http.Request){
-			fmt.Fprintf(w, "%s", "It works!")
-		},
-	)
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,

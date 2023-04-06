@@ -5,7 +5,7 @@ import(
 	"flag"
 	"log"
 	"net/http"
-	"github.com/surdeus/gosrv/src/httpx/muxx"
+	"github.com/surdeus/gosrv/src/httpx"
 )
 
 
@@ -24,7 +24,10 @@ func main(){
 		pth = "."
 	}
 
-	mux := muxx.DefineStatic(nil, pth, "/")
+	mux := httpx.NewMux()
+	mux.Define(
+		httpx.Def("/").StaticFiles(pth),
+	)
 	srv := http.Server {
 		Addr: *AddrStr,
 		Handler: mux,
