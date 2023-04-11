@@ -13,9 +13,9 @@ import (
 // The fields are public for more flexibility.
 type Context struct {
 	// The standard http writer.	
-	W http.ResponseWriter
+	W ResponseWriter
 	// Request.
-	R *http.Request
+	R *Request
 	// Query values.
 	Q url.Values
 	// Part of path without prefix.
@@ -26,7 +26,7 @@ type Context struct {
 
 // Makes cookie to expire on the browser side.
 func (a *Context) DeleteCookie(k string) {
-	c := &http.Cookie {
+	c := &Cookie {
 		Name: k,
 		Value: "",
 		Path: "/",
@@ -37,6 +37,10 @@ func (a *Context) DeleteCookie(k string) {
 
 func (a *Context) Cookies() Cookies {
 	return a.R.Cookies()
+}
+
+func (a *Context) SetCookie(c *Cookie) {
+	http.SetCookie(a.W, c)
 }
 
 // Sends to the writer default Golang "Not Found".

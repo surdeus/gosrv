@@ -10,6 +10,7 @@ import(
 	"github.com/surdeus/gosrv/src/tmplx"
 	"github.com/surdeus/gosrv/src/httpx"
 	"github.com/surdeus/gosrv/src/httpx/authx"
+	"errors"
 	//"github.com/surdeus/gosrv/src/httpx/restx"
 	//"github.com/surdeus/gosrv/src/dbx/sqlx"
 	//"github.com/surdeus/gosrv/src/httpx/apix"
@@ -63,17 +64,17 @@ func GetCookies(a *httpx.Context) {
 	_, ok1 := a.Q["name"]
 	_, ok2 := a.Q["value"]
 	if !ok1 || !ok2 {
-		http.Error(a.W, "Wrong args", http.StatusInternalServerError)
+		a.ServerError(errors.New("Wrong arguments"))
 		return
 	}
 
-
-	cookie := &http.Cookie{
+	cookie := &httpx.Cookie{
 		Name: a.Q["name"][0],
 		Value: a.Q["value"][0],
 		Path: "/",
 	}
-	http.SetCookie(a.W, cookie)
+	a.SetCookie(cookie)
+	
 	a.W.WriteHeader(200)
 	a.W.Write([]byte("success"))
 }

@@ -11,6 +11,9 @@ import(
 
 type Server = http.Server
 
+type ResponseWriter = http.ResponseWriter
+type Request = http.Request
+
 type Mux struct {
 	*http.ServeMux
 }
