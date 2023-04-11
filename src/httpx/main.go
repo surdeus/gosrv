@@ -9,6 +9,8 @@ import(
 	"github.com/surdeus/gosrv/src/rex"
 )
 
+type Server = http.Server
+
 type Mux struct {
 	*http.ServeMux
 }

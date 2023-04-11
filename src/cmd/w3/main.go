@@ -242,7 +242,7 @@ func main(){
 			sqlers,
 		),
 	)*/
-	srv := http.Server {
+	srv := httpx.Server {
 		Addr: *AddrStr,
 		Handler: mux,
 	}
