@@ -18,21 +18,30 @@ type Mux struct {
 	*http.ServeMux
 }
 
+// Default handling interface.
 type HandlerFunc func(a *Context)
+
+// Default handling for different types.
 type Handler interface {
 	ServeHttp(*Context)
 }
 
+// Map of handlers with method name as keys.
 type HandlerFuncMap map[string] HandlerFunc
+
+const (
+	MethodEmpty = ""
+)
 
 // Create final function handler.
 func makeHttpHandleFunc(
 	def HandlerDef,
 ) http.HandlerFunc {
-	if def.simpleHndl != nil {
-		return def.simpleHndl
-	} else if def.simpleHndler != nil {
-		return def.simpleHndler.ServeHTTP
+	switch def.typ {
+	case HandlerTypeSimple :
+		return def.simpleHandler.ServeHTTP
+	case HandlerTypeSimpleFunc :
+		return def.simpleHandlerFunc
 	}
 	
 	pref := def.pref
@@ -46,6 +55,22 @@ return func(w http.ResponseWriter, r *http.Request) {
 		e error
 	)
 
+	/* First get handler. Makes no sense
+		to proccess wrong requests. */
+	method := r.Method
+	method = strings.ToUpper(method)	
+	handler, ok := handlers[method]
+	if !ok {
+		/* Default handling for lack of method
+			and also usable for API. */
+		handler, ok = handlers[MethodEmpty]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		method = MethodEmpty
+	}
+	
 	p := r.URL.Path
 	if p == ""  || p[len(p)-1] != '/' {
 		p += "/"
@@ -58,17 +83,14 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parsing of arguments and shit.
-	method := r.Method
-	
-	method = strings.ToUpper(method)	
 	switch method {
-	case "GET" :
+	case http.MethodGet :
 		a.Q, e = url.ParseQuery(r.URL.RawQuery)
-	case "POST" :
+	case http.MethodPost :
 		fallthrough
-	case "PUT" :
+	case http.MethodPut :
 		fallthrough
-	case "PATCH" :
+	case http.MethodPatch :
 		r.ParseForm()
 	}
 
@@ -79,18 +101,11 @@ return func(w http.ResponseWriter, r *http.Request) {
 	a.W = w
 	a.R = r
 	
-	handler, ok := handlers[method]
-	if !ok {
-		handler, ok = handlers[""]
-		if !ok {
-			http.NotFound(w, r)
-			return
-		}
-	}
 
 	a.V = make(map[string] any, 5)
 	handler(&a)
 }}
+
 
 // Returns new empty mux.
 func NewMux() *Mux {

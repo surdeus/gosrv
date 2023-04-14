@@ -6,18 +6,28 @@ import (
 	"regexp"
 )
 
+type HandlerType int
+
 type HandlerDef struct {
+	typ HandlerType
 	pref string
 	re *regexp.Regexp
 	handlers HandlerFuncMap
-	simpleHndl http.HandlerFunc
-	simpleHndler http.Handler
+	simpleHandlerFunc http.HandlerFunc
+	simpleHandler http.Handler
 }
+
+const (
+	HandlerTypeNone = iota
+	HandlerTypeDefault 
+	HandlerTypeSimpleFunc
+	HandlerTypeSimple
+)
 
 func Def(pref string) HandlerDef {
 	return HandlerDef{
 		pref: pref,
-		re: nil,
+		re: regexp.MustCompile(""),
 		handlers: make(HandlerFuncMap),
 	}
 }
@@ -28,42 +38,40 @@ func (d HandlerDef)Re(re string) HandlerDef {
 }
 
 func (d HandlerDef) Method(m string, h HandlerFunc) HandlerDef {
+	d.typ = HandlerTypeDefault
 	d.handlers[strings.ToUpper(m)] = h
 	return d
 }
 
-func (d HandlerDef) SimpleHandlerFunc(s http.HandlerFunc) HandlerDef {
-	d.simpleHndler = nil
-	d.simpleHndl = s
-	return d
-}
-
-func (d HandlerDef) SimpleHandler(s http.Handler) HandlerDef {
-	d.simpleHndl = nil
-	d.simpleHndler = s
-	return d
-}
-
-func (d HandlerDef) StaticFiles(path string) HandlerDef {
-	fs := http.FileServer(http.Dir(path))
-	d.simpleHndler = http.StripPrefix(d.pref, fs)
+func (d HandlerDef) Api(h ApiHandlerFunc) HandlerDef {
+	d.typ = HandlerTypeDefault
+	
+	// Clearing map so we have no collisions.
+	d.handlers = make(HandlerFuncMap)
+	d.handlers[MethodEmpty] = makeApiHandler(h)
 	
 	return d
 }
 
-/*func DefineStatic(mux *http.ServeMux, path, pref string) *http.ServeMux {
-	if mux == nil {
-		mux = http.NewServeMux()
-	}
+func (d HandlerDef) SimpleHandlerFunc(s http.HandlerFunc) HandlerDef {
+	d.typ = HandlerTypeSimpleFunc
+	d.simpleHandlerFunc = s
+	
+	return d
+}
 
+func (d HandlerDef) SimpleHandler(s http.Handler) HandlerDef {
+	d.typ = HandlerTypeSimple
+	d.simpleHandler = s
+	
+	return d
+}
+
+func (d HandlerDef) StaticFiles(path string) HandlerDef {
+	d.typ = HandlerTypeSimple
 	fs := http.FileServer(http.Dir(path))
-	mux.Handle(
-		pref,
-		http.StripPrefix(
-				pref,
-				fs,	
-		),
-	)
+	d.simpleHandler = http.StripPrefix(d.pref, fs)
+	
+	return d
+}
 
-	return mux
-}*/
