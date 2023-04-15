@@ -9,20 +9,22 @@ import (
 	//"github.com/surdeus/gosrv/src/httpx/apix"
 	//"reflect"
 	"github.com/surdeus/gosrv/src/httpx"
+	"log"
 )
 
 func main() {
-	resp, err := httpx.ApiQuery("http://localhost:8080/api/", 2)
+	resp, err := httpx.ApiQuery("http://localhost:8080/api/", 100)
 	if err != nil {
 		panic(err)
 	}
 	
 	var v int
+	fmt.Println("resp:", resp)
 	for resp.Scan(&v) {
 		fmt.Println("shit", v)
 	}
 	if resp.Err() != nil {
-		panic(resp.Err())
+		log.Fatal(resp.Err())
 	}
 	
 	/*apix.SqlGobRegister()

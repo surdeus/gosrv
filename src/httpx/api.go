@@ -46,6 +46,13 @@ var (
 	WrongResponseTypeErr = errors.New("wrong response type")
 )
 
+// The function registers types by values for gob etc.
+func ApiRegister(vals ...any) {
+	for _, v := range vals {
+		gob.Register(v)
+	}
+}
+
 // Client function to make a GOB query.
 // Cannot do JSON queries, since this is a Go client.
 func ApiQuery(u string, vals ...any) (*ApiResponse, error) {
@@ -77,9 +84,12 @@ func ApiQuery(u string, vals ...any) (*ApiResponse, error) {
 	dec.Decode(&respType)
 	switch respType {
 	case ApiResponseTypeError :
-		var err error
-		dec.Decode(&err)
-		return nil, err
+		var err string
+		errn := dec.Decode(&err)
+		if errn != nil {
+			return nil, errn
+		}
+		return nil, errors.New(err)
 	case ApiResponseTypeSuccess :
 		return &ApiResponse{
 			dec: dec,
@@ -91,12 +101,15 @@ func ApiQuery(u string, vals ...any) (*ApiResponse, error) {
 	
 }
 
-func (resp *ApiResponse) Done() bool {
-	return resp.err != nil
-}
-
+// Reads API response values. Skips nil pointers.
 func (resp *ApiResponse) Scan(ptrs ...any) bool {
+	if len(ptrs) == 0 {
+		panic("trying to scan into 0 pointers")
+	}
 	for i, v := range ptrs {
+		if v == nil {
+			continue
+		}
 		err := resp.dec.Decode(v)
 		if err != nil {
 			if err != io.EOF {
@@ -130,20 +143,20 @@ return func(c *Context) {
 	enc := gob.NewEncoder(c.W)
 	
 	c.W.Header().Set("Content-type", "application/gob")
+	// Errors handling.
 	if err != nil {
 		enc.Encode(ApiResponseTypeError)
-		enc.Encode(err)
+		err := enc.Encode(err.Error())
+		if err != nil {
+			panic(err)
+		}
+		
 		return
 	}
 	
 	enc.Encode(ApiResponseTypeSuccess)
 	for v := range chn {
 		err := enc.Encode(v)
-		// If we get an error here
-		// a programmer implementing API
-		// is doing something wrong so we panic,
-		// since this is writing from the server it
-		// should be implemented correctly.
 		if err != nil {
 			panic(err)
 		}
@@ -151,9 +164,15 @@ return func(c *Context) {
 }}
 
 // Reads transported values into buffers that pointers point to.
-// Returns index of argument where it gets error.
+// Skips nil pointers.
 func (c *ApiContext) Scan(ptrs ...any) (bool) {
+	if len(ptrs) == 0 {
+		panic("trying to read into 0 pointers")
+	}
 	for i, ptr := range ptrs {
+		if ptr == nil {
+			continue
+		}
 		err := c.gobDec.Decode(ptr)
 		if err != nil {
 			if err != io.EOF {
@@ -167,10 +186,13 @@ func (c *ApiContext) Scan(ptrs ...any) (bool) {
 	return true
 }
 
+// Returns the error Scan() exits with.
 func (c *ApiContext) Err() error {
 	return c.err
 }
 
+// Returns index of arguments where the error is
+// detected.
 func (c *ApiContext) ErrI() int {
 	return c.i
 }
