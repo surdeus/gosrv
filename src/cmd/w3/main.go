@@ -159,6 +159,22 @@ return func(a *httpx.Context) {
 	hndl(a)
 }}
 
+func ApiTest(c *httpx.ApiContext) (chan any, error) {
+	var n int
+	if !c.Scan(&n) || n < 0 {
+		return nil, errors.New("real shit")
+	}
+	ret := make(chan any)
+	go func(){
+		for i := 0 ; i<n ; i++ {
+			ret <- i
+		}
+		close(ret)
+	}()
+	
+	return ret, nil
+}
+
 func Greet(a *httpx.Context) {
 	session, _ := a.V["email"].(*Session)
 	tmpls.Exec(a.W, "default", "greet", session)
@@ -233,6 +249,7 @@ func main(){
 		func(w http.ResponseWriter, r *http.Request){
 			fmt.Fprintf(w, "%s", "It works!")
 		}),
+		httpx.Def("/api/").Api(ApiTest),
 	)
 	/*httpx.DefineSimple(
 		mux,

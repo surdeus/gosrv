@@ -4,15 +4,28 @@ import (
 	"fmt"
 	//"encoding/gob"
 	//"net/http"
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
-	"github.com/surdeus/gosrv/src/httpx/apix"
-	"reflect"
-	"log"
+	//"github.com/surdeus/gosrv/src/dbx/sqlx"
+	//"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
+	//"github.com/surdeus/gosrv/src/httpx/apix"
+	//"reflect"
+	"github.com/surdeus/gosrv/src/httpx"
 )
 
 func main() {
-	apix.SqlGobRegister()
+	resp, err := httpx.ApiQuery("http://localhost:8080/api/", 2)
+	if err != nil {
+		panic(err)
+	}
+	
+	var v int
+	for resp.Scan(&v) {
+		fmt.Println("shit", v)
+	}
+	if resp.Err() != nil {
+		panic(resp.Err())
+	}
+	
+	/*apix.SqlGobRegister()
 	q := sqlx.Q().
 		Select("DickValue", "StringValue").
 		From("Tests").
@@ -60,5 +73,5 @@ func main() {
 
 	fmt.Println(
 	sqlx.ValuerToString(sqlx.Null()),
-	sqlx.ValuerToString(sqlx.Int(53)))
+	sqlx.ValuerToString(sqlx.Int(53))) */
 }
