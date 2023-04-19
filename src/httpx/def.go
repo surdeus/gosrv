@@ -37,18 +37,18 @@ func (d HandlerDef)Re(re string) HandlerDef {
 	return d
 }
 
-func (d HandlerDef) Method(m string, h HandlerFunc) HandlerDef {
+func (d HandlerDef) Method(m string, h HandlerFunc, c ...ChainHandler) HandlerDef {
 	d.typ = HandlerTypeDefault
-	d.handlers[strings.ToUpper(m)] = h
+	d.handlers[strings.ToUpper(m)] = Chained(c, h)
 	return d
 }
 
-func (d HandlerDef) Api(h ApiHandlerFunc) HandlerDef {
+func (d HandlerDef) Api(h ApiHandlerFunc, c ...ChainHandler) HandlerDef {
 	d.typ = HandlerTypeDefault
 	
 	// Clearing map so we have no collisions.
 	d.handlers = make(HandlerFuncMap)
-	d.handlers[MethodEmpty] = makeApiHandler(h)
+	d.handlers[MethodEmpty] = Chained(c, makeApiHandler(h))
 	
 	return d
 }

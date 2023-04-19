@@ -120,6 +120,7 @@ func LoginPost(a *httpx.Context) {
 
 func Authorize(hndl httpx.HandlerFunc) httpx.HandlerFunc {
 return func(a *httpx.Context) {
+	fmt.Println("Authorize")
 	cookies := a.Cookies()
 
 	// No needed cookie, make user authorize.
@@ -131,7 +132,8 @@ return func(a *httpx.Context) {
 
 	token, err := sessions.DecodeForServer(authToken)
 	if err != nil {
-		http.NotFound(a.W, a.R)
+		a.NotFound()
+		return
 	}
 
 	// No such token in sessions. Remove cookie and make authorize.
@@ -148,6 +150,7 @@ return func(a *httpx.Context) {
 
 func Unauthorize(hndl httpx.HandlerFunc) httpx.HandlerFunc {
 return func(a *httpx.Context) {
+	fmt.Println("Unauthorize")
 	cookies := a.Cookies()
 
 	_, ok := cookies.Get("auth-token")
@@ -208,9 +211,6 @@ func main(){
 		panic(err)
 	}
 
-	authorize := httpx.Chain{Authorize}
-	unauthorize := httpx.Chain{Unauthorize}
-
 	/*sqlers := []sqlx.Sqler{
 		dbtest.Test{},
 		dbtest.AnotherTest{},
@@ -238,10 +238,10 @@ func main(){
 	mux := httpx.NewMux()
 	mux.Define(
 		httpx.Def("/").Re("$^").
-			Method("GET", httpx.Chained(authorize, Greet)),
+			Method("GET", Greet, Authorize),
 		httpx.Def("/login/").Re("$^").
-			Method("GET", httpx.Chained(unauthorize, LoginGet)).
-			Method("POST", httpx.Chained(unauthorize, LoginPost)),
+			Method("GET", LoginGet, Unauthorize).
+			Method("POST", LoginPost, Unauthorize),
 		httpx.Def("/get-test/").Re("").
 			Method("GET", httpx.GetTest),
 		httpx.Def("/s/").StaticFiles(staticPath),
