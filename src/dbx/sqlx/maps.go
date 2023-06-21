@@ -1,7 +1,7 @@
 package sqlx
 
 import (
-	"github.com/surdeus/godat/src/mapx"
+	"github.com/mojosa-software/godat/src/mapx"
 )
 
 var (

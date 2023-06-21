@@ -4,7 +4,7 @@ import (
 	"strings"
 	"net/url"
 	"errors"
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
+	"github.com/mojosa-software/gosrv/src/dbx/sqlx"
 	//"fmt"
 )
 

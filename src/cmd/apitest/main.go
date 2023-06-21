@@ -4,11 +4,11 @@ import (
 	"fmt"
 	//"encoding/gob"
 	//"net/http"
-	//"github.com/surdeus/gosrv/src/dbx/sqlx"
-	//"github.com/surdeus/gosrv/src/cmd/dbtest/structs"
-	//"github.com/surdeus/gosrv/src/httpx/apix"
+	//"github.com/mojosa-software/gosrv/src/dbx/sqlx"
+	//"github.com/mojosa-software/gosrv/src/cmd/dbtest/structs"
+	//"github.com/mojosa-software/gosrv/src/httpx/apix"
 	//"reflect"
-	"github.com/surdeus/gosrv/src/httpx"
+	"github.com/mojosa-software/gosrv/src/httpx"
 	"log"
 )
 

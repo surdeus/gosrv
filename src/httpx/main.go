@@ -6,7 +6,7 @@ import(
 	"log"
 	"fmt"
 	"strings"
-	"github.com/surdeus/gosrv/src/rex"
+	"github.com/mojosa-software/gosrv/src/rex"
 )
 
 type Server = http.Server

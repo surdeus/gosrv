@@ -3,8 +3,8 @@ package apix
 // Implementing interface for
 
 import (
-	"github.com/surdeus/gosrv/src/httpx/muxx"
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
+	"github.com/mojosa-software/gosrv/src/httpx/muxx"
+	"github.com/mojosa-software/gosrv/src/dbx/sqlx"
 	//"database/sql"
 	"encoding/gob"
 	"io"

@@ -5,7 +5,7 @@ import(
 	"flag"
 	"log"
 	"net/http"
-	"github.com/surdeus/gosrv/src/httpx"
+	"github.com/mojosa-software/gosrv/src/httpx"
 )
 
 

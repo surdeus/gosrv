@@ -1,7 +1,7 @@
 package structs
 
 import (
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
+	"github.com/mojosa-software/gosrv/src/dbx/sqlx"
 	//"reflect"
 	"fmt"
 	"errors"

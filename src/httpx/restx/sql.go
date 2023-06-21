@@ -2,10 +2,10 @@ package restx
 
 import (
 	"net/http"
-	"github.com/surdeus/gosrv/src/dbx/sqlx"
-	"github.com/surdeus/gosrv/src/httpx/muxx"
-	//"github.com/surdeus/godat/src/slicex"
-	//"github.com/surdeus/gosrv/src/urlx"
+	"github.com/mojosa-software/gosrv/src/dbx/sqlx"
+	"github.com/mojosa-software/gosrv/src/httpx/muxx"
+	//"github.com/mojosa-software/godat/src/slicex"
+	//"github.com/mojosa-software/gosrv/src/urlx"
 	"strings"
 	"regexp"
 	"fmt"
