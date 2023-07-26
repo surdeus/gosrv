@@ -10,3 +10,4 @@ func (e ExtraColInfo) AutoInc(
 	e.AutoIncrement = v
 	return e
 }
+
