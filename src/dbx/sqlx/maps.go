@@ -11,7 +11,7 @@ var (
 		"UNI" : UniqueKeyType,
 		"MUL" : ForeignKeyType,
 	}
-	MysqlKeyTypeMapString = mapx.Reverse(
+	MysqlKeyTypeMapString = mapx.Reversed(
 		MysqlStringMapKeyType,
 	)
 	MysqlColumnTypeMapString = map[ColumnVarType] string {
@@ -51,7 +51,7 @@ var (
 		JsonColumnVarType : "json",
 	}
 
-	MysqlStringMapColumnType = mapx.Reverse(
+	MysqlStringMapColumnType = mapx.Reversed(
 		MysqlColumnTypeMapString,
 	)
 
