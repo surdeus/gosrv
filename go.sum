@@ -2,5 +2,9 @@ github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfC
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
 github.com/golang-jwt/jwt v3.2.2+incompatible/go.mod h1:8pz2t5EyA70fFQQSrl6XZXzqecmYZeUEB8OUGHkxJ+I=
+github.com/mojosa-software/godat v0.0.0-20230711170316-a335bad31575 h1:wtaYzLbEND7JSY7L+huFU4IDT4nbuDolKRfnQ1d6KTc=
+github.com/mojosa-software/godat v0.0.0-20230711170316-a335bad31575/go.mod h1:E6ohOj8PpUJBQOSRdrLygjoO+Te6yfeox3ZtaItsHUg=
+github.com/mojosa-software/godat v0.0.0-20230728174802-877ee125498e h1:I8wvVgPGq1wUU+GzOUUZBOzfcxFlXosBkUj3UcjSBhY=
+github.com/mojosa-software/godat v0.0.0-20230728174802-877ee125498e/go.mod h1:E6ohOj8PpUJBQOSRdrLygjoO+Te6yfeox3ZtaItsHUg=
 github.com/surdeus/godat v0.0.0-20221127191620-28536eb2e051 h1:03FZ9aiJoo6V3KP3l87RqU3TuAhgTQ5b7B1+joRVs8M=
 github.com/surdeus/godat v0.0.0-20221127191620-28536eb2e051/go.mod h1:M9REw9CRE1uXz2m2sBTog1Ze85/KY5W7ymn+q+d2jRI=
