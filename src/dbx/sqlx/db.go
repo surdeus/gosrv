@@ -3,10 +3,12 @@ package sqlx
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 type Db struct {
 	*sql.DB
+	Debug bool
 	ConnConfig ConnConfig
 	Tables TableSchemas
 	TMap TableMap
@@ -46,9 +48,11 @@ func Open(cfg ConnConfig, sqlers Sqlers) (*Db, error) {
 	typeMap := tables.TypeMap()
 
 	return &Db{
-		db, cfg,
-		tables, tMap,
-		typeMap,
+		DB: db,
+		ConnConfig: cfg,
+		Tables: tables,
+		TMap: tMap,
+		TypeMap: typeMap,
 	}, nil
 }
 
@@ -60,7 +64,11 @@ func (db *Db)Do(
 	if err != nil {
 		return nil, nil, err
 	}
-
+	
+	if db.Debug {
+		log.Printf("Handling the %q request...", string(qs))
+	}
+	
 	switch q.Type {
 	case SelectQueryType :
 		rs, err := db.DB.Query(string(qs), q.GetValues()...)

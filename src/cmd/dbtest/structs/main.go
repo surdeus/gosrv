@@ -7,6 +7,11 @@ import (
 	"errors"
 )
 
+type NewTest struct {
+	Id int
+	NullableString *string
+	NotNullableInt int
+}
 
 type Test struct {
 	Id sqlx.NullInt32
