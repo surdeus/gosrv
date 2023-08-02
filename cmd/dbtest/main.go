@@ -5,7 +5,7 @@ import(
 	"log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mojosa-software/gosrv/src/dbx/sqlx"
-	"github.com/mojosa-software/gosrv/src/cmd/dbtest/structs"
+	"github.com/mojosa-software/gosrv/cmd/dbtest/structs"
 )
 
 func main(){
