@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      dockerfile: dockerfile
+      context: .
+      target: dev
+    volumes:
+      - type: bind
+        source: ../..
+        target: /app
+    networks:
+      - mynet
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: todos
+      MYSQL_PORT: 3306
+    depends_on:
+      - mysql
+  mysql:
+    image: mariadb:latest
+    hostname: mysql
+    networks:
+      - mynet
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: todos
+    ports:
+      - 3306:3306
+    volumes:
+      - ./volume/mysql:/var/lib/mysql
+      
+networks:
+  mynet:
+    driver: bridge

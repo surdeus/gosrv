@@ -1,0 +1,9 @@
+from golang as dev
+
+# Install the air binary so we get live code-reloading when we save files
+run curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+
+# Run the air command in the directory where our code will live
+workdir /app
+cmd ["air", "-c", "./cmd/dbtest/.air.toml"]
+

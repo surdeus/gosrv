@@ -7,7 +7,7 @@ import (
 
 // Substitute raw values with fmt.Sprintf
 // and SqlRaw.
-func (db *Db)Rprintf(
+func (db *Db) Rprintf(
 	format string,
 	rawers ...Rawer,
 ) (Raw, error) {
@@ -27,7 +27,7 @@ func (db *Db)Rprintf(
 
 // Return raw string with buffer for Valuer insertion
 // in SQL queries.
-func (db *Db)MultiBuf(vs Valuers) Raw {
+func (db *Db) MultiBuf(vs Valuers) Raw {
 	if len(vs) == 0 {
 		return ""
 	}
@@ -39,7 +39,7 @@ func (db *Db)MultiBuf(vs Valuers) Raw {
 	return Raw(strings.Join(buf, ","))
 }
 
-func (db *Db)TupleBuf(vs Valuers) Raw {
+func (db *Db) TupleBuf(vs Valuers) Raw {
 	ret := db.MultiBuf(vs)
 	if ret == "" {
 		return ""
@@ -48,25 +48,25 @@ func (db *Db)TupleBuf(vs Valuers) Raw {
 	return Raw(fmt.Sprintf("(%s)", ret))
 }
 
-func (v TableName)SqlRaw(db *Db) (Raw, error) {
+func (v TableName) SqlRaw(db *Db) (Raw, error) {
 	if v == "" {
 		return "", WrongRawFormatErr
 	}
 	return Raw(v), nil
 }
 
-func (v ColumnName)SqlRaw(db *Db) (Raw, error) {
+func (v ColumnName) SqlRaw(db *Db) (Raw, error) {
 	if v == "" {
 		return "", WrongValuerFormatErr
 	}
 	return Raw(v), nil
 }
 
-func (v Raw)SqlRaw(db *Db) (Raw, error) {
+func (v Raw) SqlRaw(db *Db) (Raw, error) {
 	return v, nil
 }
 
-func (tn TableNames)SqlRaw(db *Db) (Raw, error) {
+func (tn TableNames) SqlRaw(db *Db) (Raw, error) {
 	ml := Rawers{}
 	for _, n := range tn {
 		ml = append(ml, Rawer(n))
@@ -74,7 +74,7 @@ func (tn TableNames)SqlRaw(db *Db) (Raw, error) {
 	return db.SqlMultival(ml)
 }
 
-func (cn ColumnNames)SqlRaw(db *Db) (Raw, error) {
+func (cn ColumnNames) SqlRaw(db *Db) (Raw, error) {
 	ml := Rawers{}
 	for _, n := range cn {
 		ml = append(ml, Rawer(n))
@@ -97,7 +97,7 @@ func (db *Db) SqlMultival(rvs Rawers) (Raw, error) {
 
 		ret += raw
 
-		if i != len(rvs) - 1 {
+		if i != len(rvs)-1 {
 			ret += ", "
 		}
 	}
@@ -119,7 +119,7 @@ func (db *Db) SqlTuple(rvs Rawers) (Raw, error) {
 	return Raw(fmt.Sprintf("(%s)", mval)), nil
 }
 
-func (db *Db)RawersEq(
+func (db *Db) RawersEq(
 	v1, v2 Rawer,
 ) (bool, error) {
 
@@ -128,7 +128,6 @@ func (db *Db)RawersEq(
 	}
 
 	if v1 == nil || v2 == nil {
-		fmt.Println("in")
 		return false, nil
 	}
 
@@ -143,4 +142,3 @@ func (db *Db)RawersEq(
 	}
 	return raw1 == raw2, nil
 }
-
