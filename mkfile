@@ -1,5 +1,10 @@
 <mkconfig
-<$MKINCDIR/gobuild
 
-<$MKINCDIR/w3/run-dev
+all: build
+
+build :V:
+	go build -o exe/ ./cmd/...
+
+clean :V:
+	rm -f exe/*
 

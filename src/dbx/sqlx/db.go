@@ -3,24 +3,26 @@ package sqlx
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 type Db struct {
 	*sql.DB
+	Debug      bool
 	ConnConfig ConnConfig
-	Tables TableSchemas
-	TMap TableMap
+	Tables     TableSchemas
+	TMap       TableMap
 	//TCMap TableColumnMap
 	TypeMap TypeMap
 }
 
 type ConnConfig struct {
-	Driver string
+	Driver                      string
 	Login, Password, Host, Name string
-	Port int
+	Port                        int
 }
 
-func (c ConnConfig)String() string {
+func (c ConnConfig) String() string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s",
 		c.Login,
@@ -46,13 +48,15 @@ func Open(cfg ConnConfig, sqlers Sqlers) (*Db, error) {
 	typeMap := tables.TypeMap()
 
 	return &Db{
-		db, cfg,
-		tables, tMap,
-		typeMap,
+		DB:         db,
+		ConnConfig: cfg,
+		Tables:     tables,
+		TMap:       tMap,
+		TypeMap:    typeMap,
 	}, nil
 }
 
-func (db *Db)Do(
+func (db *Db) Do(
 	q Query,
 ) (sql.Result, *sql.Rows, error) {
 	//var val Sqler
@@ -61,16 +65,20 @@ func (db *Db)Do(
 		return nil, nil, err
 	}
 
+	if db.Debug {
+		log.Printf("Handling the '%s' request...", string(qs))
+	}
+
 	switch q.Type {
-	case SelectQueryType :
+	case SelectQueryType:
 		rs, err := db.DB.Query(string(qs), q.GetValues()...)
 		return nil, rs, err
-	case InsertQueryType :
+	case InsertQueryType:
 		v, err := db.ConstructInsertValue(q)
 		if err != nil {
 			return nil, nil, err
 		}
-		bef, ok := any(v).(interface{
+		bef, ok := any(v).(interface {
 			BeforeInsert(*Db) error
 		})
 
@@ -87,7 +95,7 @@ func (db *Db)Do(
 			return nil, nil, err
 		}
 
-		aft, ok := any(v).(interface{
+		aft, ok := any(v).(interface {
 			AfterInsert(*Db)
 		})
 		if ok {
@@ -104,4 +112,3 @@ func (db *Db)Do(
 
 	return res, nil, nil
 }
-

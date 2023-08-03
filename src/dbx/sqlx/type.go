@@ -5,10 +5,13 @@ package sqlx
 
 import (
 	"database/sql"
-	"time"
-	"strconv"
 	"errors"
+
+	//"fmt"
 	"reflect"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func Bool(b bool) sql.NullBool {
@@ -65,26 +68,27 @@ func StringToValuer(
 	}
 
 	switch t {
-	case BoolSqlType :
+	case BoolSqlType:
 		b, err := strconv.ParseBool(v)
 		return Bool(b), err
-	case ByteSqlType :
+	case ByteSqlType:
 		b, err := strconv.ParseInt(v, 0, 8)
 		return Byte(byte(b)), err
-	case Int16SqlType :
+	case Int16SqlType:
 		i, err := strconv.ParseInt(v, 0, 16)
 		return Int16(int16(i)), err
-	case Int32SqlType :
+	case Int32SqlType:
 		i, err := strconv.ParseInt(v, 0, 32)
 		return Int32(int32(i)), err
-	case Int64SqlType :
+	case Int64SqlType:
 		i, err := strconv.ParseInt(v, 0, 64)
 		return Int64(int64(i)), err
-	case Float64SqlType :
+	case Float64SqlType:
 		f, err := strconv.ParseFloat(v, 64)
 		return Float64(f), err
-	case StringSqlType :
-		return String(v), nil
+	case StringSqlType:
+		v = strings.Replace(v, "''", "'", -1)
+		return String(v[1 : len(v)-1]), nil
 	default:
 		return nil, errors.New("Not implemented conversion")
 	}
@@ -98,33 +102,33 @@ func ValuerIsValid(v Valuer) bool {
 }
 
 func ValueOf(v Valuer) any {
-	if !ValuerIsValid(v) {
+	if v == nil || !ValuerIsValid(v) {
 		return nil
 	}
- 
+
 	switch v.(type) {
-	case sql.NullBool :
+	case sql.NullBool:
 		vs := v.(sql.NullBool)
 		return vs.Bool
-	case sql.NullByte :
+	case sql.NullByte:
 		vs := v.(sql.NullByte)
 		return vs.Byte
-	case sql.NullInt16 :
+	case sql.NullInt16:
 		vs := v.(sql.NullInt16)
 		return vs.Int16
-	case sql.NullInt32 :
+	case sql.NullInt32:
 		vs := v.(sql.NullInt32)
 		return vs.Int32
-	case sql.NullInt64 :
+	case sql.NullInt64:
 		vs := v.(sql.NullInt64)
 		return vs.Int64
-	case sql.NullFloat64 :
+	case sql.NullFloat64:
 		vs := v.(sql.NullFloat64)
 		return vs.Float64
-	case sql.NullString :
+	case sql.NullString:
 		vs := v.(sql.NullString)
 		return vs.String
-	case sql.NullTime :
+	case sql.NullTime:
 		vs := v.(sql.NullTime)
 		return vs.Time
 	}
@@ -136,19 +140,19 @@ func ToValuer(
 	v any,
 ) Valuer {
 	switch v.(type) {
-	case string :
+	case string:
 		return String(v.(string))
-	case byte :
+	case byte:
 		return Byte(v.(byte))
-	case int16 :
+	case int16:
 		return Int16(v.(int16))
-	case int32 :
+	case int32:
 		return Int32(v.(int32))
-	case int64 :
+	case int64:
 		return Int64(v.(int64))
-	case float64 :
+	case float64:
 		return Float(v.(float64))
-	case time.Time :
+	case time.Time:
 		return Time(v.(time.Time))
 	}
 	return nil
@@ -161,37 +165,39 @@ func ValuerToString(
 	if !ValuerIsValid(v) {
 		return "null"
 	}
- 
+
 	switch v.(type) {
-	case sql.NullBool :
+	case sql.NullBool:
 		vs := v.(sql.NullBool)
 		return strconv.FormatBool(vs.Bool)
-	case sql.NullByte :
+	case sql.NullByte:
 		vs := v.(sql.NullByte)
 		return strconv.FormatInt(int64(vs.Byte), 10)
-	case sql.NullInt16 :
+	case sql.NullInt16:
 		vs := v.(sql.NullInt16)
 		return strconv.FormatInt(int64(vs.Int16), 10)
-	case sql.NullInt32 :
+	case sql.NullInt32:
 		vs := v.(sql.NullInt32)
 		return strconv.FormatInt(int64(vs.Int32), 10)
-	case sql.NullInt64 :
+	case sql.NullInt64:
 		vs := v.(sql.NullInt64)
 		return strconv.FormatInt(vs.Int64, 10)
-	case sql.NullFloat64 :
+	case sql.NullFloat64:
 		vs := v.(sql.NullFloat64)
 		return strconv.FormatFloat(
 			vs.Float64,
-			'f', 5, 64 )
-	case sql.NullString :
+			'f', 5, 64)
+	case sql.NullString:
 		vs := v.(sql.NullString)
 		return vs.String
-	case sql.NullTime :
+	case sql.NullTime:
 		vs := v.(sql.NullBool)
 		return strconv.FormatBool(vs.Bool)
-	default :
+	default:
 		return ""
 	}
 }
 
-
+func ValuersEq(v1, v2 Valuer) bool {
+	return ValueOf(v1) == ValueOf(v2)
+}

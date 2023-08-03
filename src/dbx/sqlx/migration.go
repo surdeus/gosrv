@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"errors"
+	"log"
 )
 
 type ColumnDiff int
@@ -68,7 +69,7 @@ var (
 
 // Simple migration. Fuck writing much of shit in SQL directly.
 
-func (db *Db)Migrate() error {
+func (db *Db) Migrate() error {
 	var err error
 
 	if err != nil {
@@ -86,18 +87,13 @@ func (db *Db)Migrate() error {
 	return nil
 }
 
-func (db *Db)MigrateSchema(
+func (db *Db) MigrateSchema(
 	schema *TableSchema,
 ) error {
 	err := db.MigrateRenameTable(schema)
 	if err != nil &&
-			err != TableAlreadyExistsErr {
-
-		if err == TableDoesNotExistErr {
-			err := db.CreateTableBySchema(schema)
-			return err
-		}
-
+		err != TableAlreadyExistsErr {
+		err := db.CreateTableBySchema(schema)
 		return err
 	}
 
@@ -130,10 +126,10 @@ func (db *Db)MigrateSchema(
 	return nil
 }
 
-func (db *Db)MigrateAlterColumnType(
+func (db *Db) MigrateAlterColumnType(
 	tableName TableName,
 	newCol *Column,
-) (error) {
+) error {
 	curCol, err := db.GetColumnSchema(
 		tableName, newCol.Name,
 	)
@@ -151,8 +147,11 @@ func (db *Db)MigrateAlterColumnType(
 		return err
 	}
 
+	//log.Printf("%q %q %v\n", curSql, newSql, curSql == newSql)
+	//log.Println("rawers:", db.RawersEq(curCol, newCol))
 	if curSql != newSql ||
-			curCol.Default != newCol.Default {
+		!ValuersEq(curCol.Default, newCol.Default) {
+		//log.Printf("v1 = %v, v2 = %v\n", curCol.Default, newCol.Default)
 		err = db.AlterColumnType(
 			tableName, newCol,
 		)
@@ -164,10 +163,10 @@ func (db *Db)MigrateAlterColumnType(
 	return nil
 }
 
-func (db *Db)MigrateRenameColumn(
+func (db *Db) MigrateRenameColumn(
 	tableName TableName,
 	column *Column,
-) (error) {
+) error {
 	if column.OldName == "" {
 		return nil
 	}
@@ -204,9 +203,9 @@ func (db *Db)MigrateRenameColumn(
 	return nil
 }
 
-func (db *Db)MigrateRenameTable(
+func (db *Db) MigrateRenameTable(
 	ts *TableSchema,
-) (error) {
+) error {
 	if ts.OldName == "" {
 		return nil
 	}
@@ -221,19 +220,16 @@ func (db *Db)MigrateRenameTable(
 		return err
 	}
 
+	// Renaming should not be destroying so just return an
+	// error if so.
 	if existsNew {
 		return TableAlreadyExistsErr
 	}
 
+	// Nothing to rename.
 	if !existsOld {
 		return TableDoesNotExistErr
 	}
 
-	err = db.RenameTable(ts.OldName, ts.Name)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return db.RenameTable(ts.OldName, ts.Name)
 }
-
