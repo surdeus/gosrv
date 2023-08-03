@@ -2,7 +2,7 @@ package sqlx
 
 import (
 	"errors"
-	"log"
+	// //"log"
 )
 
 type ColumnDiff int
